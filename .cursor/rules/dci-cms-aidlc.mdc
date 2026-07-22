@@ -1,0 +1,14 @@
+---
+description: DCI CMS AIDLC — ikuti siklus dan dokumen proyek sebelum mengubah kode/mockup
+alwaysApply: true
+---
+
+# DCI CMS — AI Development Life Cycle
+
+- Ikuti fase & checklist di **`docs/AI_DEVELOPMENT_LIFECYCLE.md`** untuk pekerjaan non-trivial.
+- **Requirement:** `docs/BRD-Contract-Management-System-v1.3.md` (status §9, BRL §10, scope §4).
+- **UI:** `DESIGN_GUIDELINES.md` + pola di `CMS_Mockup.html` (party-centric, ink/brass, RBAC hide vs view-only).
+- **Odoo:** `docs/ODOO_INTEGRATION.md` — consume Partner/SO only; no SO/Partner master write-back.
+- **How-to alur:** `docs/PANDUAN-OPERASIONAL-CMS.md`.
+- **Keamanan:** jangan commit secrets / `.env` Odoo atau e-sign.
+- Entry agent: `AGENTS.md` (dan `CLAUDE.md` → `@AGENTS.md`).
