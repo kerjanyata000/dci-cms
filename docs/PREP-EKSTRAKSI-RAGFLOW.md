@@ -42,7 +42,7 @@ Odoo stays **Partner + SO only**. File vault = Supabase, not Odoo Documents.
 
 - [ ] Run RAGFlow (Docker)
 - [ ] Create dataset `cms-contracts`
-- [ ] API key in **Edge Function secrets** (not `VITE_*`)
+- [ ] API key in **Edge Function secrets** (not `NEXT_PUBLIC_*`)
 - [ ] POC 10–20 sample PDFs; tune parse/chunk; map JSON → `ContractMetadata`
 
 ### 4. CMS app (`web/`)
@@ -71,7 +71,7 @@ Odoo stays **Partner + SO only**. File vault = Supabase, not Odoo Documents.
 ## Prep this week (minimum)
 
 1. Supabase project + run migration + bucket `contracts`
-2. Keep coding against `VITE_RAGFLOW_MODE=dummy` / `VITE_ODOO_MODE=dummy`
+2. Keep coding against `NEXT_PUBLIC_RAGFLOW_MODE=dummy` / `NEXT_PUBLIC_ODOO_MODE=dummy`
 3. Collect 10–20 anonymized MSA PDFs for RAGFlow POC
 4. Seed Odoo trial Partner/SO (checklist file)
 5. Spec field mapping: RAGFlow JSON → `ContractMetadata` keys

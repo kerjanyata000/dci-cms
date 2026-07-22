@@ -1,6 +1,8 @@
+'use client'
+
 import { useMemo, useState } from 'react'
-import type { AppRole, SessionUser } from '../lib/roles'
-import { ROLES } from '../lib/roles'
+import type { AppRole, SessionUser } from '@/lib/roles'
+import { ROLES } from '@/lib/roles'
 
 type Props = {
   onLogin: (user: SessionUser) => void
@@ -9,7 +11,6 @@ type Props = {
 export function LoginPage({ onLogin }: Props) {
   const [email, setEmail] = useState('legal.admin@dci.co.id')
   const [role, setRole] = useState<AppRole>('legal')
-
   const roleList = useMemo(() => Object.entries(ROLES) as Array<[AppRole, (typeof ROLES)[AppRole]]>, [])
 
   return (
@@ -26,7 +27,7 @@ export function LoginPage({ onLogin }: Props) {
         }}
       >
         <h1>Contract MS</h1>
-        <p className="muted">Scaffold React · Supabase · Odoo · RAGFlow</p>
+        <p className="muted">Next.js · React · Supabase · Odoo · RAGFlow</p>
         <div className="field">
           <label htmlFor="email">Email</label>
           <input id="email" value={email} onChange={(e) => setEmail(e.target.value)} />

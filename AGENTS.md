@@ -31,9 +31,10 @@ Untuk pekerjaan non-trivial (fitur, bug, UI baru, integrasi Odoo, skema data): b
 | Artefak | Fungsi |
 | --- | --- |
 | `CMS_Mockup.html` | Prototype UI interaktif (role, party, lifecycle) |
+| `web/` | App **Next.js** (App Router) — bukan Vite |
 | `docs/BRD-…v1.3.md` | Requirement resmi |
 | `List MSA Customer (Updated).xlsx` | Data register sumber demo |
 | `DESIGN_GUIDELINES.md` | Token & pola UI |
 | `docs/ODOO_INTEGRATION.md` | Batas & pola integrasi Odoo |
 
-Jangan commit secrets (API key Odoo, password e-sign, `.env`).
+Instruksi agen hanya di root (`AGENTS.md` / `CLAUDE.md`). Jangan commit secrets (API key Odoo, password e-sign, `.env.local`).

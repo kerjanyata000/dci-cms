@@ -1,12 +1,14 @@
-import { useState } from 'react'
-import { getRagflowClient, RAGFLOW_DATASET_ID } from '../lib/ragflow/client'
-import { runExtractionPipeline } from '../lib/pipeline/extraction'
-import type { ContractMetadata } from '../types/cms'
+'use client'
 
-export function ExtractionLabPage() {
+import { useState } from 'react'
+import { getRagflowClient, RAGFLOW_DATASET_ID } from '@/lib/ragflow/client'
+import { runExtractionPipeline } from '@/lib/pipeline/extraction'
+import type { ContractMetadata } from '@/types/cms'
+
+export default function ExtractionLabPage() {
   const [file, setFile] = useState<File | null>(null)
   const [query, setQuery] = useState('auto-renewal')
-  const [log, setLog] = useState<string>('Siap uji adapter RAGFlow dummy.')
+  const [log, setLog] = useState('Siap uji adapter RAGFlow dummy.')
   const [extracted, setExtracted] = useState<ContractMetadata | null>(null)
 
   async function runExtract() {
@@ -33,12 +35,8 @@ export function ExtractionLabPage() {
       </div>
       <div className="card stack">
         <div className="field">
-          <label htmlFor="file">PDF / DOCX (dummy tidak benar-benar di-parse)</label>
-          <input
-            id="file"
-            type="file"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          />
+          <label htmlFor="file">PDF / DOCX</label>
+          <input id="file" type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
         </div>
         <button className="btn primary" type="button" disabled={!file} onClick={runExtract}>
           Run extraction pipeline

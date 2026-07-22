@@ -28,10 +28,10 @@ Party-centric **Contract Management System** untuk DCI, dirancang menyambung ke 
 
 ## Status proyek
 
-Saat ini: **BRD + mockup + docs fondasi + scaffold React (`web/`)**.
+Saat ini: **BRD + mockup + docs fondasi + scaffold Next.js (`web/`)**.
 
 - Mockup UX: [`CMS_Mockup.html`](./CMS_Mockup.html)
-- App scaffold: [`web/`](./web/) (Supabase client, Odoo/RAGFlow adapters dummy, Extraction Lab)
+- App: [`web/`](./web/) — **Next.js + React** (Supabase, Odoo/RAGFlow adapters, Extraction Lab)
 - Checklist trial Odoo + AI: [`docs/CHECKLIST-ODOO-TRIAL-DAN-AI.md`](./docs/CHECKLIST-ODOO-TRIAL-DAN-AI.md)
-- Persiapan ekstraksi: [`docs/PREP-EKSTRAKSI-RAGFLOW.md`](./docs/PREP-EKSTRAKSI-RAGFLOW.md)
+- Persiapan ekstraksi: [`docs/PREP-EKSTRAKSI-RAGFLOW.md`](./docs/PREP-EKSTRAKSI-RAGFLOW.md), [`docs/PREP-AI-EKSTRAKSI-UNTUK-TIM.md`](./docs/PREP-AI-EKSTRAKSI-UNTUK-TIM.md)
 - Skema awal: [`supabase/migrations/001_initial.sql`](./supabase/migrations/001_initial.sql)

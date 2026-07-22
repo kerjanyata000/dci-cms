@@ -1,7 +1,10 @@
-import { NavLink, Outlet } from 'react-router-dom'
-import { ROLES, type SessionUser } from '../lib/roles'
-import { ODOO_MODE } from '../lib/odoo/client'
-import { RAGFLOW_MODE } from '../lib/ragflow/client'
+'use client'
+
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { ROLES, type SessionUser } from '@/lib/roles'
+import { ODOO_MODE } from '@/lib/odoo/client'
+import { RAGFLOW_MODE } from '@/lib/ragflow/client'
 import './shell.css'
 
 const LABELS: Record<string, string> = {
@@ -14,9 +17,11 @@ const LABELS: Record<string, string> = {
 type Props = {
   user: SessionUser
   onLogout: () => void
+  children: React.ReactNode
 }
 
-export function AppShell({ user, onLogout }: Props) {
+export function AppShell({ user, onLogout, children }: Props) {
+  const pathname = usePathname()
   const role = ROLES[user.role]
 
   return (
@@ -30,21 +35,21 @@ export function AppShell({ user, onLogout }: Props) {
           </div>
         </div>
         <nav className="nav-group">
-          {role.nav.map((view) => (
-            <NavLink
-              key={view}
-              to={`/${view}`}
-              className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
-            >
-              {LABELS[view] ?? view}
-            </NavLink>
-          ))}
-          <NavLink
-            to="/lab/extraction"
-            className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+          {role.nav.map((view) => {
+            const href = `/${view}`
+            const active = pathname === href || pathname.startsWith(`${href}/`)
+            return (
+              <Link key={view} href={href} className={`nav-item${active ? ' active' : ''}`}>
+                {LABELS[view] ?? view}
+              </Link>
+            )
+          })}
+          <Link
+            href="/lab/extraction"
+            className={`nav-item${pathname.startsWith('/lab/extraction') ? ' active' : ''}`}
           >
             Extraction Lab
-          </NavLink>
+          </Link>
         </nav>
         <div className="sidebar-foot">
           {user.name}
@@ -70,9 +75,7 @@ export function AppShell({ user, onLogout }: Props) {
             </button>
           </div>
         </header>
-        <main className="content">
-          <Outlet />
-        </main>
+        <main className="content">{children}</main>
       </div>
     </div>
   )

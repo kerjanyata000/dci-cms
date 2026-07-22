@@ -1,11 +1,15 @@
-import { useState } from 'react'
-import { getOdooClient } from '../lib/odoo/client'
-import type { OdooSaleOrder } from '../lib/odoo/types'
-import type { SessionUser } from '../lib/roles'
-import { ROLES } from '../lib/roles'
+'use client'
 
-export function SoHealthPage({ user }: { user: SessionUser }) {
+import { useState } from 'react'
+import { useAuth } from '@/components/AuthProvider'
+import { getOdooClient } from '@/lib/odoo/client'
+import type { OdooSaleOrder } from '@/lib/odoo/types'
+import { ROLES } from '@/lib/roles'
+
+export default function SoHealthPage() {
+  const { user } = useAuth()
   const [rows, setRows] = useState<OdooSaleOrder[]>([])
+  if (!user) return null
   const canSync = ROLES[user.role].canSync || ROLES[user.role].canEdit
 
   async function load() {
@@ -20,7 +24,7 @@ export function SoHealthPage({ user }: { user: SessionUser }) {
         <p>Monitor SO dari Odoo (consume-only). Run Sync = aksi, bukan menu tersendiri.</p>
       </div>
       <div className="card stack">
-        <div className="btn-row" style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn ghost" type="button" onClick={load}>
             Load SO (adapter)
           </button>
@@ -28,7 +32,7 @@ export function SoHealthPage({ user }: { user: SessionUser }) {
             <button
               className="btn primary"
               type="button"
-              onClick={() => alert('TODO: Edge Function SO sync batch')}
+              onClick={() => alert('TODO: server route SO sync batch')}
             >
               Run Sync Now
             </button>

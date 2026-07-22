@@ -21,7 +21,8 @@ Indeks dokumen proyek **Contract Management System** (party-centric + Odoo).
 | [PANDUAN-OPERASIONAL-CMS.md](./PANDUAN-OPERASIONAL-CMS.md) | Outline A→B→C mockup + role UI |
 | [ODOO_INTEGRATION.md](./ODOO_INTEGRATION.md) | Party link + SO sync boundaries |
 
-## Artefak UI
+## Artefak UI & app
 
 - Mockup: [`../CMS_Mockup.html`](../CMS_Mockup.html)
+- App Next.js: [`../web/`](../web/) — lihat [`../web/README.md`](../web/README.md)
 - README root: [`../README.md`](../README.md)

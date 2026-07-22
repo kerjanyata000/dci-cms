@@ -1,8 +1,10 @@
-import { useState } from 'react'
-import { getOdooClient } from '../lib/odoo/client'
-import type { OdooPartner } from '../lib/odoo/types'
+'use client'
 
-export function PartiesPage() {
+import { useState } from 'react'
+import { getOdooClient } from '@/lib/odoo/client'
+import type { OdooPartner } from '@/lib/odoo/types'
+
+export default function PartiesPage() {
   const [q, setQ] = useState('')
   const [rows, setRows] = useState<OdooPartner[]>([])
   const [busy, setBusy] = useState(false)
@@ -12,8 +14,7 @@ export function PartiesPage() {
     try {
       const client = getOdooClient()
       const domain = q ? [['name', 'ilike', `%${q}%`]] : []
-      const partners = await client.searchPartners(domain, undefined, 20)
-      setRows(partners)
+      setRows(await client.searchPartners(domain, undefined, 20))
     } finally {
       setBusy(false)
     }
@@ -23,11 +24,11 @@ export function PartiesPage() {
     <div>
       <div className="page-head">
         <h1>Parties</h1>
-        <p>List Party CMS akan dari Supabase. Sementara: uji inquiry Odoo Partner (dummy/live adapter).</p>
+        <p>List Party CMS akan dari Supabase. Sementara: uji inquiry Odoo Partner (adapter).</p>
       </div>
       <div className="card stack">
         <div className="field">
-          <label htmlFor="q">Cari Odoo Partner (adapter)</label>
+          <label htmlFor="q">Cari Odoo Partner</label>
           <input id="q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Alpha / Beta / …" />
         </div>
         <button className="btn primary" type="button" onClick={search} disabled={busy}>
