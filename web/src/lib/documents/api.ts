@@ -1,3 +1,5 @@
+import { cmsFetch } from '@/lib/api/http'
+
 async function parseJson<T>(res: Response): Promise<T> {
   const payload = (await res.json()) as { ok?: boolean; data?: T; error?: string }
   if (!res.ok || !payload.ok) {
@@ -11,7 +13,7 @@ export async function getDocumentDownloadUrl(documentId: string): Promise<{
   fileName: string
   mimeType: string
 }> {
-  return parseJson(await fetch(`/api/documents/${documentId}/download`, { cache: 'no-store' }))
+  return parseJson(await cmsFetch(`/api/documents/${documentId}/download`, { cache: 'no-store' }))
 }
 
 export async function openDocumentDownload(documentId: string) {
@@ -36,6 +38,6 @@ export async function uploadSignedContractDocument(
   if (markFullySigned) form.set('mark_fully_signed', '1')
 
   return parseJson<{ document: unknown; contract: unknown }>(
-    await fetch(`/api/contracts/${contractId}/signed-document`, { method: 'POST', body: form }),
+    await cmsFetch(`/api/contracts/${contractId}/signed-document`, { method: 'POST', body: form }),
   )
 }

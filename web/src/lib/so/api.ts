@@ -1,5 +1,7 @@
 import type { SaleOrderRow } from '@/types/cms'
 
+import { cmsFetch } from '@/lib/api/http'
+
 async function parseJson<T>(res: Response): Promise<T> {
   const payload = (await res.json()) as { ok?: boolean; data?: T; error?: string }
   if (!res.ok || !payload.ok) {
@@ -22,13 +24,13 @@ export type SyncedOrderRow = SaleOrderRow & {
 
 export async function fetchSyncedOrders(partyId?: string): Promise<SyncedOrderRow[]> {
   const qs = partyId ? `?partyId=${encodeURIComponent(partyId)}` : ''
-  const data = await parseJson<{ orders: SyncedOrderRow[] }>(await fetch(`/api/so${qs}`))
+  const data = await parseJson<{ orders: SyncedOrderRow[] }>(await cmsFetch(`/api/so${qs}`))
   return data.orders
 }
 
 export async function runSoSync(partyId?: string): Promise<SyncSoResult> {
   return parseJson<SyncSoResult>(
-    await fetch('/api/so', {
+    await cmsFetch('/api/so', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(partyId ? { partyId } : {}),

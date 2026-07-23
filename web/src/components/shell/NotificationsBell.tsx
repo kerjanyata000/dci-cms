@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
+import { cmsFetch } from '@/lib/api/http'
 
 type NotificationItem = {
   id: string
@@ -19,7 +20,7 @@ export function NotificationsBell() {
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    fetch('/api/notifications')
+    cmsFetch('/api/notifications')
       .then((r) => r.json())
       .then((p) => {
         if (p.ok) setItems(p.data.notifications ?? [])

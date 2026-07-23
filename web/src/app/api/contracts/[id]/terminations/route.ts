@@ -1,4 +1,5 @@
-import { jsonError, jsonOk } from '@/lib/server/api-route'
+import { requireCanEdit, handleRouteError } from '@/lib/auth/route-helpers'
+import { jsonOk } from '@/lib/server/api-route'
 import { createEarlyTermination } from '@/lib/contracts/server'
 
 export const runtime = 'nodejs'
@@ -8,6 +9,7 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
+    await requireCanEdit(request)
     const { id: contractId } = await context.params
     const body = (await request.json()) as {
       termination_type?: string
@@ -25,6 +27,6 @@ export async function POST(
 
     return jsonOk({ termination }, { status: 201 })
   } catch (err) {
-    return jsonError(err instanceof Error ? err.message : 'Failed to create termination', 500)
+    return handleRouteError(err, 'Failed to create termination')
   }
 }

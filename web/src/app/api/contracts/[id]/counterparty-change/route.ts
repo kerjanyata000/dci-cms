@@ -1,3 +1,4 @@
+import { requireCanEdit, handleRouteError } from '@/lib/auth/route-helpers'
 import { jsonError, jsonOk } from '@/lib/server/api-route'
 import { changeContractCounterparty } from '@/lib/contracts/server'
 
@@ -8,6 +9,7 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
+    await requireCanEdit(request)
     const { id } = await context.params
     const body = (await request.json()) as {
       to_party_id?: string
@@ -27,6 +29,6 @@ export async function POST(
 
     return jsonOk(result)
   } catch (err) {
-    return jsonError(err instanceof Error ? err.message : 'Counterparty change failed', 500)
+    return handleRouteError(err, 'Counterparty change failed')
   }
 }

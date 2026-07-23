@@ -1,3 +1,4 @@
+import { cmsFetch } from '@/lib/api/http'
 import type {
   Contract,
   ContractAmendment,
@@ -29,7 +30,7 @@ export async function fetchParties(params: ListPartiesParams = {}): Promise<Part
     search.set('linkStatus', params.linkStatus)
   }
   const qs = search.toString()
-  const data = await parseJson<{ parties: Party[] }>(await fetch(`/api/parties${qs ? `?${qs}` : ''}`))
+  const data = await parseJson<{ parties: Party[] }>(await cmsFetch(`/api/parties${qs ? `?${qs}` : ''}`))
   return data.parties
 }
 
@@ -52,12 +53,12 @@ export type PartyDetailPayload = {
 }
 
 export async function fetchPartyDetail(id: string): Promise<PartyDetailPayload> {
-  return parseJson<PartyDetailPayload>(await fetch(`/api/parties/${id}`))
+  return parseJson<PartyDetailPayload>(await cmsFetch(`/api/parties/${id}`))
 }
 
 export async function createParty(input: { name: string; pic?: string }): Promise<Party> {
   const data = await parseJson<{ party: Party }>(
-    await fetch('/api/parties', {
+    await cmsFetch('/api/parties', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(input),
@@ -71,7 +72,7 @@ export async function linkPartyOdoo(
   input: { odooPartnerId: number; reason?: string },
 ): Promise<Party> {
   const data = await parseJson<{ party: Party }>(
-    await fetch(`/api/parties/${partyId}/link-odoo`, {
+    await cmsFetch(`/api/parties/${partyId}/link-odoo`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(input),
@@ -92,7 +93,7 @@ export async function previewPartyOdooLink(
   odooPartnerId: number,
 ): Promise<LinkOdooPreview> {
   return parseJson<LinkOdooPreview>(
-    await fetch(`/api/parties/${partyId}/link-odoo`, {
+    await cmsFetch(`/api/parties/${partyId}/link-odoo`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ odooPartnerId, preview: true }),

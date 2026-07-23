@@ -1,3 +1,4 @@
+import { cmsFetch } from '@/lib/api/http'
 import type { SmartSearchResult, SearchScope } from '@/lib/search/server'
 
 async function parseJson<T>(res: Response): Promise<T> {
@@ -24,5 +25,5 @@ export async function runSearch(params: SearchParams): Promise<SmartSearchResult
   if (params.docType) sp.set('docType', params.docType)
   if (params.semantic === false) sp.set('semantic', '0')
 
-  return parseJson<SmartSearchResult>(await fetch(`/api/search?${sp.toString()}`, { cache: 'no-store' }))
+  return parseJson<SmartSearchResult>(await cmsFetch(`/api/search?${sp.toString()}`, { cache: 'no-store' }))
 }

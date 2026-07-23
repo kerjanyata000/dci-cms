@@ -1,6 +1,7 @@
-import { jsonError, jsonOk } from '@/lib/server/api-route'
-import { persistSignedContractDocument } from '@/lib/documents/server'
+import { requireCanEdit, handleRouteError } from '@/lib/auth/route-helpers'
 import { getContractById, transitionContractStatus } from '@/lib/contracts/server'
+import { persistSignedContractDocument } from '@/lib/documents/server'
+import { jsonError, jsonOk } from '@/lib/server/api-route'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 
 export const runtime = 'nodejs'
@@ -10,6 +11,7 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
+    const actor = await requireCanEdit(request)
     const { id: contractId } = await context.params
     const form = await request.formData()
     const file = form.get('file')
@@ -32,7 +34,7 @@ export async function POST(
       action_type: 'upload',
       party_id: contract.party_id,
       contract_id: contractId,
-      actor_name: 'CMS',
+      actor_name: actor.name,
       payload: { file_name: file.name, document_id: doc.id },
     })
 
@@ -43,6 +45,6 @@ export async function POST(
 
     return jsonOk({ document: doc, contract: updatedContract }, { status: 201 })
   } catch (err) {
-    return jsonError(err instanceof Error ? err.message : 'Upload failed', 500)
+    return handleRouteError(err, 'Upload failed')
   }
 }

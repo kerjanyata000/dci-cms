@@ -1,3 +1,4 @@
+import { cmsFetch } from '@/lib/api/http'
 import type {
   Contract,
   ContractAmendment,
@@ -45,13 +46,13 @@ export async function createContract(partyId: string, input: CreateContractInput
     form.set('file', input.file)
 
     const data = await parseJson<{ contract: Contract }>(
-      await fetch(`/api/parties/${partyId}/contracts`, { method: 'POST', body: form }),
+      await cmsFetch(`/api/parties/${partyId}/contracts`, { method: 'POST', body: form }),
     )
     return data.contract
   }
 
   const data = await parseJson<{ contract: Contract }>(
-    await fetch(`/api/parties/${partyId}/contracts`, {
+    await cmsFetch(`/api/parties/${partyId}/contracts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(input),
@@ -71,7 +72,7 @@ export type CreateAmendmentInput = {
 
 export async function createAmendment(contractId: string, input: CreateAmendmentInput) {
   const data = await parseJson<{ amendment: ContractAmendment }>(
-    await fetch(`/api/contracts/${contractId}/amendments`, {
+    await cmsFetch(`/api/contracts/${contractId}/amendments`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(input),
@@ -89,7 +90,7 @@ export type CreateTerminationInput = {
 
 export async function createTermination(contractId: string, input: CreateTerminationInput) {
   const data = await parseJson<{ termination: ContractTermination }>(
-    await fetch(`/api/contracts/${contractId}/terminations`, {
+    await cmsFetch(`/api/contracts/${contractId}/terminations`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(input),
@@ -109,13 +110,13 @@ export async function uploadSupportingDocument(
   form.set('category', 'supporting')
 
   const data = await parseJson<{ document: DocumentRow }>(
-    await fetch(`/api/parties/${partyId}/documents`, { method: 'POST', body: form }),
+    await cmsFetch(`/api/parties/${partyId}/documents`, { method: 'POST', body: form }),
   )
   return data.document
 }
 
 export async function fetchContract(contractId: string): Promise<Contract> {
-  const data = await parseJson<{ contract: Contract }>(await fetch(`/api/contracts/${contractId}`))
+  const data = await parseJson<{ contract: Contract }>(await cmsFetch(`/api/contracts/${contractId}`))
   return data.contract
 }
 
@@ -124,7 +125,7 @@ export async function confirmContractMetadata(
   confirmed: ContractMetadata,
 ): Promise<Contract> {
   const data = await parseJson<{ contract: Contract }>(
-    await fetch(`/api/contracts/${contractId}`, {
+    await cmsFetch(`/api/contracts/${contractId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'confirm_metadata', confirmed }),
@@ -138,7 +139,7 @@ export async function transitionContractStatus(
   statusAction: string,
 ): Promise<Contract> {
   const data = await parseJson<{ contract: Contract }>(
-    await fetch(`/api/contracts/${contractId}`, {
+    await cmsFetch(`/api/contracts/${contractId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'status', statusAction }),
@@ -159,7 +160,7 @@ export async function updateContractAdminDetails(
   input: EditContractAdminInput,
 ): Promise<Contract> {
   const data = await parseJson<{ contract: Contract }>(
-    await fetch(`/api/contracts/${contractId}`, {
+    await cmsFetch(`/api/contracts/${contractId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'edit_admin', ...input }),
@@ -178,7 +179,7 @@ export async function changeContractCounterparty(
   },
 ) {
   return parseJson<{ contract: Contract; change: CounterpartyChange }>(
-    await fetch(`/api/contracts/${contractId}/counterparty-change`, {
+    await cmsFetch(`/api/contracts/${contractId}/counterparty-change`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(input),

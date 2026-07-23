@@ -1,3 +1,4 @@
+import { requireCanEdit, handleRouteError } from '@/lib/auth/route-helpers'
 import { jsonError, jsonOk } from '@/lib/server/api-route'
 import { createAmendment } from '@/lib/contracts/server'
 
@@ -8,6 +9,7 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
+    await requireCanEdit(request)
     const { id: parentContractId } = await context.params
     const body = (await request.json()) as {
       title?: string
@@ -30,6 +32,6 @@ export async function POST(
     })
     return jsonOk({ amendment }, { status: 201 })
   } catch (err) {
-    return jsonError(err instanceof Error ? err.message : 'Failed to create amendment', 500)
+    return handleRouteError(err, 'Failed to create amendment')
   }
 }

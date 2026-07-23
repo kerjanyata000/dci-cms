@@ -46,7 +46,10 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | 1.7 | Menu sidebar sesuai role | IT | Login IT | + SO Health, Renewal | 🟡 | | |
 | 1.8 | Aksi edit disembunyikan jika view-only | Business | Buka Parties | Tidak ada Add Party / Link Odoo | 🟡 | | |
 | 1.9 | Supabase Auth production | — | Login email/password | Session + `profiles.role` | 🟡 | | Set `NEXT_PUBLIC_AUTH_MODE=supabase` + migration 006 |
-| 1.9a | Mock auth dev | — | Default tanpa env | Role picker | ✅ | | `NEXT_PUBLIC_AUTH_MODE=mock` (default) |
+| 1.9a | Mock auth dev | — | Default tanpa env | Role picker + cookie session | 🟡 | | POST `/api/auth/session` |
+| 1.10 | API RBAC write guard | Business POST party | 403 Forbidden | 🟡 | | requireCanEdit on mutating routes |
+| 1.11 | Middleware route guard | Tanpa login → `/` | Redirect | 🟡 | | `middleware.ts` + `cms_session` cookie |
+| 1.12 | Session cookie on login | Legal login | Cookie httpOnly | 🟡 | | credentials: include via cmsFetch |
 
 ---
 
@@ -200,7 +203,7 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | 10.2 | API key Odoo/RAGFlow di-rotate | Key production baru | | |
 | 10.3 | `SUPABASE_SERVICE_ROLE_KEY` hanya server | Tidak di `NEXT_PUBLIC_*` | | |
 | 10.4 | RAGFlow port tidak publik sembarangan | Firewall / Nginx | | |
-| 10.5 | RLS Supabase diperketat | Bukan policy starter | | |
+| 10.5 | RLS Supabase diperketat | Role-based policies | 🟡 | | migration 007 |
 | 10.6 | HTTPS production | CMS + RAGFlow | | |
 
 ---
@@ -212,7 +215,7 @@ Jalankan sebelum setiap release candidate:
 ```text
 GET  http://localhost:3000/api/odoo/health      → ok: true
 GET  http://localhost:3000/api/ragflow/health   → ok: true
-GET  http://localhost:3000/api/parties          → ok: true, parties: []
+GET  http://localhost:3000/api/parties          → ok: true (dengan session cookie setelah login)
 POST http://localhost:3000/api/odoo/partners/search  body: {"domain":[],"limit":5}
 ```
 
@@ -226,7 +229,7 @@ Manual UI (5 menit):
 6. `/renewal` — kalender  
 7. `/so` — Run Sync  
 
-**DB (sebelum UI di atas):** migration `003` + `004` + `005` + `006` di Supabase SQL Editor.
+**DB (sebelum UI di atas):** migration `003` + `004` + `005` + `006` + `007` di Supabase SQL Editor.
 
 ---
 

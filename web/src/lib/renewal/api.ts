@@ -1,3 +1,4 @@
+import { cmsFetch } from '@/lib/api/http'
 import type { RenewalAgendaItem, RenewalSummary } from '@/lib/renewal/types'
 
 async function parseJson<T>(res: Response): Promise<T> {
@@ -14,5 +15,5 @@ export type RenewalPayload = {
 }
 
 export async function fetchRenewalAgenda(): Promise<RenewalPayload> {
-  return parseJson<RenewalPayload>(await fetch('/api/renewal'))
+  return parseJson<RenewalPayload>(await cmsFetch('/api/renewal'))
 }

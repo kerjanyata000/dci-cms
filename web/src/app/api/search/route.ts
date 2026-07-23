@@ -1,10 +1,12 @@
-import { jsonError, jsonOk } from '@/lib/server/api-route'
+import { requireActor, handleRouteError } from '@/lib/auth/route-helpers'
+import { jsonOk } from '@/lib/server/api-route'
 import { runSmartSearch, type SearchScope } from '@/lib/search/server'
 
 export const runtime = 'nodejs'
 
 export async function GET(request: Request) {
   try {
+    await requireActor(request)
     const { searchParams } = new URL(request.url)
     const q = searchParams.get('q') ?? ''
     const scope = (searchParams.get('scope') as SearchScope | null) ?? 'all'
@@ -15,6 +17,6 @@ export async function GET(request: Request) {
     const result = await runSmartSearch({ q, scope, status, docType, semantic })
     return jsonOk(result)
   } catch (err) {
-    return jsonError(err instanceof Error ? err.message : 'Search failed', 500)
+    return handleRouteError(err, 'Search failed')
   }
 }

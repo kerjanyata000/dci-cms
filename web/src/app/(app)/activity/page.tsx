@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { cmsFetch } from '@/lib/api/http'
 
 type AuditRow = {
   id: string
@@ -17,7 +18,7 @@ export default function ActivityPage() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    fetch('/api/audit')
+    cmsFetch('/api/audit')
       .then((r) => r.json())
       .then((p) => {
         if (p.ok) setRows(p.data.logs ?? [])
