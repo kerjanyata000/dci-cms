@@ -147,6 +147,27 @@ export async function transitionContractStatus(
   return data.contract
 }
 
+export type EditContractAdminInput = {
+  contract_title: string
+  owner?: string
+  department?: string
+  remarks?: string
+}
+
+export async function updateContractAdminDetails(
+  contractId: string,
+  input: EditContractAdminInput,
+): Promise<Contract> {
+  const data = await parseJson<{ contract: Contract }>(
+    await fetch(`/api/contracts/${contractId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'edit_admin', ...input }),
+    }),
+  )
+  return data.contract
+}
+
 export async function changeContractCounterparty(
   contractId: string,
   input: {

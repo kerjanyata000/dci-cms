@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { GlobalSearch } from '@/components/shell/GlobalSearch'
 import { NotificationsBell } from '@/components/shell/NotificationsBell'
 import { ROLES, type SessionUser } from '@/lib/roles'
@@ -12,6 +13,7 @@ import './shell.css'
 const LABELS: Record<string, string> = {
   dashboard: 'Dashboard',
   parties: 'Parties',
+  search: 'Smart Search',
   renewal: 'Renewal Calendar',
   so: 'SO Health',
 }
@@ -25,10 +27,59 @@ type Props = {
 export function AppShell({ user, onLogout, children }: Props) {
   const pathname = usePathname()
   const role = ROLES[user.role]
+  const [drawerOpen, setDrawerOpen] = useState(false)
+
+  useEffect(() => {
+    setDrawerOpen(false)
+  }, [pathname])
+
+  useEffect(() => {
+    if (!drawerOpen) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setDrawerOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [drawerOpen])
+
+  const navLinks = (
+    <>
+      {role.nav.map((view) => {
+        const href = `/${view}`
+        const active = pathname === href || pathname.startsWith(`${href}/`)
+        return (
+          <Link
+            key={view}
+            href={href}
+            className={`nav-item${active ? ' active' : ''}`}
+            onClick={() => setDrawerOpen(false)}
+          >
+            {LABELS[view] ?? view}
+          </Link>
+        )
+      })}
+      <Link
+        href="/lab/extraction"
+        className={`nav-item${pathname.startsWith('/lab/extraction') ? ' active' : ''}`}
+        onClick={() => setDrawerOpen(false)}
+      >
+        Extraction Lab
+      </Link>
+    </>
+  )
 
   return (
-    <div className="shell">
-      <aside className="sidebar">
+    <div className={`shell${drawerOpen ? ' drawer-open' : ''}`}>
+      {drawerOpen && (
+        <button
+          type="button"
+          className="sidebar-backdrop"
+          aria-label="Tutup menu"
+          onClick={() => setDrawerOpen(false)}
+        />
+      )}
+
+      <aside className="sidebar" aria-hidden={!drawerOpen && undefined}>
         <div className="brand">
           <div className="brand-seal">CM</div>
           <div className="brand-text">
@@ -36,23 +87,7 @@ export function AppShell({ user, onLogout, children }: Props) {
             <span>Party-Centric · Odoo</span>
           </div>
         </div>
-        <nav className="nav-group">
-          {role.nav.map((view) => {
-            const href = `/${view}`
-            const active = pathname === href || pathname.startsWith(`${href}/`)
-            return (
-              <Link key={view} href={href} className={`nav-item${active ? ' active' : ''}`}>
-                {LABELS[view] ?? view}
-              </Link>
-            )
-          })}
-          <Link
-            href="/lab/extraction"
-            className={`nav-item${pathname.startsWith('/lab/extraction') ? ' active' : ''}`}
-          >
-            Extraction Lab
-          </Link>
-        </nav>
+        <nav className="nav-group">{navLinks}</nav>
         <div className="sidebar-foot">
           {user.name}
           <br />
@@ -60,15 +95,25 @@ export function AppShell({ user, onLogout, children }: Props) {
           {role.views.includes('audit') && (
             <>
               <br />
-              <Link href="/activity" className="sidebar-link">
+              <Link href="/activity" className="sidebar-link" onClick={() => setDrawerOpen(false)}>
                 Activity Log
               </Link>
             </>
           )}
         </div>
       </aside>
+
       <div className="main">
         <header className="topbar">
+          <button
+            type="button"
+            className="btn ghost menu-toggle"
+            aria-label="Buka menu navigasi"
+            aria-expanded={drawerOpen}
+            onClick={() => setDrawerOpen((v) => !v)}
+          >
+            ☰
+          </button>
           <GlobalSearch />
           <div className="topbar-modes">
             Odoo: {ODOO_MODE.toUpperCase()} · RAGFlow: {RAGFLOW_MODE.toUpperCase()}

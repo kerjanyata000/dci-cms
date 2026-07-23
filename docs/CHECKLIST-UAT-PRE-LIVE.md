@@ -111,6 +111,9 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | 4.10a | Termination tab history | Legal | Tab Termination | List effective date | 🟡 | | FR-CNT-TERM-009 |
 | 4.11 | Supporting documents | Legal | Upload supporting | List di tab Supporting | 🟡 | | Tidak ubah lifecycle FR-CNT-SUP-004 |
 | 4.11a | File type / size validation | Legal | Upload >20MB atau selain PDF/DOCX | Error FR-CNT-SUP-003 | 🟡 | | |
+| 4.12 | Edit Contract Details (admin only) | Legal | Party Detail → Edit | Title/owner/dept/remarks saja | 🟡 | | PATCH edit_admin; field sensitif locked |
+| 4.12a | Edit audit trail | Legal | Simpan edit | Row audit + payload changes | 🟡 | | FR-CNT-EDIT-006 |
+| 4.12b | Edit blocked view-only | Business | Party Detail | Tidak ada tombol Edit | 🟡 | | RBAC canEdit |
 
 ---
 
@@ -137,8 +140,9 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | 6.1 | Health API CMS → RAGFlow | GET `/api/ragflow/health` | ok + datasets | ✅ | | |
 | 6.2 | Upload + parse PDF | Extraction Lab | Metadata + doc id | ✅ | | |
 | 6.3 | Retrieve semantic search | Extraction Lab → Retrieve | Chunks relevan | ✅ | | |
-| 6.4 | Smart search page (production UI) | Search menu | Filter metadata + RAG | ⬜ | | |
-| 6.5 | RBAC pada hasil search | Business vs Legal | Hasil sesuai hak akses | ⬜ | | |
+| 6.4 | Smart search page (production UI) | Search menu | Filter metadata + RAG | 🟡 | | `/search` + GET `/api/search` |
+| 6.5 | RBAC pada hasil search | Business vs Legal | Hasil sesuai hak akses | 🟡 | | RBAC penuh setelah Supabase Auth |
+| 6.6 | Global search → Smart Search | Topbar Enter | Redirect `/search?q=` | 🟡 | | |
 
 ---
 
@@ -178,8 +182,8 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | 9.4 | Tabel parties kaya | Kolom dokumen, agreement date, durasi | Tabel minimal | 🟡 | | |
 | 9.5 | Party Detail tabs | Contracts, SO, audit, … | Belum ada | 🟡 | | Dossier head + 7 tabs |
 | 9.6 | Modal pola mockup | Footer ghost/primary konsisten | Modal parties + Add Contract | 🟡 | | |
-| 9.7 | Mobile sidebar drawer | Hamburger ≤1100px | Belum ada | ⬜ | | |
-| 9.8 | Global search topbar | Search parties | Input + redirect | 🟡 | | |
+| 9.7 | Mobile sidebar drawer | Hamburger ≤1100px | Drawer + backdrop | 🟡 | | AppShell menu-toggle |
+| 9.8 | Global search topbar | Search parties | Input → `/search` + Advanced link | 🟡 | | |
 | 9.9 | Profile menu lengkap | Preferensi, Activity Log | Activity Log di sidebar | 🟡 | | |
 
 ---

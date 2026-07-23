@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { EditContractModal } from '@/components/contracts/EditContractModal'
 import { AddContractModal } from '@/components/contracts/AddContractModal'
 import { AmendmentModal } from '@/components/contracts/AmendmentModal'
 import { ChangeCounterpartyModal } from '@/components/contracts/ChangeCounterpartyModal'
@@ -50,6 +51,7 @@ export function PartyDetailView({ partyId, role }: Props) {
   const [terminationContract, setTerminationContract] = useState<Contract | null>(null)
   const [reviewContract, setReviewContract] = useState<Contract | null>(null)
   const [cpChangeContract, setCpChangeContract] = useState<Contract | null>(null)
+  const [editContract, setEditContract] = useState<Contract | null>(null)
   const [uploadSupportingOpen, setUploadSupportingOpen] = useState(false)
   const [soRows, setSoRows] = useState<Awaited<ReturnType<typeof fetchSyncedOrders>>>([])
   const [soBusy, setSoBusy] = useState(false)
@@ -326,6 +328,13 @@ export function PartyDetailView({ partyId, role }: Props) {
                             onClick={() => setReviewContract(c)}
                           >
                             Review
+                          </button>
+                          <button
+                            type="button"
+                            className="btn ghost"
+                            onClick={() => setEditContract(c)}
+                          >
+                            Edit
                           </button>
                           <button
                             type="button"
@@ -647,6 +656,25 @@ export function PartyDetailView({ partyId, role }: Props) {
             } else {
               void load()
             }
+          }}
+        />
+      )}
+
+      {editContract && (
+        <EditContractModal
+          contract={editContract}
+          open={Boolean(editContract)}
+          onClose={() => setEditContract(null)}
+          onUpdated={(updated) => {
+            setEditContract(null)
+            setData((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    contracts: prev.contracts.map((c) => (c.id === updated.id ? updated : c)),
+                  }
+                : prev,
+            )
           }}
         />
       )}

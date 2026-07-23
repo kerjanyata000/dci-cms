@@ -3,6 +3,7 @@ import {
   confirmContractMetadata,
   getContractById,
   transitionContractStatus,
+  updateContractAdminDetails,
 } from '@/lib/contracts/server'
 import type { ContractMetadata } from '@/types/cms'
 
@@ -27,9 +28,13 @@ export async function PATCH(
   try {
     const { id } = await context.params
     const body = (await request.json()) as {
-      action?: 'confirm_metadata' | 'status'
+      action?: 'confirm_metadata' | 'status' | 'edit_admin'
       confirmed?: ContractMetadata
       statusAction?: string
+      contract_title?: string
+      owner?: string
+      department?: string
+      remarks?: string
     }
 
     if (body.action === 'confirm_metadata') {
@@ -39,6 +44,16 @@ export async function PATCH(
 
     if (body.action === 'status' && body.statusAction) {
       const contract = await transitionContractStatus(id, body.statusAction)
+      return jsonOk({ contract })
+    }
+
+    if (body.action === 'edit_admin') {
+      const contract = await updateContractAdminDetails(id, {
+        contract_title: body.contract_title ?? '',
+        owner: body.owner,
+        department: body.department,
+        remarks: body.remarks,
+      })
       return jsonOk({ contract })
     }
 

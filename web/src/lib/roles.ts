@@ -4,9 +4,16 @@ export type RoleConfig = {
   label: string
   initials: string
   /** Sidebar primary nav */
-  nav: Array<'dashboard' | 'parties' | 'renewal' | 'so'>
+  nav: Array<'dashboard' | 'parties' | 'renewal' | 'so' | 'search'>
   views: Array<
-    'dashboard' | 'parties' | 'party-detail' | 'renewal' | 'so' | 'audit' | 'notifications'
+    | 'dashboard'
+    | 'parties'
+    | 'party-detail'
+    | 'renewal'
+    | 'so'
+    | 'audit'
+    | 'notifications'
+    | 'search'
   >
   canEdit: boolean
   canSync: boolean
@@ -16,40 +23,40 @@ export const ROLES: Record<AppRole, RoleConfig> = {
   legal: {
     label: 'Legal / Contract Admin',
     initials: 'LG',
-    nav: ['dashboard', 'parties', 'renewal'],
-    views: ['dashboard', 'parties', 'party-detail', 'renewal', 'so', 'audit', 'notifications'],
+    nav: ['dashboard', 'parties', 'search', 'renewal'],
+    views: ['dashboard', 'parties', 'party-detail', 'renewal', 'so', 'audit', 'notifications', 'search'],
     canEdit: true,
     canSync: true,
   },
   business: {
     label: 'Business User / Requestor',
     initials: 'BU',
-    nav: ['dashboard', 'parties'],
-    views: ['dashboard', 'parties', 'party-detail', 'notifications'],
+    nav: ['dashboard', 'parties', 'search'],
+    views: ['dashboard', 'parties', 'party-detail', 'notifications', 'search'],
     canEdit: false,
     canSync: false,
   },
   finance: {
     label: 'Finance / Commercial',
     initials: 'FC',
-    nav: ['dashboard', 'parties', 'so'],
-    views: ['dashboard', 'parties', 'party-detail', 'so', 'notifications'],
+    nav: ['dashboard', 'parties', 'search', 'so'],
+    views: ['dashboard', 'parties', 'party-detail', 'so', 'notifications', 'search'],
     canEdit: false,
     canSync: false,
   },
   management: {
     label: 'Management / Directors',
     initials: 'MD',
-    nav: ['dashboard', 'parties', 'renewal'],
-    views: ['dashboard', 'parties', 'party-detail', 'renewal', 'audit', 'notifications'],
+    nav: ['dashboard', 'parties', 'search', 'renewal'],
+    views: ['dashboard', 'parties', 'party-detail', 'renewal', 'audit', 'notifications', 'search'],
     canEdit: false,
     canSync: false,
   },
   it: {
     label: 'IT / Odoo Support',
     initials: 'IT',
-    nav: ['dashboard', 'parties', 'renewal', 'so'],
-    views: ['dashboard', 'parties', 'party-detail', 'renewal', 'so', 'audit', 'notifications'],
+    nav: ['dashboard', 'parties', 'search', 'renewal', 'so'],
+    views: ['dashboard', 'parties', 'party-detail', 'renewal', 'so', 'audit', 'notifications', 'search'],
     canEdit: false,
     canSync: true,
   },

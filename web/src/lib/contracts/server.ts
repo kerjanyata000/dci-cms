@@ -525,6 +525,66 @@ export async function transitionContractStatus(contractId: string, action: strin
   return mapContractRow(data as ContractRow)
 }
 
+export type EditContractAdminInput = {
+  contract_title: string
+  owner?: string
+  department?: string
+  remarks?: string
+}
+
+const EDITABLE_ADMIN_FIELDS = ['contract_title', 'owner', 'department', 'remarks'] as const
+
+export async function updateContractAdminDetails(
+  contractId: string,
+  body: EditContractAdminInput,
+) {
+  const contract_title = body.contract_title?.trim()
+  if (!contract_title) {
+    throw new Error('Internal title wajib diisi (FR-CNT-EDIT-004)')
+  }
+
+  const contract = await getContractById(contractId)
+  const updates = {
+    contract_title,
+    owner: body.owner?.trim() || null,
+    department: body.department?.trim() || null,
+    remarks: body.remarks?.trim() || null,
+  }
+
+  const changes: Record<string, { from: unknown; to: unknown }> = {}
+  for (const field of EDITABLE_ADMIN_FIELDS) {
+    const from = contract[field]
+    const to = updates[field]
+    if (from !== to) changes[field] = { from, to }
+  }
+
+  if (!Object.keys(changes).length) return contract
+
+  const db = getSupabaseAdmin()
+  const { data, error } = await db
+    .from('contracts')
+    .update({
+      ...updates,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', contractId)
+    .select('*')
+    .single()
+
+  if (error) throw new Error(error.message)
+
+  await db.from('audit_logs').insert({
+    action: `Edit Contract Details — ${contract.contract_code}`,
+    action_type: 'edit_admin',
+    party_id: contract.party_id,
+    contract_id: contractId,
+    actor_name: 'CMS',
+    payload: { changes },
+  })
+
+  return mapContractRow(data as ContractRow)
+}
+
 export async function changeContractCounterparty(
   contractId: string,
   body: {

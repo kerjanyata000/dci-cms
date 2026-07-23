@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
@@ -15,7 +16,7 @@ export function GlobalSearch({ className }: Props) {
     e.preventDefault()
     const term = q.trim()
     if (!term) return
-    router.push(`/parties?q=${encodeURIComponent(term)}`)
+    router.push(`/search?q=${encodeURIComponent(term)}`)
   }
 
   return (
@@ -24,9 +25,12 @@ export function GlobalSearch({ className }: Props) {
         type="search"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        placeholder="Cari party…"
-        aria-label="Cari party"
+        placeholder="Cari party, kontrak, isi dokumen…"
+        aria-label="Smart search"
       />
+      <Link href="/search" className="search-advanced-link">
+        Advanced
+      </Link>
     </form>
   )
 }
