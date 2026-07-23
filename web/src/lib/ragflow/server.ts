@@ -10,17 +10,14 @@ import type {
 import { getRagflowServerConfig } from '../server/env'
 
 type RagflowEnvelope<T> = {
-  code: number
+  code?: number
   message?: string
   data?: T
 }
 
-async function ragflowFetch<T>(
-  path: string,
-  init?: RequestInit,
-): Promise<T> {
+async function ragflowRequest(path: string, init?: RequestInit): Promise<Response> {
   const { url, apiKey } = getRagflowServerConfig()
-  const response = await fetch(`${url}${path}`, {
+  return fetch(`${url}${path}`, {
     ...init,
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -28,21 +25,51 @@ async function ragflowFetch<T>(
     },
     cache: 'no-store',
   })
+}
 
+/** Standard RAGFlow API envelope: { code: 0, data: ... } */
+async function ragflowFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await ragflowRequest(path, init)
   const payload = (await response.json()) as RagflowEnvelope<T>
-  if (!response.ok || payload.code !== 0) {
+
+  if (!response.ok) {
     throw new Error(payload.message ?? `RAGFlow HTTP ${response.status}`)
+  }
+  if (payload.code != null && payload.code !== 0) {
+    throw new Error(payload.message ?? `RAGFlow error code ${payload.code}`)
   }
 
   return payload.data as T
 }
 
+/** healthz returns plain JSON without code wrapper: { status: "ok", db: "ok", ... } */
+async function ragflowHealthFetch(): Promise<Record<string, string>> {
+  const response = await ragflowRequest('/api/v1/system/healthz')
+  const payload = (await response.json()) as Record<string, string> & RagflowEnvelope<unknown>
+
+  if (!response.ok) {
+    throw new Error(`RAGFlow health HTTP ${response.status}`)
+  }
+  if (payload.code != null && payload.code !== 0) {
+    throw new Error(payload.message ?? `RAGFlow health error code ${payload.code}`)
+  }
+
+  return payload
+}
+
+function normalizeDatasetList(
+  data: Array<{ id: string; name: string; document_count?: number }> | undefined,
+): Array<{ id: string; name: string; document_count?: number }> {
+  return data ?? []
+}
+
 export async function ragflowHealthCheck() {
   const { url, datasetId } = getRagflowServerConfig()
-  const health = await ragflowFetch<{ status?: string }>('/api/v1/system/healthz')
-  const datasets = await ragflowFetch<
+  const health = await ragflowHealthFetch()
+  const raw = await ragflowFetch<
     Array<{ id: string; name: string; document_count?: number }>
   >('/api/v1/datasets?page=1&page_size=50')
+  const datasets = normalizeDatasetList(raw)
 
   return {
     url,
