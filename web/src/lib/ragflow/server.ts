@@ -1,9 +1,12 @@
 import 'server-only'
 
 import { extractContractFieldsFromText } from './extract-fields'
+import { getCmsRagflowDocumentIds, mapCmsDocumentNames } from './cms-docs'
+import { stripHtmlForDisplay } from './text'
 import type {
   RagflowDocumentStatus,
   RagflowExtractResult,
+  RagflowRetrieveOptions,
   RagflowSearchHit,
   RagflowUploadResult,
 } from './types'
@@ -180,11 +183,30 @@ export async function extractRagflowMetadata(
 
 export async function retrieveRagflowChunks(
   question: string,
-  datasetId?: string,
-  topK = 5,
+  options: RagflowRetrieveOptions = {},
 ): Promise<RagflowSearchHit[]> {
   const { datasetId: defaultDatasetId } = getRagflowServerConfig()
-  const ds = datasetId ?? defaultDatasetId
+  const ds = options.datasetId ?? defaultDatasetId
+  const topK = options.topK ?? 5
+  const similarityThreshold = options.similarityThreshold ?? 0.35
+
+  let documentIds = options.documentIds
+  if (options.cmsOnly && !documentIds?.length) {
+    documentIds = await getCmsRagflowDocumentIds()
+    if (!documentIds.length) return []
+  }
+
+  const body: Record<string, unknown> = {
+    question,
+    dataset_ids: [ds],
+    page: 1,
+    page_size: topK,
+    similarity_threshold: similarityThreshold,
+  }
+
+  if (documentIds?.length) {
+    body.document_ids = documentIds
+  }
 
   const data = await ragflowFetch<{
     chunks?: Array<{
@@ -197,19 +219,30 @@ export async function retrieveRagflowChunks(
   }>('/api/v1/retrieval', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      question,
-      dataset_ids: [ds],
-      page: 1,
-      page_size: topK,
-    }),
+    body: JSON.stringify(body),
   })
 
-  return (data.chunks ?? []).map((c) => ({
+  const rawHits = (data.chunks ?? []).map((c) => ({
     docId: c.document_id ?? c.id ?? 'unknown',
     content: c.content ?? '',
     score: c.similarity ?? c.vector_similarity ?? 0,
   }))
+
+  const filtered = documentIds?.length
+    ? rawHits
+    : rawHits.filter((h) => h.score >= similarityThreshold)
+
+  const nameMap = await mapCmsDocumentNames(filtered.map((h) => h.docId))
+
+  return filtered.map((hit) => {
+    const fileName = nameMap.get(hit.docId) ?? null
+    return {
+      ...hit,
+      fileName,
+      cmsLinked: Boolean(fileName),
+      displayContent: stripHtmlForDisplay(hit.content),
+    }
+  })
 }
 
 export async function runRagflowExtractionPipeline(

@@ -257,7 +257,10 @@ export function SmartSearchView({ canEdit }: Props) {
                       score {(hit.score * 100).toFixed(0)}%
                     </span>
                   </div>
-                  <p className="search-content-snippet">{hit.content.slice(0, 320)}…</p>
+                  <p className="search-content-snippet">
+                    {(hit.displayContent ?? hit.content).slice(0, 320)}
+                    {(hit.displayContent ?? hit.content).length > 320 ? '…' : ''}
+                  </p>
                   {hit.party_id && (
                     <Link href={`/parties/${hit.party_id}`} className="btn ghost">
                       Buka Party

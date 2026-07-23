@@ -21,7 +21,18 @@ export type RagflowSearchHit = {
   docId: string
   content: string
   score: number
+  displayContent?: string
+  fileName?: string | null
+  cmsLinked?: boolean
   metadata?: Record<string, unknown>
+}
+
+export type RagflowRetrieveOptions = {
+  datasetId?: string
+  topK?: number
+  documentIds?: string[]
+  cmsOnly?: boolean
+  similarityThreshold?: number
 }
 
 export interface RagflowClient {

@@ -87,15 +87,21 @@ export async function runExtractionFromApi(
 export async function retrieveFromApi(
   datasetId: string,
   query: string,
-  topK = 5,
+  options?: {
+    topK?: number
+    cmsOnly?: boolean
+    similarityThreshold?: number
+  },
 ): Promise<RagflowSearchHit[]> {
   if (RAGFLOW_MODE !== 'live') {
-    return dummyRagflowClient.retrieve(datasetId, query, topK)
+    return dummyRagflowClient.retrieve(datasetId, query, options?.topK ?? 5)
   }
   const data = await postJson<{ hits: RagflowSearchHit[] }>('/api/ragflow/retrieve', {
     datasetId,
     query,
-    topK,
+    topK: options?.topK ?? 5,
+    cmsOnly: options?.cmsOnly,
+    similarityThreshold: options?.similarityThreshold,
   })
   return data.hits
 }

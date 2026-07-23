@@ -16,6 +16,7 @@ export type ContentSearchHit = RagflowSearchHit & {
   contract_code: string | null
   party_name: string | null
   file_name: string | null
+  displayContent?: string
 }
 
 export type SmartSearchResult = {
@@ -112,7 +113,11 @@ export async function runSmartSearch(params: {
   if ((scope === 'all' || scope === 'content') && params.semantic !== false && query.length >= 3) {
     result.semanticUsed = true
     try {
-      const hits = await retrieveRagflowChunks(query, undefined, 8)
+      const hits = await retrieveRagflowChunks(query, {
+        topK: 8,
+        cmsOnly: true,
+        similarityThreshold: 0.35,
+      })
       if (hits.length) {
         const docIds = [...new Set(hits.map((h) => h.docId))]
         const { data: docs } = await db
@@ -157,7 +162,8 @@ export async function runSmartSearch(params: {
             party_id: partyId ?? null,
             contract_code: (contract?.contract_code as string) ?? null,
             party_name: (party?.name as string) ?? null,
-            file_name: doc?.file_name ?? null,
+            file_name: doc?.file_name ?? hit.fileName ?? null,
+            displayContent: hit.displayContent,
           }
         })
       }
