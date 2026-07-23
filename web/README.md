@@ -31,3 +31,5 @@ Browser flags (`NEXT_PUBLIC_*_MODE`) + server secrets in `.env.local`:
 | `RAGFLOW_URL`, `RAGFLOW_API_KEY`, `RAGFLOW_DATASET_ID` | server | RAGFlow cloud |
 
 Health check: `GET /api/odoo/health`, `GET /api/ragflow/health` (saat dev server jalan).
+
+**Catatan setup integrasi (Odoo + RAGFlow POC → live):** [`../docs/RUNBOOK-SETUP-ODOO-RAGFLOW.md`](../docs/RUNBOOK-SETUP-ODOO-RAGFLOW.md)

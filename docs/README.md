@@ -12,6 +12,7 @@ Indeks dokumen proyek **Contract Management System** (party-centric + Odoo).
 | [`AI_DEVELOPMENT_LIFECYCLE.md`](./AI_DEVELOPMENT_LIFECYCLE.md) | AIDLC fase kerja |
 | [`CHECKLIST-ODOO-TRIAL-DAN-AI.md`](./CHECKLIST-ODOO-TRIAL-DAN-AI.md) | Seed Partner/SO trial + checklist AI |
 | [`PREP-EKSTRAKSI-RAGFLOW.md`](./PREP-EKSTRAKSI-RAGFLOW.md) | Persiapan ekstraksi / RAGFlow / Supabase |
+| [`RUNBOOK-SETUP-ODOO-RAGFLOW.md`](./RUNBOOK-SETUP-ODOO-RAGFLOW.md) | **Catatan setup POC** Odoo API + RAGFlow self-host + wiring CMS → live |
 
 ## Requirement & operasi
 
