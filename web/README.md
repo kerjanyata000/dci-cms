@@ -21,5 +21,13 @@ Buka [http://localhost:3000](http://localhost:3000). Extraction Lab: `/lab/extra
 
 ## Env
 
-Pakai `NEXT_PUBLIC_*` (bukan `VITE_*`).  
-Mode `live` untuk Odoo/RAGFlow sengaja throw di browser — kredensial hanya di server.
+Browser flags (`NEXT_PUBLIC_*_MODE`) + server secrets in `.env.local`:
+
+| Variable | Scope | Fungsi |
+| --- | --- | --- |
+| `NEXT_PUBLIC_ODOO_MODE` | browser | `live` → panggil `/api/odoo/*` |
+| `NEXT_PUBLIC_RAGFLOW_MODE` | browser | `live` → panggil `/api/ragflow/*` |
+| `ODOO_URL`, `ODOO_DB`, … | server | Kredensial Odoo (tanpa `/odoo` di URL) |
+| `RAGFLOW_URL`, `RAGFLOW_API_KEY`, `RAGFLOW_DATASET_ID` | server | RAGFlow cloud |
+
+Health check: `GET /api/odoo/health`, `GET /api/ragflow/health` (saat dev server jalan).
