@@ -13,6 +13,7 @@ Indeks dokumen proyek **Contract Management System** (party-centric + Odoo).
 | [`CHECKLIST-ODOO-TRIAL-DAN-AI.md`](./CHECKLIST-ODOO-TRIAL-DAN-AI.md) | Seed Partner/SO trial + checklist AI |
 | [`PREP-EKSTRAKSI-RAGFLOW.md`](./PREP-EKSTRAKSI-RAGFLOW.md) | Persiapan ekstraksi / RAGFlow / Supabase |
 | [`RUNBOOK-SETUP-ODOO-RAGFLOW.md`](./RUNBOOK-SETUP-ODOO-RAGFLOW.md) | **Catatan setup POC** Odoo API + RAGFlow self-host + wiring CMS → live |
+| [`CHECKLIST-UAT-PRE-LIVE.md`](./CHECKLIST-UAT-PRE-LIVE.md) | **Test case & checklist** sebelum go-live |
 
 ## Requirement & operasi
 
