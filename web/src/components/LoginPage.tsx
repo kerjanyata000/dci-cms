@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from 'react'
 import { signInWithSupabase } from '@/lib/auth/client'
+import { persistSupabaseSession } from '@/lib/auth/client-session'
 import { AUTH_MODE } from '@/lib/auth/mode'
+import { getSupabaseBrowser } from '@/lib/supabase/client'
 import type { AppRole, SessionUser } from '@/lib/roles'
 import { ROLES } from '@/lib/roles'
 
@@ -29,7 +31,12 @@ export function LoginPage({ onLogin }: Props) {
           setError('Password wajib diisi')
           return
         }
-        onLogin(await signInWithSupabase(email, password))
+        const user = await signInWithSupabase(email, password)
+        const { data: sessionData } = await getSupabaseBrowser().auth.getSession()
+        if (sessionData.session?.access_token) {
+          await persistSupabaseSession(sessionData.session.access_token)
+        }
+        onLogin(user)
         return
       }
 

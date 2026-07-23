@@ -1,3 +1,4 @@
+import { authErrorResponse, requireActor, requireCanEdit } from '@/lib/auth/guard'
 import { jsonError, jsonOk } from '@/lib/server/api-route'
 import {
   confirmContractMetadata,
@@ -10,13 +11,16 @@ import type { ContractMetadata } from '@/types/cms'
 export const runtime = 'nodejs'
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   try {
+    await requireActor(request)
     const { id } = await context.params
     return jsonOk({ contract: await getContractById(id) })
   } catch (err) {
+    const auth = authErrorResponse(err)
+    if (auth) return auth
     return jsonError(err instanceof Error ? err.message : 'Contract not found', 404)
   }
 }
@@ -26,6 +30,7 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
+    await requireCanEdit(request)
     const { id } = await context.params
     const body = (await request.json()) as {
       action?: 'confirm_metadata' | 'status' | 'edit_admin'
@@ -59,6 +64,8 @@ export async function PATCH(
 
     return jsonError('Invalid action', 400)
   } catch (err) {
+    const auth = authErrorResponse(err)
+    if (auth) return auth
     return jsonError(err instanceof Error ? err.message : 'Update failed', 500)
   }
 }

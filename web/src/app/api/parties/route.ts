@@ -1,3 +1,4 @@
+import { authErrorResponse, requireActor, requireCanEdit } from '@/lib/auth/guard'
 import { jsonError, jsonOk } from '@/lib/server/api-route'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 import { mapPartyRow, nextPartyCode, type PartyRow } from '@/lib/parties/types'
@@ -7,6 +8,7 @@ export const runtime = 'nodejs'
 
 export async function GET(request: Request) {
   try {
+    await requireActor(request)
     const { searchParams } = new URL(request.url)
     const q = searchParams.get('q')?.trim() ?? ''
     const linkStatus = searchParams.get('linkStatus') as OdooLinkStatus | 'all' | null
@@ -24,12 +26,15 @@ export async function GET(request: Request) {
 
     return jsonOk({ parties: (data as PartyRow[]).map(mapPartyRow) })
   } catch (err) {
+    const auth = authErrorResponse(err)
+    if (auth) return auth
     return jsonError(err instanceof Error ? err.message : 'Failed to list parties', 500)
   }
 }
 
 export async function POST(request: Request) {
   try {
+    const actor = await requireCanEdit(request)
     const body = (await request.json()) as { name?: string; pic?: string }
     const name = body.name?.trim()
     if (!name) return jsonError('name is required', 400)
@@ -57,12 +62,14 @@ export async function POST(request: Request) {
       action: `Party Record dibuat — ${party.name}`,
       action_type: 'create',
       party_id: party.id,
-      actor_name: 'CMS',
+      actor_name: actor.name,
       payload: { party_code: party.party_code, odoo_link_status: party.odoo_link_status },
     })
 
     return jsonOk({ party }, { status: 201 })
   } catch (err) {
+    const auth = authErrorResponse(err)
+    if (auth) return auth
     return jsonError(err instanceof Error ? err.message : 'Failed to create party', 500)
   }
 }

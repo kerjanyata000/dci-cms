@@ -1,4 +1,5 @@
-import { jsonError, jsonOk } from '@/lib/server/api-route'
+import { requireCanEdit, handleRouteError } from '@/lib/auth/route-helpers'
+import { jsonOk } from '@/lib/server/api-route'
 import { createPartyContract, type CreateContractInput } from '@/lib/contracts/server'
 
 export const runtime = 'nodejs'
@@ -27,6 +28,7 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
+    await requireCanEdit(request)
     const { id: partyId } = await context.params
     const contentType = request.headers.get('content-type') ?? ''
 
@@ -40,6 +42,6 @@ export async function POST(
     const contract = await createPartyContract(partyId, body)
     return jsonOk({ contract }, { status: 201 })
   } catch (err) {
-    return jsonError(err instanceof Error ? err.message : 'Failed to create contract', 500)
+    return handleRouteError(err, 'Failed to create contract')
   }
 }

@@ -1,3 +1,4 @@
+import { requireActor, handleRouteError } from '@/lib/auth/route-helpers'
 import { jsonError, jsonOk } from '@/lib/server/api-route'
 import {
   mapAmendmentRow,
@@ -17,10 +18,11 @@ const ACTIVE_CONTRACT = ['active', 'fully_signed', 'signed']
 const ACTIVE_SO = ['sale', 'done']
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   try {
+    await requireActor(request)
     const { id } = await context.params
     const db = getSupabaseAdmin()
 
@@ -131,6 +133,6 @@ export async function GET(
       },
     })
   } catch (err) {
-    return jsonError(err instanceof Error ? err.message : 'Failed to load party', 500)
+    return handleRouteError(err, 'Failed to load party')
   }
 }

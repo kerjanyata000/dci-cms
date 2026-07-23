@@ -1,3 +1,4 @@
+import { requireCanEdit, handleRouteError } from '@/lib/auth/route-helpers'
 import { jsonError, jsonOk } from '@/lib/server/api-route'
 import { searchOdooPartners } from '@/lib/odoo/server'
 import { buildOdooComparison } from '@/lib/parties/odoo-link'
@@ -17,6 +18,7 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
+    await requireCanEdit(request)
     const { id } = await context.params
     const body = (await request.json()) as Body
     const odooPartnerId = body.odooPartnerId
@@ -96,6 +98,6 @@ export async function POST(
 
     return jsonOk({ party, partner, suggestedStatus: nextStatus, comparison })
   } catch (err) {
-    return jsonError(err instanceof Error ? err.message : 'Failed to link Odoo', 500)
+    return handleRouteError(err, 'Failed to link Odoo')
   }
 }

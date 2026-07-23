@@ -1,3 +1,4 @@
+import { requireCanEdit, handleRouteError } from '@/lib/auth/route-helpers'
 import { jsonError, jsonOk } from '@/lib/server/api-route'
 import { persistSupportingDocument } from '@/lib/documents/server'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
@@ -9,6 +10,7 @@ export async function POST(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
+    await requireCanEdit(request)
     const { id: partyId } = await context.params
     const form = await request.formData()
     const file = form.get('file')
@@ -44,6 +46,6 @@ export async function POST(
 
     return jsonOk({ document: doc }, { status: 201 })
   } catch (err) {
-    return jsonError(err instanceof Error ? err.message : 'Upload failed', 500)
+    return handleRouteError(err, 'Upload failed')
   }
 }

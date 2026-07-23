@@ -3,6 +3,11 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { AUTH_MODE } from '@/lib/auth/mode'
 import { sessionUserFromSupabase, signOutSupabase } from '@/lib/auth/client'
+import {
+  clearServerSession,
+  persistMockSession,
+  persistSupabaseSession,
+} from '@/lib/auth/client-session'
 import { getSupabaseBrowser, isSupabaseBrowserConfigured } from '@/lib/supabase/client'
 import type { SessionUser } from '@/lib/roles'
 
@@ -28,9 +33,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       void supabase.auth.getSession().then(async ({ data: { session } }) => {
         if (session?.user) {
           try {
-            setUser(
-              await sessionUserFromSupabase(session.user.id, session.user.email ?? ''),
+            const next = await sessionUserFromSupabase(
+              session.user.id,
+              session.user.email ?? '',
             )
+            setUser(next)
+            if (session.access_token) {
+              await persistSupabaseSession(session.access_token)
+            }
           } catch {
             setUser(null)
           }
@@ -43,14 +53,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } = supabase.auth.onAuthStateChange(async (_event, session) => {
         if (session?.user) {
           try {
-            setUser(
-              await sessionUserFromSupabase(session.user.id, session.user.email ?? ''),
+            const next = await sessionUserFromSupabase(
+              session.user.id,
+              session.user.email ?? '',
             )
+            setUser(next)
+            if (session.access_token) {
+              await persistSupabaseSession(session.access_token)
+            }
           } catch {
             setUser(null)
           }
         } else {
           setUser(null)
+          void clearServerSession()
         }
       })
 
@@ -59,7 +75,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
-      if (raw) setUser(JSON.parse(raw) as SessionUser)
+      if (raw) {
+        const parsed = JSON.parse(raw) as SessionUser
+        setUser(parsed)
+        void persistMockSession(parsed)
+      }
     } catch {
       /* ignore */
     }
@@ -75,12 +95,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(next)
         if (AUTH_MODE === 'mock') {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
+          void persistMockSession(next)
         }
       },
       logout: () => {
         if (AUTH_MODE === 'supabase' && isSupabaseBrowserConfigured()) {
           void signOutSupabase()
         }
+        void clearServerSession()
         setUser(null)
         localStorage.removeItem(STORAGE_KEY)
       },
