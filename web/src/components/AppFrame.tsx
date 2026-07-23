@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/components/AuthProvider'
 import { AppShell } from '@/components/AppShell'
@@ -8,12 +9,11 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
   const { user, logout, ready } = useAuth()
   const router = useRouter()
 
-  if (!ready) return null
+  useEffect(() => {
+    if (ready && !user) router.replace('/')
+  }, [ready, user, router])
 
-  if (!user) {
-    router.replace('/')
-    return null
-  }
+  if (!ready || !user) return null
 
   return (
     <AppShell
