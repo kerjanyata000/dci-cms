@@ -47,14 +47,34 @@ export type Contract = {
   id: string
   party_id: string
   contract_code: string
+  contract_title: string | null
   doc_type: string | null
   agreement_no: string | null
+  agreement_date: string | null
+  duration_months: number | null
+  renewal_date: string | null
+  expiry_date: string | null
+  owner: string | null
+  department: string | null
+  remarks: string | null
   status: string
   status_text: string
   extracted_metadata: ContractMetadata
   confirmed_metadata: ContractMetadata
   validation_status: ValidationStatus
   validation_notes: string | null
+}
+
+export type SaleOrderRow = {
+  id: string
+  party_id: string | null
+  odoo_order_id: number
+  odoo_partner_id: number | null
+  name: string
+  state: string
+  amount_total: number | null
+  date_order: string | null
+  synced_at: string
 }
 
 export type DocumentRow = {

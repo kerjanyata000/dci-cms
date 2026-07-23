@@ -56,7 +56,7 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | 2.1 | KPI cards per role | Legal | Buka Dashboard | KPI legal (pending review, renewal, Odoo link) | 🟡 | | Data Supabase real; renewal KPI belum |
 | 2.2 | KPI cards per role | Finance | Buka Dashboard | KPI SO / commercial | 🟡 | | Odoo link stats; SO count belum persist |
 | 2.3 | Pending actions list | Legal | Dashboard | Item tindakan + link ke Party | 🟡 | | Link ke `/parties/[id]` |
-| 2.4 | Renewal agenda ringkas | Legal/Mgmt | Dashboard | Agenda H-14 / expiry | ⬜ | | Link ke Renewal Calendar placeholder |
+| 2.4 | Renewal agenda ringkas | Legal/Mgmt | Dashboard | Agenda H-14 / expiry | 🟡 | | Link ke `/renewal` dengan data Supabase |
 | 2.5 | Dev status panel | Dev | Dashboard | Status koneksi env | ✅ | | Hapus di production |
 
 ---
@@ -85,7 +85,13 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 
 | # | Test case | Role | Langkah | Expected | Impl | Hasil |
 | --- | --- | --- | --- | --- | --- | --- |
-| 4.1 | Add contract under party | Legal | Party Detail → Add Contract | Draft + metadata | ⬜ | | |
+| 4.1 | Add contract under party | Legal | Party Detail → Add Contract | Draft + metadata | 🟡 | | FR-CNT-ADD-001/007; upload PDF belum |
+| 4.1a | Contract code auto | Legal | Add contract | `CMS-YYYY-0001` increment | 🟡 | | |
+| 4.1b | Simpan Under Review | Legal | Add Contract → Under Review | status `under_review` | 🟡 | | |
+| 4.1c | Renewal/expiry dates | Legal | Isi agreement date + duration | `renewal_date` & `expiry_date` terhitung | 🟡 | | renewal = expiry − 90 hari |
+| 4.1d | Party Inactive block | Legal | Add contract party inactive | Error BRL-CMS-031 | 🟡 | | |
+| 4.1e | Kontrak muncul di tab Contracts | Legal | Setelah create | Row di Party Detail | 🟡 | | FR-CNT-ADD-009 |
+| 4.1f | Audit log create contract | Legal | Add contract | Row di audit tab party | 🟡 | | |
 | 4.2 | Upload PDF kontrak | Legal | Upload saat create | File ke Supabase Storage | ⬜ | | |
 | 4.3 | Ekstraksi RAGFlow | Legal | Upload → extract | `extracted_metadata` terisi | 🟡 | | Extraction Lab saja |
 | 4.4 | User confirm metadata | Legal | Review screen | `confirmed_metadata` | ⬜ | | |
@@ -103,8 +109,11 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 
 | # | Test case | Role | Langkah | Expected | Impl | Hasil |
 | --- | --- | --- | --- | --- | --- | --- |
-| 5.1 | Load SO list | Finance/IT | `/so` → Load SO | List `sale.order` consume-only | ✅ | | |
-| 5.2 | Run Sync batch | IT/Legal | Run Sync Now | SO tersimpan + timestamp | ⬜ | | Tombol masih TODO |
+| 5.1 | Load SO list | Finance/IT | `/so` → Refresh | List dari Supabase mirror | 🟡 | | Bukan langsung Odoo di UI |
+| 5.2 | Run Sync batch | IT/Legal | Run Sync Now | SO tersimpan + timestamp | 🟡 | | POST `/api/so` |
+| 5.2a | Run Sync per party | Legal | Party Detail → SO tab → Run Sync | SO party tersebut saja | 🟡 | | body `{ partyId }` |
+| 5.2b | Audit log SO sync | IT | Run Sync | Row audit `SO Sync batch` | 🟡 | | |
+| 5.2c | Upsert idempotent | IT | Run Sync 2× | Tidak duplikat `odoo_order_id` | 🟡 | | |
 | 5.3 | SO status Synchronized | IT | Party dengan SO aktif | Flag synchronized | ⬜ | | |
 | 5.4 | No Active SO flag | IT | Party tanpa SO sale/done | NOTIF path §9.6 | ⬜ | | |
 | 5.5 | Sync error handling | IT | Partner ID invalid | Error + notifikasi, tidak silent | ⬜ | | |
@@ -128,10 +137,14 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 
 | # | Test case | Langkah | Expected | Impl | Hasil |
 | --- | --- | --- | --- | --- | --- |
-| 7.1 | Grid bulan + marker due | Buka Renewal | Kalender interaktif | ⬜ | | Ada penuh di mockup HTML |
-| 7.2 | Month/year picker | Nav kalender | Pindah bulan/tahun | ⬜ | | |
-| 7.3 | Side panel detail due | Klik tanggal | Party/kontrak due | ⬜ | | |
-| 7.4 | Role IT/Legal akses | Login IT | Menu Renewal ada | 🟡 | | Placeholder page saja |
+| 7.1 | Grid bulan + marker due | Buka `/renewal` | Kalender interaktif | 🟡 | | Data dari kontrak Supabase |
+| 7.2 | Nav bulan | ‹ › Bulan ini | Pindah bulan | 🟡 | | Month picker penuh belum |
+| 7.3 | Side panel detail due | Klik tanggal | Party/kontrak due + link Detail | 🟡 | | |
+| 7.4 | Summary strip urgent/soon | Buka Renewal | Chip count urgent/soon/later | 🟡 | | BRL-CMS-023 buckets |
+| 7.5 | Filter tabel agenda | Chip Urgent/Segera/Bulan | Filter benar | 🟡 | | |
+| 7.6 | Agenda muncul setelah Add Contract | Legal | Add contract + date → Renewal | Marker di kalender | 🟡 | | Butuh migration 003 |
+| 7.7 | Role IT/Legal akses | Login IT | Menu Renewal ada | ✅ | | |
+| 7.8 | API renewal | Dev | GET `/api/renewal` | `{ items, summary }` | 🟡 | | |
 
 ---
 
@@ -141,7 +154,7 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | --- | --- | --- | --- | --- | --- |
 | 8.1 | Bell notifikasi topbar | Klik lonceng | List NOTIF-CMS-* | ⬜ | | |
 | 8.2 | Activity Log dari menu profil | User menu | Audit global | ⬜ | | |
-| 8.3 | Audit di Party Detail | Buka party | Riwayat aksi party | ⬜ | | |
+| 8.3 | Audit di Party Detail | Buka party | Riwayat aksi party | 🟡 | | Termasuk link Odoo + create contract |
 | 8.4 | Audit link/relink Odoo | Link party | Row di `audit_logs` | ✅ | | |
 
 ---
@@ -155,7 +168,7 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | 9.3 | KPI cards dashboard | Per role | Placeholder teks | 🟡 | | FR-DASH-003 per role dari Supabase |
 | 9.4 | Tabel parties kaya | Kolom dokumen, agreement date, durasi | Tabel minimal | 🟡 | | |
 | 9.5 | Party Detail tabs | Contracts, SO, audit, … | Belum ada | 🟡 | | Dossier head + 7 tabs |
-| 9.6 | Modal pola mockup | Footer ghost/primary konsisten | Modal parties OK | 🟡 | | |
+| 9.6 | Modal pola mockup | Footer ghost/primary konsisten | Modal parties + Add Contract | 🟡 | | |
 | 9.7 | Mobile sidebar drawer | Hamburger ≤1100px | Belum ada | ⬜ | | |
 | 9.8 | Global search topbar | Search parties | Belum ada | ⬜ | | |
 | 9.9 | Profile menu lengkap | Preferensi, Activity Log | Hanya Keluar | ⬜ | | |
@@ -190,10 +203,23 @@ Manual UI (5 menit):
 
 1. Login Legal  
 2. `/parties` — list + add + link Odoo  
-3. `/so` — load SO  
-4. `/lab/extraction` — upload PDF kecil  
+3. Party Detail → Add Contract (draft) → cek tab Contracts  
+4. `/renewal` — kalender + tabel agenda  
+5. `/so` — Run Sync Now (party harus linked Odoo)  
+6. `/lab/extraction` — upload PDF kecil  
+
+**DB (sebelum UI di atas):** jalankan `supabase/migrations/003_lifecycle_and_so.sql` di Supabase SQL Editor.
 
 ---
+
+## 11. Database migration 003
+
+| # | Test case | Langkah | Expected | Impl | Hasil |
+| --- | --- | --- | --- | --- | --- |
+| 11.1 | Kolom lifecycle contracts | `\d contracts` atau Table Editor | `agreement_date`, `renewal_date`, `expiry_date`, … | 🟡 | | |
+| 11.2 | Tabel `sale_orders` | Table Editor | Mirror Odoo SO | 🟡 | | |
+| 11.3 | Tabel `contract_terminations` | Table Editor | Schema termination | 🟡 | | | Belum dipakai UI create |
+| 11.4 | Add contract setelah migration | POST `/api/parties/{id}/contracts` | 201 + dates terisi | 🟡 | | |
 
 ## 12. Go / No-Go live (ringkas)
 
@@ -208,7 +234,7 @@ Manual UI (5 menit):
 
 **Post-MVP ( boleh setelah live terbatas ):**
 
-- Party Detail penuh, Renewal Calendar, Notifikasi, Smart Search UI, E-sign
+- Amendment / Termination modal, Notifikasi, Smart Search UI, E-sign, PDF upload saat create
 
 ---
 

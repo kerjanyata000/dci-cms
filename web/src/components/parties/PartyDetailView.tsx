@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { AddContractModal } from '@/components/contracts/AddContractModal'
 import { LinkOdooModal } from '@/components/parties/LinkOdooModal'
-import { searchOrdersFromApi } from '@/lib/odoo/api'
+import { fetchSyncedOrders, runSoSync } from '@/lib/so/api'
 import { fetchPartyDetail, type PartyDetailPayload } from '@/lib/parties/api'
 import { ODOO_LINK_LABELS } from '@/lib/parties/types'
-import type { OdooSaleOrder } from '@/lib/odoo/types'
+import type { Contract } from '@/types/cms'
 import { ROLES } from '@/lib/roles'
 import type { AppRole } from '@/types/cms'
 
@@ -36,8 +37,10 @@ export function PartyDetailView({ partyId, role }: Props) {
   const [tab, setTab] = useState<TabId>('overview')
   const [error, setError] = useState('')
   const [linkOpen, setLinkOpen] = useState(false)
-  const [soRows, setSoRows] = useState<OdooSaleOrder[]>([])
+  const [addContractOpen, setAddContractOpen] = useState(false)
+  const [soRows, setSoRows] = useState<Awaited<ReturnType<typeof fetchSyncedOrders>>>([])
   const [soBusy, setSoBusy] = useState(false)
+  const [soSyncMsg, setSoSyncMsg] = useState('')
 
   const load = useCallback(async () => {
     setError('')
@@ -55,13 +58,27 @@ export function PartyDetailView({ partyId, role }: Props) {
   async function loadSo() {
     if (!data?.party.odoo_partner_id) return
     setSoBusy(true)
+    setSoSyncMsg('')
     try {
-      setSoRows(
-        await searchOrdersFromApi(
-          [['partner_id', '=', data.party.odoo_partner_id]],
-          20,
-        ),
+      setSoRows(await fetchSyncedOrders(partyId))
+    } finally {
+      setSoBusy(false)
+    }
+  }
+
+  async function handleRunSync() {
+    if (!data?.party.odoo_partner_id) return
+    setSoBusy(true)
+    setSoSyncMsg('')
+    try {
+      const result = await runSoSync(partyId)
+      setSoSyncMsg(
+        `Sync OK — ${result.ordersUpserted} order(s) · ${new Date(result.syncedAt).toLocaleString('id-ID')}`,
       )
+      await loadSo()
+      void load()
+    } catch (err) {
+      setSoSyncMsg(err instanceof Error ? err.message : 'Sync gagal')
     } finally {
       setSoBusy(false)
     }
@@ -128,7 +145,7 @@ export function PartyDetailView({ partyId, role }: Props) {
         <div className="dossier-actions">
           {canEdit ? (
             <>
-              <button type="button" className="btn brass" disabled title="Fase berikutnya">
+              <button type="button" className="btn brass" onClick={() => setAddContractOpen(true)}>
                 + Add Contract
               </button>
               <button type="button" className="btn ghost" onClick={() => setLinkOpen(true)}>
@@ -209,8 +226,10 @@ export function PartyDetailView({ partyId, role }: Props) {
               <thead>
                 <tr>
                   <th>Contract Code</th>
+                  <th>Title</th>
                   <th>Agreement No</th>
                   <th>Type</th>
+                  <th>Expiry</th>
                   <th>Status</th>
                   <th>Validation</th>
                 </tr>
@@ -219,8 +238,10 @@ export function PartyDetailView({ partyId, role }: Props) {
                 {contracts.map((c) => (
                   <tr key={c.id}>
                     <td className="mono">{c.contract_code}</td>
+                    <td>{c.contract_title || '—'}</td>
                     <td>{c.agreement_no || '—'}</td>
                     <td>{c.doc_type || '—'}</td>
+                    <td>{c.expiry_date ? new Date(c.expiry_date).toLocaleDateString('id-ID') : '—'}</td>
                     <td>
                       <span className="pill">{c.status_text || c.status}</span>
                     </td>
@@ -290,16 +311,24 @@ export function PartyDetailView({ partyId, role }: Props) {
             <>
               <div className="row-actions">
                 <button type="button" className="btn ghost" disabled={soBusy} onClick={() => void loadSo()}>
-                  {soBusy ? 'Loading…' : 'Refresh SO dari Odoo'}
+                  {soBusy ? 'Loading…' : 'Refresh dari Supabase'}
                 </button>
                 {canSync && (
-                  <button type="button" className="btn primary" disabled title="Batch sync — fase berikutnya">
+                  <button
+                    type="button"
+                    className="btn primary"
+                    disabled={soBusy}
+                    onClick={() => void handleRunSync()}
+                  >
                     Run Sync
                   </button>
                 )}
               </div>
+              {soSyncMsg && <p className="muted">{soSyncMsg}</p>}
               {soRows.length === 0 ? (
-                <p className="muted">Tidak ada SO ditemukan untuk partner #{party.odoo_partner_id}.</p>
+                <p className="muted">
+                  Belum ada SO tersimpan. Jalankan Run Sync untuk pull dari Odoo (consume-only).
+                </p>
               ) : (
                 <table className="data-table">
                   <thead>
@@ -307,6 +336,7 @@ export function PartyDetailView({ partyId, role }: Props) {
                       <th>SO</th>
                       <th>State</th>
                       <th>Amount</th>
+                      <th>Synced</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -315,6 +345,7 @@ export function PartyDetailView({ partyId, role }: Props) {
                         <td className="mono">{o.name}</td>
                         <td>{o.state}</td>
                         <td>{o.amount_total ?? '—'}</td>
+                        <td className="mono">{new Date(o.synced_at).toLocaleString('id-ID')}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -354,6 +385,19 @@ export function PartyDetailView({ partyId, role }: Props) {
           )}
         </div>
       )}
+
+      <AddContractModal
+        party={party}
+        open={addContractOpen}
+        onClose={() => setAddContractOpen(false)}
+        onCreated={(contract: Contract) => {
+          setData((prev) =>
+            prev ? { ...prev, contracts: [contract, ...prev.contracts] } : prev,
+          )
+          setAddContractOpen(false)
+          void load()
+        }}
+      />
 
       <LinkOdooModal
         party={party}

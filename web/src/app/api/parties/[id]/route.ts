@@ -1,4 +1,5 @@
 import { jsonError, jsonOk } from '@/lib/server/api-route'
+import { mapContractRow, type ContractRow } from '@/lib/contracts/types'
 import { mapPartyRow, type PartyRow } from '@/lib/parties/types'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 
@@ -47,7 +48,7 @@ export async function GET(
 
     return jsonOk({
       party: mapPartyRow(party as PartyRow),
-      contracts: contractsRes.data ?? [],
+      contracts: (contractsRes.data ?? []).map((c) => mapContractRow(c as ContractRow)),
       documents: documentsRes.data ?? [],
       auditLogs: auditRes.data ?? [],
     })
