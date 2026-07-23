@@ -420,6 +420,11 @@ const STATUS_ACTIONS: Record<
   mark_active: {
     status: 'active',
     status_text: 'Active',
+    allowedFrom: ['ready_for_sign', 'sent', 'fully_signed'],
+  },
+  mark_fully_signed: {
+    status: 'fully_signed',
+    status_text: 'Fully Signed',
     allowedFrom: ['ready_for_sign', 'sent'],
   },
   back_to_draft: {

@@ -150,3 +150,42 @@ export async function persistSupportingDocument(input: {
   if (error) throw new Error(error.message)
   return data
 }
+
+export async function getDocumentDownloadUrl(documentId: string, expiresInSec = 3600) {
+  const db = getSupabaseAdmin()
+  const { data: doc, error } = await db.from('documents').select('*').eq('id', documentId).single()
+  if (error || !doc) throw new Error('Document not found')
+
+  const { data: signed, error: signError } = await db.storage
+    .from('contracts')
+    .createSignedUrl(doc.storage_path as string, expiresInSec)
+
+  if (signError || !signed?.signedUrl) {
+    throw new Error(signError?.message ?? 'Gagal membuat download URL')
+  }
+
+  return {
+    url: signed.signedUrl,
+    fileName: doc.file_name as string,
+    mimeType: (doc.mime_type as string | null) ?? 'application/octet-stream',
+  }
+}
+
+export async function persistSignedContractDocument(input: {
+  partyId: string
+  contractId: string
+  file: File
+}) {
+  assertUploadFile(input.file)
+  const storagePath = await uploadContractFile(input.partyId, input.contractId, input.file)
+
+  return persistContractDocument({
+    partyId: input.partyId,
+    contractId: input.contractId,
+    file: input.file,
+    storagePath,
+    status: 'confirmed',
+    category: 'contract',
+    description: 'Signed contract document',
+  })
+}

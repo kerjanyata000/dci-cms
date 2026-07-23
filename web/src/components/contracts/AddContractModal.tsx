@@ -161,7 +161,8 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           />
           <p className="muted" style={{ marginTop: 4, fontSize: 12 }}>
-            Upload → RAGFlow extract → dual metadata (extracted vs confirmed).
+            PDF/DOCX disimpan ke <b>Supabase Storage</b> (bucket <code>contracts</code>) dan diindeks ke{' '}
+            <b>RAGFlow</b> untuk ekstraksi metadata + smart search kontrak CMS.
           </p>
         </div>
 

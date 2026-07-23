@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { EditContractModal } from '@/components/contracts/EditContractModal'
+import { DocumentDownloadButton } from '@/components/documents/DocumentDownloadButton'
 import { AddContractModal } from '@/components/contracts/AddContractModal'
 import { AmendmentModal } from '@/components/contracts/AmendmentModal'
 import { ChangeCounterpartyModal } from '@/components/contracts/ChangeCounterpartyModal'
@@ -462,11 +463,12 @@ export function PartyDetailView({ partyId, role }: Props) {
           ) : (
             <table className="data-table">
               <thead>
-                <tr>
-                  <th>File</th>
-                  <th>Description</th>
-                  <th>Status</th>
-                </tr>
+                  <tr>
+                    <th>File</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
               </thead>
               <tbody>
                 {supportingDocs.map((d) => (
@@ -474,6 +476,9 @@ export function PartyDetailView({ partyId, role }: Props) {
                     <td>{d.file_name}</td>
                     <td>{d.description || '—'}</td>
                     <td>{d.status}</td>
+                    <td>
+                      <DocumentDownloadButton documentId={d.id} />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -487,7 +492,8 @@ export function PartyDetailView({ partyId, role }: Props) {
                   <tr>
                     <th>File</th>
                     <th>Status</th>
-                    <th>RAGFlow doc</th>
+                    <th>RAGFlow</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -495,7 +501,16 @@ export function PartyDetailView({ partyId, role }: Props) {
                     <tr key={d.id}>
                       <td>{d.file_name}</td>
                       <td>{d.status}</td>
-                      <td className="mono">{d.ragflow_doc_id || '—'}</td>
+                      <td className="mono">
+                        {d.ragflow_doc_id ? (
+                          <span className="pill">Terindeks</span>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+                      <td>
+                        <DocumentDownloadButton documentId={d.id} />
+                      </td>
                     </tr>
                   ))}
                 </tbody>

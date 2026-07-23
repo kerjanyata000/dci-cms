@@ -102,6 +102,8 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | 4.4 | User confirm metadata | Legal | Review screen | `confirmed_metadata` | 🟡 | | ContractReviewModal dual column |
 | 4.5 | Validasi vs Party + Odoo | Legal | Upload + linked party | validation_status ok/mismatch | 🟡 | | Auto saat create dengan file |
 | 4.6 | Lifecycle status transition | Legal | Review → Submit Review → Sent → Active | Status §9.3 | 🟡 | | PATCH `/api/contracts/[id]` |
+| 4.6a | Mark Fully Signed + upload signed PDF | Legal | Review → upload signed | Storage + status fully_signed | 🟡 | | BRL-CMS-018 |
+| 4.6b | Download contract PDF | Legal | Supporting / contract docs tab | Signed URL Supabase Storage | 🟡 | | GET `/api/documents/[id]/download` |
 | 4.7 | Review / Sent to CP / Ready for Sign | Legal | Contract Review modal | Tombol status per state | 🟡 | | |
 | 4.8 | Change Counterparty | Legal | Tab Contracts → CP | Audit + novation tab | 🟡 | | POST counterparty-change |
 | 4.8a | CP Correction block | Legal | Active contract + Correction | Error BRL-CMS-008 | 🟡 | | |
