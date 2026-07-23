@@ -2,6 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { GlobalSearch } from '@/components/shell/GlobalSearch'
+import { NotificationsBell } from '@/components/shell/NotificationsBell'
 import { ROLES, type SessionUser } from '@/lib/roles'
 import { ODOO_MODE } from '@/lib/odoo/client'
 import { RAGFLOW_MODE } from '@/lib/ragflow/client'
@@ -55,14 +57,24 @@ export function AppShell({ user, onLogout, children }: Props) {
           {user.name}
           <br />
           <span className="role-badge">{role.label}</span>
+          {role.views.includes('audit') && (
+            <>
+              <br />
+              <Link href="/activity" className="sidebar-link">
+                Activity Log
+              </Link>
+            </>
+          )}
         </div>
       </aside>
       <div className="main">
         <header className="topbar">
+          <GlobalSearch />
           <div className="topbar-modes">
             Odoo: {ODOO_MODE.toUpperCase()} · RAGFlow: {RAGFLOW_MODE.toUpperCase()}
           </div>
           <div className="top-right">
+            {role.views.includes('notifications') && <NotificationsBell />}
             <span className="user-chip">
               <span className="user-avatar">{role.initials}</span>
               <span>

@@ -81,7 +81,7 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | 3.11c | Success screen setelah link | Legal | Konfirmasi link | Tampil Partner #id + status pill | 🟡 | | |
 | 3.11d | Mismatch tetap tampil Partner ID | Legal | Link nama beda | Pill Mismatch + `#partner_id` di list & Detail | 🟡 | | Bukan berarti unlinked |
 | 3.12 | Party Detail drill-in | Semua | Klik party | Tabs kontrak, SO, audit | 🟡 | | BRL-CMS-026 tabs; novation/termination placeholder |
-| 3.13 | Global search party | Semua | Search topbar | Navigasi + filter | ⬜ | | |
+| 3.13 | Global search party | Semua | Search topbar → Enter | Navigasi ke `/parties?q=` | 🟡 | | |
 
 ---
 
@@ -98,9 +98,13 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | 4.1f | Audit log create contract | Legal | Add contract | Row di audit tab party | 🟡 | | |
 | 4.2 | Upload PDF kontrak | Legal | Upload saat create | File ke Supabase Storage + RAGFlow | 🟡 | | Bucket `contracts` wajib ada |
 | 4.3 | Ekstraksi RAGFlow | Legal | Upload → create | `extracted_metadata` terisi | 🟡 | | Saat Add Contract + file |
-| 4.4 | User confirm metadata | Legal | Review screen | `confirmed_metadata` | 🟡 | | Dual metadata; UI review detail belum |
+| 4.4 | User confirm metadata | Legal | Review screen | `confirmed_metadata` | 🟡 | | ContractReviewModal dual column |
 | 4.5 | Validasi vs Party + Odoo | Legal | Upload + linked party | validation_status ok/mismatch | 🟡 | | Auto saat create dengan file |
-| 4.8 | Change Counterparty | Legal | Modal CP change | Audit + history | ⬜ | | |
+| 4.6 | Lifecycle status transition | Legal | Review → Submit Review → Sent → Active | Status §9.3 | 🟡 | | PATCH `/api/contracts/[id]` |
+| 4.7 | Review / Sent to CP / Ready for Sign | Legal | Contract Review modal | Tombol status per state | 🟡 | | |
+| 4.8 | Change Counterparty | Legal | Tab Contracts → CP | Audit + novation tab | 🟡 | | POST counterparty-change |
+| 4.8a | CP Correction block | Legal | Active contract + Correction | Error BRL-CMS-008 | 🟡 | | |
+| 4.8b | CP blocked waiting sign | Legal | ready_for_sign + CP | Error BRL-CMS-009 | 🟡 | | |
 | 4.9 | Amendment / Addendum | Legal | Party Detail → Amendment | Linked ke parent + audit | 🟡 | | POST `/api/contracts/[id]/amendments` |
 | 4.9a | Amendment list di Party | Legal | Tab Contracts | Tabel amendment_code | 🟡 | | FR-CNT-AMD-008 |
 | 4.10 | Early Termination | Legal | Party Detail → Termination | Record + status update | 🟡 | | Hanya Active; scheduled vs immediate |
@@ -157,8 +161,8 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 
 | # | Test case | Langkah | Expected | Impl | Hasil |
 | --- | --- | --- | --- | --- | --- |
-| 8.1 | Bell notifikasi topbar | Klik lonceng | List NOTIF-CMS-* | ⬜ | | |
-| 8.2 | Activity Log dari menu profil | User menu | Audit global | ⬜ | | |
+| 8.1 | Bell notifikasi topbar | Klik lonceng | List NOTIF-CMS-* | 🟡 | | Odoo mismatch + audit + no SO |
+| 8.2 | Activity Log dari menu profil | Sidebar / notif link | `/activity` audit global | 🟡 | | GET `/api/audit` |
 | 8.3 | Audit di Party Detail | Buka party | Riwayat aksi party | 🟡 | | Termasuk link Odoo + create contract |
 | 8.4 | Audit link/relink Odoo | Link party | Row di `audit_logs` | ✅ | | |
 
@@ -175,8 +179,8 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | 9.5 | Party Detail tabs | Contracts, SO, audit, … | Belum ada | 🟡 | | Dossier head + 7 tabs |
 | 9.6 | Modal pola mockup | Footer ghost/primary konsisten | Modal parties + Add Contract | 🟡 | | |
 | 9.7 | Mobile sidebar drawer | Hamburger ≤1100px | Belum ada | ⬜ | | |
-| 9.8 | Global search topbar | Search parties | Belum ada | ⬜ | | |
-| 9.9 | Profile menu lengkap | Preferensi, Activity Log | Hanya Keluar | ⬜ | | |
+| 9.8 | Global search topbar | Search parties | Input + redirect | 🟡 | | |
+| 9.9 | Profile menu lengkap | Preferensi, Activity Log | Activity Log di sidebar | 🟡 | | |
 
 ---
 
@@ -214,7 +218,7 @@ Manual UI (5 menit):
 6. `/renewal` — kalender  
 7. `/so` — Run Sync  
 
-**DB (sebelum UI di atas):** migration `003` + `004` di Supabase SQL Editor.
+**DB (sebelum UI di atas):** migration `003` + `004` + `005` di Supabase SQL Editor.
 
 ---
 
@@ -231,7 +235,18 @@ Manual UI (5 menit):
 
 ---
 
-## 13. Go / No-Go live (ringkas)
+## 13. Database migration 005
+
+| # | Test case | Langkah | Expected | Impl | Hasil |
+| --- | --- | --- | --- | --- | --- |
+| 13.1 | Tabel `contract_counterparty_changes` | Table Editor | Schema CP history | 🟡 | | |
+| 13.2 | Kolom `original_party_id` | contracts | Backfill = party_id | 🟡 | | FR-CNT-SV-007 |
+| 13.3 | Change CP novation | Legal | CP → party lain | Kontrak pindah + history tab | 🟡 | | |
+| 13.4 | Contract review metadata | Legal | Review → Konfirmasi | validation_status update | 🟡 | | |
+
+---
+
+## 14. Go / No-Go live (ringkas)
 
 **Go-live minimal (MVP integrasi)** — semua harus PASS:
 

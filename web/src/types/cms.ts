@@ -46,6 +46,7 @@ export type Party = {
 export type Contract = {
   id: string
   party_id: string
+  original_party_id: string | null
   contract_code: string
   contract_title: string | null
   doc_type: string | null
@@ -124,4 +125,20 @@ export type SoHealth = {
   hasActiveContract: boolean
   hasActiveSo: boolean
   noActiveSo: boolean
+}
+
+export type CounterpartyChange = {
+  id: string
+  contract_id: string
+  from_party_id: string
+  to_party_id: string
+  change_type: string
+  effective_date: string | null
+  reason: string
+  created_at: string
+  from_party_code?: string
+  from_party_name?: string
+  to_party_code?: string
+  to_party_name?: string
+  contract_code?: string
 }

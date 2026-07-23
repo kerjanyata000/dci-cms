@@ -4,6 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 export type ContractRow = {
   id: string
   party_id: string
+  original_party_id: string | null
   contract_code: string
   contract_title: string | null
   doc_type: string | null
@@ -29,6 +30,7 @@ export function mapContractRow(row: ContractRow): Contract {
   return {
     id: row.id,
     party_id: row.party_id,
+    original_party_id: row.original_party_id ?? row.party_id,
     contract_code: row.contract_code,
     contract_title: row.contract_title,
     doc_type: row.doc_type,

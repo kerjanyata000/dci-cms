@@ -82,6 +82,7 @@ export async function createPartyContract(partyId: string, body: CreateContractI
     .from('contracts')
     .insert({
       party_id: partyId,
+      original_party_id: partyId,
       contract_code,
       contract_title,
       doc_type: body.doc_type?.trim() || null,
@@ -377,4 +378,255 @@ export async function createEarlyTermination(
   })
 
   return termination
+}
+
+export type CounterpartyChangeRow = {
+  id: string
+  contract_id: string
+  from_party_id: string
+  to_party_id: string
+  change_type: string
+  effective_date: string | null
+  reason: string
+  created_at: string
+}
+
+export function mapCounterpartyChangeRow(row: CounterpartyChangeRow) {
+  return { ...row }
+}
+
+const CORRECTION_STATUSES = ['draft', 'under_review']
+const BLOCKED_CP_STATUSES = ['waiting_for_signature', 'ready_for_sign']
+
+const STATUS_ACTIONS: Record<
+  string,
+  { status: string; status_text: string; allowedFrom: string[] }
+> = {
+  submit_review: {
+    status: 'under_review',
+    status_text: 'Under Review',
+    allowedFrom: ['draft'],
+  },
+  send_to_cp: {
+    status: 'sent',
+    status_text: 'Sent to Counterparty',
+    allowedFrom: ['under_review'],
+  },
+  ready_for_sign: {
+    status: 'ready_for_sign',
+    status_text: 'Waiting for Signature',
+    allowedFrom: ['sent'],
+  },
+  mark_active: {
+    status: 'active',
+    status_text: 'Active',
+    allowedFrom: ['ready_for_sign', 'sent'],
+  },
+  back_to_draft: {
+    status: 'draft',
+    status_text: 'Draft',
+    allowedFrom: ['under_review', 'sent'],
+  },
+}
+
+export async function getContractById(contractId: string) {
+  const db = getSupabaseAdmin()
+  const { data, error } = await db.from('contracts').select('*').eq('id', contractId).single()
+  if (error || !data) throw new Error('Contract not found')
+  return mapContractRow(data as ContractRow)
+}
+
+export async function confirmContractMetadata(
+  contractId: string,
+  confirmed: ContractMetadata,
+) {
+  const db = getSupabaseAdmin()
+  const contract = await getContractById(contractId)
+
+  const merged = { ...contract.confirmed_metadata, ...confirmed }
+  const { data: partyRow } = await db
+    .from('parties')
+    .select('*')
+    .eq('id', contract.party_id)
+    .single()
+
+  let partner = null
+  if (partyRow?.odoo_partner_id != null) {
+    const partners = await searchOdooPartners([['id', '=', partyRow.odoo_partner_id]], 1)
+    partner = partners[0] ?? null
+  }
+
+  const validation = validateContractMetadata({
+    extracted: contract.extracted_metadata,
+    confirmed: merged,
+    partner,
+  })
+
+  const { data, error } = await db
+    .from('contracts')
+    .update({
+      confirmed_metadata: merged,
+      validation_status: validation.status,
+      validation_notes: validation.issues.map((i) => i.message).join('; ') || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', contractId)
+    .select('*')
+    .single()
+
+  if (error) throw new Error(error.message)
+
+  await db.from('audit_logs').insert({
+    action: `Metadata dikonfirmasi — ${contract.contract_code} (${validation.status})`,
+    action_type: 'update',
+    party_id: contract.party_id,
+    contract_id: contractId,
+    actor_name: 'CMS',
+    payload: { validation_status: validation.status },
+  })
+
+  return mapContractRow(data as ContractRow)
+}
+
+export async function transitionContractStatus(contractId: string, action: string) {
+  const spec = STATUS_ACTIONS[action]
+  if (!spec) throw new Error(`Unknown status action: ${action}`)
+
+  const contract = await getContractById(contractId)
+  if (!spec.allowedFrom.includes(contract.status)) {
+    throw new Error(
+      `Tidak bisa ${action} dari status ${contract.status_text} (${contract.status})`,
+    )
+  }
+
+  const db = getSupabaseAdmin()
+  const { data, error } = await db
+    .from('contracts')
+    .update({
+      status: spec.status,
+      status_text: spec.status_text,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', contractId)
+    .select('*')
+    .single()
+
+  if (error) throw new Error(error.message)
+
+  await db.from('audit_logs').insert({
+    action: `Status kontrak → ${spec.status_text} [${contract.contract_code}]`,
+    action_type: 'status',
+    party_id: contract.party_id,
+    contract_id: contractId,
+    actor_name: 'CMS',
+    payload: { from: contract.status, to: spec.status, action },
+  })
+
+  return mapContractRow(data as ContractRow)
+}
+
+export async function changeContractCounterparty(
+  contractId: string,
+  body: {
+    to_party_id: string
+    change_type: string
+    effective_date?: string
+    reason: string
+  },
+) {
+  const reason = body.reason?.trim()
+  if (!reason) throw new Error('reason wajib diisi (FR-CNT-CP-008)')
+
+  const db = getSupabaseAdmin()
+  const { data: contractRow, error: contractError } = await db
+    .from('contracts')
+    .select('*')
+    .eq('id', contractId)
+    .single()
+
+  if (contractError || !contractRow) throw new Error('Contract not found')
+
+  const contract = mapContractRow(contractRow as ContractRow)
+  const changeType = body.change_type?.trim() || 'Other'
+
+  if (BLOCKED_CP_STATUSES.includes(contract.status)) {
+    throw new Error(
+      'Batalkan/revisi proses tanda tangan dulu sebelum Change Counterparty (BRL-CMS-009)',
+    )
+  }
+
+  if (changeType === 'Correction' && !CORRECTION_STATUSES.includes(contract.status)) {
+    throw new Error('Correction hanya untuk Draft / Under Review (BRL-CMS-008)')
+  }
+
+  const toPartyId = body.to_party_id
+  if (toPartyId === contract.party_id) {
+    throw new Error('Party tujuan sama dengan party kontrak saat ini')
+  }
+
+  const { data: toParty, error: toError } = await db
+    .from('parties')
+    .select('*')
+    .eq('id', toPartyId)
+    .single()
+
+  if (toError || !toParty) throw new Error('Target party not found')
+  if (toParty.party_status === 'Inactive') {
+    throw new Error('Party Inactive tidak dapat dipilih (BRL-CMS-031)')
+  }
+
+  const fromPartyId = contract.party_id
+
+  const { data: changeRow, error: changeError } = await db
+    .from('contract_counterparty_changes')
+    .insert({
+      contract_id: contractId,
+      from_party_id: fromPartyId,
+      to_party_id: toPartyId,
+      change_type: changeType,
+      effective_date: body.effective_date?.trim() || null,
+      reason,
+    })
+    .select('*')
+    .single()
+
+  if (changeError) throw new Error(changeError.message)
+
+  const originalPartyId = contract.original_party_id ?? fromPartyId
+
+  const { data: updated, error: updateError } = await db
+    .from('contracts')
+    .update({
+      party_id: toPartyId,
+      original_party_id: originalPartyId,
+      confirmed_metadata: {
+        ...contract.confirmed_metadata,
+        counterpartyName: toParty.name,
+      },
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', contractId)
+    .select('*')
+    .single()
+
+  if (updateError) throw new Error(updateError.message)
+
+  await db.from('audit_logs').insert({
+    action: `Change Counterparty (${changeType}) — ${contract.contract_code} → ${toParty.name}`,
+    action_type: 'cp',
+    party_id: toPartyId,
+    contract_id: contractId,
+    actor_name: 'CMS',
+    payload: {
+      from_party_id: fromPartyId,
+      to_party_id: toPartyId,
+      change_type: changeType,
+      effective_date: body.effective_date ?? null,
+    },
+  })
+
+  return {
+    contract: mapContractRow(updated as ContractRow),
+    change: mapCounterpartyChangeRow(changeRow as CounterpartyChangeRow),
+  }
 }

@@ -2,8 +2,11 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { AddContractModal } from '@/components/contracts/AddContractModal'
 import { AmendmentModal } from '@/components/contracts/AmendmentModal'
+import { ChangeCounterpartyModal } from '@/components/contracts/ChangeCounterpartyModal'
+import { ContractReviewModal } from '@/components/contracts/ContractReviewModal'
 import { TerminationModal } from '@/components/contracts/TerminationModal'
 import { UploadSupportingModal } from '@/components/contracts/UploadSupportingModal'
 import { LinkOdooModal } from '@/components/parties/LinkOdooModal'
@@ -33,6 +36,7 @@ type Props = {
 }
 
 export function PartyDetailView({ partyId, role }: Props) {
+  const router = useRouter()
   const canEdit = ROLES[role].canEdit
   const canSync = ROLES[role].canSync || canEdit
   const showSoTab = role !== 'business'
@@ -44,6 +48,8 @@ export function PartyDetailView({ partyId, role }: Props) {
   const [addContractOpen, setAddContractOpen] = useState(false)
   const [amendmentContract, setAmendmentContract] = useState<Contract | null>(null)
   const [terminationContract, setTerminationContract] = useState<Contract | null>(null)
+  const [reviewContract, setReviewContract] = useState<Contract | null>(null)
+  const [cpChangeContract, setCpChangeContract] = useState<Contract | null>(null)
   const [uploadSupportingOpen, setUploadSupportingOpen] = useState(false)
   const [soRows, setSoRows] = useState<Awaited<ReturnType<typeof fetchSyncedOrders>>>([])
   const [soBusy, setSoBusy] = useState(false)
@@ -108,7 +114,7 @@ export function PartyDetailView({ partyId, role }: Props) {
 
   if (!data) return <p className="muted">Memuat party detail…</p>
 
-  const { party, contracts, documents, amendments, terminations, auditLogs, soHealth } = data
+  const { party, contracts, documents, amendments, terminations, counterpartyChanges, auditLogs, soHealth } = data
   const supportingDocs = documents.filter((d) => d.document_category === 'supporting')
   const contractDocs = documents.filter((d) => d.document_category !== 'supporting')
   const activeContracts = contracts.filter((c) => ACTIVE_FOR_TERM.includes(c.status))
@@ -247,25 +253,10 @@ export function PartyDetailView({ partyId, role }: Props) {
       {tab === 'contracts' && (
         <div className="tab-panel active card stack">
           <p className="ref-tag">FR-CNT-SV-006 · FR-CNT-AMD-008</p>
-          {canEdit && (
-            <div className="row-actions">
-              <button
-                type="button"
-                className="btn ghost"
-                disabled={contracts.length === 0}
-                onClick={() => setAmendmentContract(contracts[0] ?? null)}
-              >
-                + Amendment
-              </button>
-              <button
-                type="button"
-                className="btn ghost"
-                disabled={activeContracts.length === 0}
-                onClick={() => setTerminationContract(activeContracts[0] ?? null)}
-              >
-                Early Termination
-              </button>
-            </div>
+          {canEdit && contracts.length > 0 && (
+            <p className="muted" style={{ fontSize: 12 }}>
+              Pilih aksi per baris kontrak di tabel bawah.
+            </p>
           )}
           {amendments.length > 0 && (
             <>
@@ -311,7 +302,7 @@ export function PartyDetailView({ partyId, role }: Props) {
                   <th>Expiry</th>
                   <th>Status</th>
                   <th>Validation</th>
-                  <th>Extracted</th>
+                  {canEdit && <th>Aksi</th>}
                 </tr>
               </thead>
               <tbody>
@@ -326,33 +317,88 @@ export function PartyDetailView({ partyId, role }: Props) {
                       <span className="pill">{c.status_text || c.status}</span>
                     </td>
                     <td>{c.validation_status}</td>
-                    <td className="muted" style={{ fontSize: 12 }}>
-                      {Object.keys(c.extracted_metadata ?? {}).length
-                        ? `${Object.keys(c.extracted_metadata).length} field(s)`
-                        : '—'}
-                    </td>
+                    {canEdit && (
+                      <td>
+                        <div className="row-actions contract-actions">
+                          <button
+                            type="button"
+                            className="btn ghost"
+                            onClick={() => setReviewContract(c)}
+                          >
+                            Review
+                          </button>
+                          <button
+                            type="button"
+                            className="btn ghost"
+                            onClick={() => setAmendmentContract(c)}
+                          >
+                            AMD
+                          </button>
+                          {ACTIVE_FOR_TERM.includes(c.status) && (
+                            <button
+                              type="button"
+                              className="btn ghost"
+                              onClick={() => setTerminationContract(c)}
+                            >
+                              Term
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            className="btn ghost"
+                            onClick={() => setCpChangeContract(c)}
+                          >
+                            CP
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
             </table>
           )}
-          {canEdit && contracts.length > 0 && (
-            <p className="muted" style={{ fontSize: 12 }}>
-              Amendment/Termination: gunakan kontrak pertama/active. Pilih kontrak spesifik — fase UI berikutnya.
-            </p>
-          )}
         </div>
       )}
 
       {tab === 'novation' && (
-        <div className="tab-panel active card">
-          <p className="ref-tag">FR-CNT-CP-011 · BRL-CMS-028</p>
-          <p className="muted">
-            Riwayat novation / counterparty change akan ditampilkan di sini setelah modul lifecycle
-            diimplementasi. Data tetap linked ke parent contract per BRD.
-          </p>
+        <div className="tab-panel active card stack">
+          <p className="ref-tag">FR-CNT-CP-011 · FR-CNT-SV-007</p>
+          {counterpartyChanges.length === 0 ? (
+            <p className="muted">Belum ada riwayat Change Counterparty / novation untuk party ini.</p>
+          ) : (
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Contract</th>
+                  <th>Type</th>
+                  <th>From → To</th>
+                  <th>Effective</th>
+                  <th>Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {counterpartyChanges.map((ch) => (
+                  <tr key={ch.id}>
+                    <td className="mono">{ch.contract_code ?? ch.contract_id.slice(0, 8)}</td>
+                    <td>{ch.change_type}</td>
+                    <td>
+                      {ch.from_party_code ?? '—'} → {ch.to_party_code ?? '—'}
+                    </td>
+                    <td>
+                      {ch.effective_date
+                        ? new Date(ch.effective_date).toLocaleDateString('id-ID')
+                        : '—'}
+                    </td>
+                    <td>{ch.reason}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       )}
+
 
       {tab === 'termination' && (
         <div className="tab-panel active card stack">
@@ -565,6 +611,42 @@ export function PartyDetailView({ partyId, role }: Props) {
           onCreated={() => {
             setTerminationContract(null)
             void load()
+          }}
+        />
+      )}
+
+      {reviewContract && (
+        <ContractReviewModal
+          contract={reviewContract}
+          open={Boolean(reviewContract)}
+          onClose={() => setReviewContract(null)}
+          onUpdated={(updated) => {
+            setReviewContract(updated)
+            setData((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    contracts: prev.contracts.map((c) => (c.id === updated.id ? updated : c)),
+                  }
+                : prev,
+            )
+          }}
+        />
+      )}
+
+      {cpChangeContract && (
+        <ChangeCounterpartyModal
+          contract={cpChangeContract}
+          currentPartyName={party.name}
+          open={Boolean(cpChangeContract)}
+          onClose={() => setCpChangeContract(null)}
+          onApplied={({ redirectPartyId }) => {
+            setCpChangeContract(null)
+            if (redirectPartyId && redirectPartyId !== partyId) {
+              router.push(`/parties/${redirectPartyId}`)
+            } else {
+              void load()
+            }
           }}
         />
       )}

@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useAuth } from '@/components/AuthProvider'
 import { AddPartyModal } from '@/components/parties/AddPartyModal'
 import { LinkOdooModal } from '@/components/parties/LinkOdooModal'
@@ -20,11 +21,12 @@ const LINK_FILTERS: Array<{ value: OdooLinkStatus | 'all'; label: string }> = [
 ]
 
 export default function PartiesPage() {
+  const searchParams = useSearchParams()
   const { user } = useAuth()
   const canEdit = user ? ROLES[user.role].canEdit : false
 
   const [rows, setRows] = useState<Party[]>([])
-  const [q, setQ] = useState('')
+  const [q, setQ] = useState(searchParams.get('q') ?? '')
   const [linkFilter, setLinkFilter] = useState<OdooLinkStatus | 'all'>('all')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -44,6 +46,11 @@ export default function PartiesPage() {
       setBusy(false)
     }
   }, [q, linkFilter])
+
+  useEffect(() => {
+    const urlQ = searchParams.get('q')
+    if (urlQ != null && urlQ !== q) setQ(urlQ)
+  }, [searchParams, q])
 
   useEffect(() => {
     void load()

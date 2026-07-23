@@ -2,6 +2,7 @@ import type {
   Contract,
   ContractAmendment,
   ContractTermination,
+  CounterpartyChange,
   DocumentRow,
   OdooLinkStatus,
   Party,
@@ -38,6 +39,7 @@ export type PartyDetailPayload = {
   documents: DocumentRow[]
   amendments: ContractAmendment[]
   terminations: ContractTermination[]
+  counterpartyChanges: CounterpartyChange[]
   auditLogs: Array<{
     id: string
     action: string

@@ -1,4 +1,11 @@
-import type { Contract, ContractAmendment, ContractTermination, DocumentRow } from '@/types/cms'
+import type {
+  Contract,
+  ContractAmendment,
+  ContractMetadata,
+  ContractTermination,
+  CounterpartyChange,
+  DocumentRow,
+} from '@/types/cms'
 
 async function parseJson<T>(res: Response): Promise<T> {
   const payload = (await res.json()) as { ok?: boolean; data?: T; error?: string }
@@ -105,4 +112,55 @@ export async function uploadSupportingDocument(
     await fetch(`/api/parties/${partyId}/documents`, { method: 'POST', body: form }),
   )
   return data.document
+}
+
+export async function fetchContract(contractId: string): Promise<Contract> {
+  const data = await parseJson<{ contract: Contract }>(await fetch(`/api/contracts/${contractId}`))
+  return data.contract
+}
+
+export async function confirmContractMetadata(
+  contractId: string,
+  confirmed: ContractMetadata,
+): Promise<Contract> {
+  const data = await parseJson<{ contract: Contract }>(
+    await fetch(`/api/contracts/${contractId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'confirm_metadata', confirmed }),
+    }),
+  )
+  return data.contract
+}
+
+export async function transitionContractStatus(
+  contractId: string,
+  statusAction: string,
+): Promise<Contract> {
+  const data = await parseJson<{ contract: Contract }>(
+    await fetch(`/api/contracts/${contractId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'status', statusAction }),
+    }),
+  )
+  return data.contract
+}
+
+export async function changeContractCounterparty(
+  contractId: string,
+  input: {
+    to_party_id: string
+    change_type: string
+    effective_date?: string
+    reason: string
+  },
+) {
+  return parseJson<{ contract: Contract; change: CounterpartyChange }>(
+    await fetch(`/api/contracts/${contractId}/counterparty-change`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    }),
+  )
 }
