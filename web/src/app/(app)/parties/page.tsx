@@ -134,9 +134,14 @@ export default function PartiesPage() {
                   <td>{p.pic || '—'}</td>
                   <td>{p.party_status}</td>
                   <td>
-                    <span className={`pill pill-${p.odoo_link_status}`}>
-                      {ODOO_LINK_LABELS[p.odoo_link_status]}
-                    </span>
+                    <div className="odoo-link-cell">
+                      <span className={`pill pill-${p.odoo_link_status}`}>
+                        {ODOO_LINK_LABELS[p.odoo_link_status]}
+                      </span>
+                      {p.odoo_partner_id != null && (
+                        <span className="mono odoo-link-id">#{p.odoo_partner_id}</span>
+                      )}
+                    </div>
                   </td>
                   <td className="mono">{p.odoo_partner_id ?? '—'}</td>
                   <td>
@@ -151,7 +156,7 @@ export default function PartiesPage() {
                         className="btn ghost"
                         onClick={() => setLinkParty(p)}
                       >
-                        Link Odoo
+                        {p.odoo_partner_id != null ? 'Kelola Link' : 'Link Odoo'}
                       </button>
                     </td>
                   )}

@@ -53,6 +53,24 @@ export const ODOO_LINK_LABELS: Record<OdooLinkStatus, string> = {
   not_required: 'Not Required',
 }
 
+/** Penjelasan singkat untuk UI — mismatch tetap punya partner ID */
+export const ODOO_LINK_HINTS: Record<OdooLinkStatus, string> = {
+  unlinked: 'Belum ada Partner Odoo yang dipilih.',
+  pending: 'Party ada di CMS; pilih Partner di Odoo via Link.',
+  linked: 'Nama CMS cocok dengan res.partner Odoo.',
+  mismatch: 'Sudah terhubung ke Partner Odoo, tetapi nama CMS ≠ nama Partner (perlu review Legal).',
+  relink: 'Partner Odoo perlu di-link ulang dengan alasan.',
+  not_required: 'Integrasi Odoo tidak diwajibkan untuk party ini.',
+}
+
+export function formatOdooLinkSummary(party: Pick<Party, 'odoo_link_status' | 'odoo_partner_id'>) {
+  const label = ODOO_LINK_LABELS[party.odoo_link_status]
+  if (party.odoo_partner_id != null) {
+    return `${label} · Odoo #${party.odoo_partner_id}`
+  }
+  return label
+}
+
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 export async function nextPartyCode(db: SupabaseClient): Promise<string> {

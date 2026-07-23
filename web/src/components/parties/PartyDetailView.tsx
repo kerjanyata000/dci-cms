@@ -9,7 +9,7 @@ import { UploadSupportingModal } from '@/components/contracts/UploadSupportingMo
 import { LinkOdooModal } from '@/components/parties/LinkOdooModal'
 import { fetchSyncedOrders, runSoSync } from '@/lib/so/api'
 import { fetchPartyDetail, type PartyDetailPayload } from '@/lib/parties/api'
-import { ODOO_LINK_LABELS } from '@/lib/parties/types'
+import { ODOO_LINK_HINTS, ODOO_LINK_LABELS, formatOdooLinkSummary } from '@/lib/parties/types'
 import type { Contract } from '@/types/cms'
 import { ACTIVE_FOR_TERM } from '@/lib/contracts/constants'
 import { ROLES } from '@/lib/roles'
@@ -127,11 +127,26 @@ export function PartyDetailView({ partyId, role }: Props) {
         </div>
         <div className="dossier-info">
           <div className="crumb-w">
-            Odoo Partner · {ODOO_LINK_LABELS[party.odoo_link_status]}
-            {party.odoo_partner_id != null && (
-              <span className="mono"> · #{party.odoo_partner_id}</span>
-            )}
+            {formatOdooLinkSummary(party)}
           </div>
+          {party.odoo_partner_id != null && (
+            <div
+              className={`link-current-banner link-current-${party.odoo_link_status}`}
+              style={{ marginTop: 10, marginBottom: 0 }}
+            >
+              <p style={{ margin: 0, fontSize: 13 }}>
+                <span className={`pill pill-${party.odoo_link_status}`}>
+                  {ODOO_LINK_LABELS[party.odoo_link_status]}
+                </span>
+                <span className="mono" style={{ marginLeft: 8 }}>
+                  Odoo res.partner #{party.odoo_partner_id}
+                </span>
+              </p>
+              <p className="muted" style={{ margin: '6px 0 0', fontSize: 12 }}>
+                {ODOO_LINK_HINTS[party.odoo_link_status]}
+              </p>
+            </div>
+          )}
           <h1>{party.name}</h1>
           <div className="dossier-meta">
             <div>
@@ -159,7 +174,7 @@ export function PartyDetailView({ partyId, role }: Props) {
                 + Add Contract
               </button>
               <button type="button" className="btn ghost" onClick={() => setLinkOpen(true)}>
-                Link Odoo
+                {party.odoo_partner_id != null ? 'Kelola Link Odoo' : 'Link Odoo'}
               </button>
             </>
           ) : (
@@ -201,7 +216,13 @@ export function PartyDetailView({ partyId, role }: Props) {
                 <span className={`pill pill-${party.odoo_link_status}`}>
                   {ODOO_LINK_LABELS[party.odoo_link_status]}
                 </span>
+                {party.odoo_partner_id != null && (
+                  <span className="mono" style={{ marginLeft: 8 }}>
+                    #{party.odoo_partner_id}
+                  </span>
+                )}
               </b>
+              <div className="lock-tag">{ODOO_LINK_HINTS[party.odoo_link_status]}</div>
             </div>
             <div className="info-item">
               <span>Documents</span>

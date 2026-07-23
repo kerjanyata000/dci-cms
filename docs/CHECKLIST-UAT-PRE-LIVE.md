@@ -76,6 +76,10 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | 3.9 | Link exact match → Linked | Legal | Nama sama → confirm | `odoo_link_status=linked`, `odoo_partner_id` terisi | ✅ | | |
 | 3.10 | Link nama beda → Mismatch | Legal | Nama beda → confirm | Status Mismatch | ✅ | | |
 | 3.11 | Relink wajib reason | Legal | Ganti partner linked | Error tanpa reason; sukses dengan reason | ✅ | | |
+| 3.11a | Modal tidak tutup klik luar | Legal | Klik area gelap modal Link | Modal tetap terbuka | 🟡 | | Tutup hanya Batal/✕/Escape |
+| 3.11b | Auto-search saat buka Link | Legal | Buka Link Odoo | Kandidat muncul tanpa klik Search dulu | 🟡 | | |
+| 3.11c | Success screen setelah link | Legal | Konfirmasi link | Tampil Partner #id + status pill | 🟡 | | |
+| 3.11d | Mismatch tetap tampil Partner ID | Legal | Link nama beda | Pill Mismatch + `#partner_id` di list & Detail | 🟡 | | Bukan berarti unlinked |
 | 3.12 | Party Detail drill-in | Semua | Klik party | Tabs kontrak, SO, audit | 🟡 | | BRL-CMS-026 tabs; novation/termination placeholder |
 | 3.13 | Global search party | Semua | Search topbar | Navigasi + filter | ⬜ | | |
 

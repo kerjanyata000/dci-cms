@@ -393,6 +393,63 @@ a {
   margin-top: 16px;
 }
 
+.modal-hint {
+  font-size: 12px;
+  margin: 0 0 12px;
+  padding: 8px 10px;
+  background: var(--paper);
+  border-radius: 8px;
+  border: 1px dashed var(--line);
+}
+
+.link-current-banner {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  margin-bottom: 14px;
+  background: var(--paper);
+}
+
+.link-current-linked {
+  border-color: #c8e6d4;
+  background: #f3fbf6;
+}
+
+.link-current-mismatch,
+.link-current-relink {
+  border-color: #f0dcc8;
+  background: #fef9f3;
+}
+
+.link-current-pending,
+.link-current-unlinked {
+  border-color: var(--line);
+}
+
+.link-success-box {
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--brass-light);
+}
+
+.link-success-partner {
+  font-size: 15px;
+  margin-top: 8px;
+}
+
+.odoo-link-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.odoo-link-id {
+  font-size: 11px;
+  color: var(--muted);
+}
+
 .field textarea {
   border: 1px solid var(--line);
   border-radius: 8px;
