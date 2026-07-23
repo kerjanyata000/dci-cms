@@ -1,19 +1,44 @@
 import 'server-only'
 
-import { searchOdooOrders } from '@/lib/odoo/server'
+import { searchOdooOrders, searchOdooPartners } from '@/lib/odoo/server'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
+
+export type SoSyncError = {
+  partyId: string
+  partyCode: string
+  message: string
+}
 
 export type SoSyncResult = {
   partiesProcessed: number
   ordersUpserted: number
   syncedAt: string
-  errors: string[]
+  errors: SoSyncError[]
+  failedParties: number
+}
+
+async function logSyncError(
+  db: ReturnType<typeof getSupabaseAdmin>,
+  party: { id: string; party_code: string; odoo_partner_id: number | null },
+  message: string,
+  partnerId?: number,
+) {
+  await db.from('audit_logs').insert({
+    action: `SO Sync gagal — ${party.party_code}: ${message}`,
+    action_type: 'sync_error',
+    party_id: party.id,
+    actor_name: 'CMS',
+    payload: {
+      partnerId: partnerId ?? party.odoo_partner_id,
+      error: message,
+    },
+  })
 }
 
 export async function syncSaleOrdersFromOdoo(partyId?: string): Promise<SoSyncResult> {
   const db = getSupabaseAdmin()
   const syncedAt = new Date().toISOString()
-  const errors: string[] = []
+  const errors: SoSyncError[] = []
   let ordersUpserted = 0
 
   let partyQuery = db
@@ -28,16 +53,41 @@ export async function syncSaleOrdersFromOdoo(partyId?: string): Promise<SoSyncRe
 
   const linked = parties ?? []
   if (linked.length === 0) {
-    return { partiesProcessed: 0, ordersUpserted: 0, syncedAt, errors: ['No linked parties'] }
+    const message = partyId
+      ? 'Party tidak linked ke Odoo Partner'
+      : 'Tidak ada party dengan Odoo Partner ID'
+    if (partyId) {
+      const { data: partyRow } = await db
+        .from('parties')
+        .select('id, party_code, odoo_partner_id')
+        .eq('id', partyId)
+        .single()
+      if (partyRow) {
+        errors.push({ partyId: partyRow.id, partyCode: partyRow.party_code, message })
+        await logSyncError(db, partyRow as { id: string; party_code: string; odoo_partner_id: null }, message)
+      }
+    }
+    return {
+      partiesProcessed: 0,
+      ordersUpserted: 0,
+      syncedAt,
+      errors,
+      failedParties: errors.length,
+    }
   }
 
   for (const party of linked) {
     const partnerId = party.odoo_partner_id as number
     try {
-      const orders = await searchOdooOrders(
-        [['partner_id', '=', partnerId]],
-        100,
-      )
+      const partners = await searchOdooPartners([['id', '=', partnerId]], 1)
+      if (!partners.length) {
+        const message = `Partner Odoo #${partnerId} tidak ditemukan — periksa Link Odoo party`
+        errors.push({ partyId: party.id, partyCode: party.party_code, message })
+        await logSyncError(db, party, message, partnerId)
+        continue
+      }
+
+      const orders = await searchOdooOrders([['partner_id', '=', partnerId]], 100)
 
       for (const order of orders) {
         const { error } = await db.from('sale_orders').upsert(
@@ -54,27 +104,31 @@ export async function syncSaleOrdersFromOdoo(partyId?: string): Promise<SoSyncRe
           { onConflict: 'odoo_order_id' },
         )
         if (error) {
-          errors.push(`${party.party_code}: ${order.name} — ${error.message}`)
+          const message = `${order.name}: ${error.message}`
+          errors.push({ partyId: party.id, partyCode: party.party_code, message })
+          await logSyncError(db, party, message, partnerId)
         } else {
           ordersUpserted += 1
         }
       }
     } catch (err) {
-      errors.push(
-        `${party.party_code}: ${err instanceof Error ? err.message : 'Odoo fetch failed'}`,
-      )
+      const message = err instanceof Error ? err.message : 'Odoo fetch failed'
+      errors.push({ partyId: party.id, partyCode: party.party_code, message })
+      await logSyncError(db, party, message, partnerId)
     }
   }
 
   await db.from('audit_logs').insert({
     action: `SO Sync batch — ${ordersUpserted} order(s) dari Odoo (consume-only)`,
     action_type: 'sync',
+    party_id: partyId ?? null,
     actor_name: 'CMS',
     payload: {
       partiesProcessed: linked.length,
       ordersUpserted,
       syncedAt,
       errorCount: errors.length,
+      failedParties: new Set(errors.map((e) => e.partyId)).size,
     },
   })
 
@@ -83,6 +137,7 @@ export async function syncSaleOrdersFromOdoo(partyId?: string): Promise<SoSyncRe
     ordersUpserted,
     syncedAt,
     errors,
+    failedParties: new Set(errors.map((e) => e.partyId)).size,
   }
 }
 
@@ -97,6 +152,19 @@ export async function listSyncedSaleOrders(partyId?: string) {
   if (partyId) query = query.eq('party_id', partyId)
 
   const { data, error } = await query
+  if (error) throw new Error(error.message)
+  return data ?? []
+}
+
+export async function listRecentSyncErrors(limit = 5) {
+  const db = getSupabaseAdmin()
+  const { data, error } = await db
+    .from('audit_logs')
+    .select('*')
+    .eq('action_type', 'sync_error')
+    .order('created_at', { ascending: false })
+    .limit(limit)
+
   if (error) throw new Error(error.message)
   return data ?? []
 }

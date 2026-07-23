@@ -12,7 +12,8 @@ export type SyncSoResult = {
   partiesProcessed: number
   ordersUpserted: number
   syncedAt: string
-  errors: string[]
+  errors: Array<{ partyId: string; partyCode: string; message: string }>
+  failedParties: number
 }
 
 export type SyncedOrderRow = SaleOrderRow & {

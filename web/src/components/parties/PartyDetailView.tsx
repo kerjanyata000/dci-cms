@@ -56,6 +56,7 @@ export function PartyDetailView({ partyId, role }: Props) {
   const [soRows, setSoRows] = useState<Awaited<ReturnType<typeof fetchSyncedOrders>>>([])
   const [soBusy, setSoBusy] = useState(false)
   const [soSyncMsg, setSoSyncMsg] = useState('')
+  const [soSyncError, setSoSyncError] = useState('')
 
   const load = useCallback(async () => {
     setError('')
@@ -85,15 +86,19 @@ export function PartyDetailView({ partyId, role }: Props) {
     if (!data?.party.odoo_partner_id) return
     setSoBusy(true)
     setSoSyncMsg('')
+    setSoSyncError('')
     try {
       const result = await runSoSync(partyId)
       setSoSyncMsg(
         `Sync OK — ${result.ordersUpserted} order(s) · ${new Date(result.syncedAt).toLocaleString('id-ID')}`,
       )
+      if (result.errors.length) {
+        setSoSyncError(result.errors.map((e) => e.message).join(' · '))
+      }
       await loadSo()
       void load()
     } catch (err) {
-      setSoSyncMsg(err instanceof Error ? err.message : 'Sync gagal')
+      setSoSyncError(err instanceof Error ? err.message : 'Sync gagal')
     } finally {
       setSoBusy(false)
     }
@@ -531,6 +536,7 @@ export function PartyDetailView({ partyId, role }: Props) {
                 )}
               </div>
               {soSyncMsg && <p className="muted">{soSyncMsg}</p>}
+              {soSyncError && <p className="error-text">{soSyncError}</p>}
               {soRows.length === 0 ? (
                 <p className="muted">
                   Belum ada SO tersimpan. Jalankan Run Sync untuk pull dari Odoo (consume-only).

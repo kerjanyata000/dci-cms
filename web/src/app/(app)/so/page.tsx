@@ -32,11 +32,15 @@ export default function SoHealthPage() {
     setSyncMsg('')
     try {
       const result = await runSoSync()
+      const errSummary =
+        result.errors.length > 0
+          ? ` · ${result.failedParties} party gagal (${result.errors.length} error)`
+          : ''
       setSyncMsg(
-        `Sync selesai — ${result.ordersUpserted} order dari ${result.partiesProcessed} party · ${new Date(result.syncedAt).toLocaleString('id-ID')}`,
+        `Sync selesai — ${result.ordersUpserted} order dari ${result.partiesProcessed} party${errSummary} · ${new Date(result.syncedAt).toLocaleString('id-ID')}`,
       )
       if (result.errors.length) {
-        setError(result.errors.slice(0, 3).join(' · '))
+        setError(result.errors.map((e) => `${e.partyCode}: ${e.message}`).slice(0, 5).join(' · '))
       }
       await load()
     } catch (err) {

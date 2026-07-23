@@ -45,7 +45,8 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | 1.6 | Menu sidebar sesuai role | Finance | Login Finance | + SO Health | 🟡 | | |
 | 1.7 | Menu sidebar sesuai role | IT | Login IT | + SO Health, Renewal | 🟡 | | |
 | 1.8 | Aksi edit disembunyikan jika view-only | Business | Buka Parties | Tidak ada Add Party / Link Odoo | 🟡 | | |
-| 1.9 | Supabase Auth production | — | Login email/password | Session + `profiles.role` | ⬜ | | **Wajib sebelum live** |
+| 1.9 | Supabase Auth production | — | Login email/password | Session + `profiles.role` | 🟡 | | Set `NEXT_PUBLIC_AUTH_MODE=supabase` + migration 006 |
+| 1.9a | Mock auth dev | — | Default tanpa env | Role picker | ✅ | | `NEXT_PUBLIC_AUTH_MODE=mock` (default) |
 
 ---
 
@@ -128,7 +129,8 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | 5.2c | Upsert idempotent | IT | Run Sync 2× | Tidak duplikat `odoo_order_id` | 🟡 | | |
 | 5.3 | SO status Synchronized | IT | Party dengan SO aktif | Flag synchronized | 🟡 | | Via mirror sale/done |
 | 5.4 | No Active SO flag | IT | Party active contract, no SO | Banner di Party Detail SO tab | 🟡 | | FR-CNT-SO-007 / NOTIF-014 path |
-| 5.5 | Sync error handling | IT | Partner ID invalid | Error + notifikasi, tidak silent | ⬜ | | |
+| 5.5 | Sync error handling | IT | Partner ID invalid | Error + notifikasi, tidak silent | 🟡 | | audit `sync_error` + NOTIF-CMS-SYNC |
+| 5.5a | Sync error di SO Health | IT | Run Sync gagal | Banner error per party | 🟡 | | |
 | 5.6 | CMS tidak write SO/Partner | Dev | Review code/API | Tidak ada create/write Odoo | ✅ | | |
 
 ---
@@ -151,7 +153,7 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | # | Test case | Langkah | Expected | Impl | Hasil |
 | --- | --- | --- | --- | --- | --- |
 | 7.1 | Grid bulan + marker due | Buka `/renewal` | Kalender interaktif | 🟡 | | Data dari kontrak Supabase |
-| 7.2 | Nav bulan | ‹ › Bulan ini | Pindah bulan | 🟡 | | Month picker penuh belum |
+| 7.2 | Nav bulan | ‹ › Bulan ini | Pindah bulan | 🟡 | | Month + year picker mockup parity |
 | 7.3 | Side panel detail due | Klik tanggal | Party/kontrak due + link Detail | 🟡 | | |
 | 7.4 | Summary strip urgent/soon | Buka Renewal | Chip count urgent/soon/later | 🟡 | | BRL-CMS-023 buckets |
 | 7.5 | Filter tabel agenda | Chip Urgent/Segera/Bulan | Filter benar | 🟡 | | |
@@ -222,7 +224,7 @@ Manual UI (5 menit):
 6. `/renewal` — kalender  
 7. `/so` — Run Sync  
 
-**DB (sebelum UI di atas):** migration `003` + `004` + `005` di Supabase SQL Editor.
+**DB (sebelum UI di atas):** migration `003` + `004` + `005` + `006` di Supabase SQL Editor.
 
 ---
 

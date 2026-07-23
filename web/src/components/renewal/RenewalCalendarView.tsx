@@ -43,6 +43,12 @@ function daysLabel(days: number) {
   return `${days} hari lagi`
 }
 
+const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des']
+
+function decadeLabel(start: number) {
+  return `${start}–${start + 8}`
+}
+
 export function RenewalCalendarView() {
   const [data, setData] = useState<RenewalPayload | null>(null)
   const [error, setError] = useState('')
@@ -52,12 +58,28 @@ export function RenewalCalendarView() {
     return new Date(t.getFullYear(), t.getMonth(), 1)
   })
   const [selectedKey, setSelectedKey] = useState(() => ymdKey(new Date().toISOString()))
+  const [monthPickerOpen, setMonthPickerOpen] = useState(false)
+  const [yearPickerOpen, setYearPickerOpen] = useState(false)
+  const [decadeStart, setDecadeStart] = useState(() => {
+    const y = new Date().getFullYear()
+    return y - (y % 9)
+  })
 
   useEffect(() => {
     fetchRenewalAgenda()
       .then(setData)
       .catch((err) => setError(err instanceof Error ? err.message : 'Gagal memuat renewal'))
   }, [])
+
+  useEffect(() => {
+    if (!monthPickerOpen && !yearPickerOpen) return
+    const onDoc = () => {
+      setMonthPickerOpen(false)
+      setYearPickerOpen(false)
+    }
+    document.addEventListener('click', onDoc)
+    return () => document.removeEventListener('click', onDoc)
+  }, [monthPickerOpen, yearPickerOpen])
 
   const items = data?.items ?? []
 
@@ -113,7 +135,28 @@ export function RenewalCalendarView() {
     const t = new Date()
     setCursor(new Date(t.getFullYear(), t.getMonth(), 1))
     setSelectedKey(ymdKey(t.toISOString()))
+    setDecadeStart(t.getFullYear() - (t.getFullYear() % 9))
   }
+
+  function closePickers() {
+    setMonthPickerOpen(false)
+    setYearPickerOpen(false)
+  }
+
+  function pickMonth(monthIndex: number) {
+    setCursor(new Date(cursor.getFullYear(), monthIndex, 1))
+    closePickers()
+  }
+
+  function pickYear(year: number) {
+    setCursor(new Date(year, cursor.getMonth(), 1))
+    setDecadeStart(year - (year % 9))
+    closePickers()
+  }
+
+  const today = new Date()
+  const currentMonth = today.getMonth()
+  const currentYear = today.getFullYear()
 
   return (
     <div>
@@ -180,9 +223,126 @@ export function RenewalCalendarView() {
               </button>
             </div>
             <div className="cal-jump">
-              <span className="cal-month-btn">
-                {MONTHS_ID[cursor.getMonth()]} {cursor.getFullYear()}
-              </span>
+              <div className="cal-picker-wrap">
+                <button
+                  type="button"
+                  className="cal-month-btn"
+                  aria-haspopup="dialog"
+                  aria-expanded={monthPickerOpen}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setYearPickerOpen(false)
+                    setMonthPickerOpen((v) => !v)
+                  }}
+                >
+                  {MONTHS_ID[cursor.getMonth()]} {cursor.getFullYear()}
+                </button>
+                {monthPickerOpen && (
+                  <div
+                    className="cal-picker open"
+                    role="dialog"
+                    aria-label="Pilih bulan"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="cal-picker-year">
+                      <span className="cal-picker-label">Pilih bulan</span>
+                      <button
+                        type="button"
+                        className="cal-year-hit"
+                        onClick={() => {
+                          setMonthPickerOpen(false)
+                          setYearPickerOpen(true)
+                        }}
+                      >
+                        {cursor.getFullYear()}
+                      </button>
+                    </div>
+                    <div className="cal-picker-months">
+                      {MONTHS_SHORT.map((name, i) => (
+                        <button
+                          key={name}
+                          type="button"
+                          className={`${cursor.getMonth() === i ? 'active' : ''}${currentMonth === i && cursor.getFullYear() === currentYear ? ' today-m' : ''}`}
+                          onClick={() => pickMonth(i)}
+                        >
+                          {name}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="cal-picker-foot">
+                      <button type="button" className="btn ghost" onClick={() => { goToday(); closePickers() }}>
+                        Bulan ini
+                      </button>
+                      <button type="button" className="btn primary" onClick={closePickers}>
+                        Tutup
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="cal-picker-wrap">
+                <button
+                  type="button"
+                  className="cal-month-btn cal-year-btn"
+                  aria-haspopup="dialog"
+                  aria-expanded={yearPickerOpen}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setMonthPickerOpen(false)
+                    setYearPickerOpen((v) => !v)
+                  }}
+                >
+                  {cursor.getFullYear()}
+                </button>
+                {yearPickerOpen && (
+                  <div
+                    className="cal-picker open"
+                    role="dialog"
+                    aria-label="Pilih tahun"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="cal-picker-year">
+                      <button
+                        type="button"
+                        className="btn ghost"
+                        aria-label="9 tahun sebelumnya"
+                        onClick={() => setDecadeStart((d) => d - 9)}
+                      >
+                        ‹
+                      </button>
+                      <b>{decadeLabel(decadeStart)}</b>
+                      <button
+                        type="button"
+                        className="btn ghost"
+                        aria-label="9 tahun berikutnya"
+                        onClick={() => setDecadeStart((d) => d + 9)}
+                      >
+                        ›
+                      </button>
+                    </div>
+                    <div className="cal-picker-months">
+                      {Array.from({ length: 9 }, (_, i) => decadeStart + i).map((year) => (
+                        <button
+                          key={year}
+                          type="button"
+                          className={`year-cell${cursor.getFullYear() === year ? ' active' : ''}${currentYear === year ? ' today-m' : ''}`}
+                          onClick={() => pickYear(year)}
+                        >
+                          {year}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="cal-picker-foot">
+                      <button type="button" className="btn ghost" onClick={() => { goToday(); closePickers() }}>
+                        Tahun ini
+                      </button>
+                      <button type="button" className="btn primary" onClick={closePickers}>
+                        Tutup
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

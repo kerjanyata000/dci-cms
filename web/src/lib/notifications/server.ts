@@ -2,6 +2,7 @@ import 'server-only'
 
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 import { ODOO_LINK_LABELS } from '@/lib/parties/types'
+import { listRecentSyncErrors } from '@/lib/so/server'
 
 export type NotificationItem = {
   id: string
@@ -17,7 +18,7 @@ export async function loadNotifications(): Promise<NotificationItem[]> {
   const db = getSupabaseAdmin()
   const items: NotificationItem[] = []
 
-  const [auditRes, mismatchRes, noSoParties] = await Promise.all([
+  const [auditRes, mismatchRes, noSoParties, syncErrors] = await Promise.all([
     db.from('audit_logs').select('*').order('created_at', { ascending: false }).limit(8),
     db
       .from('parties')
@@ -25,9 +26,23 @@ export async function loadNotifications(): Promise<NotificationItem[]> {
       .in('odoo_link_status', ['mismatch', 'relink', 'pending', 'unlinked'])
       .limit(5),
     loadNoActiveSoParties(db),
+    listRecentSyncErrors(5),
   ])
 
+  for (const row of syncErrors) {
+    items.push({
+      id: `sync-${row.id}`,
+      code: 'NOTIF-CMS-SYNC',
+      title: 'SO Sync Error',
+      sub: String(row.action).replace(/^SO Sync gagal — /, ''),
+      urgent: true,
+      href: row.party_id ? `/parties/${row.party_id}` : '/so',
+      created_at: row.created_at,
+    })
+  }
+
   for (const row of auditRes.data ?? []) {
+    if (row.action_type === 'sync_error') continue
     items.push({
       id: `audit-${row.id}`,
       code: 'NOTIF-CMS-AUDIT',
