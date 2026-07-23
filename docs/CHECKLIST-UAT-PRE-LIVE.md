@@ -53,10 +53,10 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 
 | # | Test case | Role | Langkah | Expected | Impl | Hasil |
 | --- | --- | --- | --- | --- | --- | --- |
-| 2.1 | KPI cards per role | Legal | Buka Dashboard | KPI legal (pending review, renewal, Odoo link) | ⬜ | | Mockup penuh |
-| 2.2 | KPI cards per role | Finance | Buka Dashboard | KPI SO / commercial | ⬜ | | |
-| 2.3 | Pending actions list | Legal | Dashboard | Item tindakan + link ke Party | ⬜ | | |
-| 2.4 | Renewal agenda ringkas | Legal/Mgmt | Dashboard | Agenda H-14 / expiry | ⬜ | | |
+| 2.1 | KPI cards per role | Legal | Buka Dashboard | KPI legal (pending review, renewal, Odoo link) | 🟡 | | Data Supabase real; renewal KPI belum |
+| 2.2 | KPI cards per role | Finance | Buka Dashboard | KPI SO / commercial | 🟡 | | Odoo link stats; SO count belum persist |
+| 2.3 | Pending actions list | Legal | Dashboard | Item tindakan + link ke Party | 🟡 | | Link ke `/parties/[id]` |
+| 2.4 | Renewal agenda ringkas | Legal/Mgmt | Dashboard | Agenda H-14 / expiry | ⬜ | | Link ke Renewal Calendar placeholder |
 | 2.5 | Dev status panel | Dev | Dashboard | Status koneksi env | ✅ | | Hapus di production |
 
 ---
@@ -76,7 +76,7 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | 3.9 | Link exact match → Linked | Legal | Nama sama → confirm | `odoo_link_status=linked`, `odoo_partner_id` terisi | ✅ | | |
 | 3.10 | Link nama beda → Mismatch | Legal | Nama beda → confirm | Status Mismatch | ✅ | | |
 | 3.11 | Relink wajib reason | Legal | Ganti partner linked | Error tanpa reason; sukses dengan reason | ✅ | | |
-| 3.12 | Party Detail drill-in | Semua | Klik party | Tabs kontrak, SO, audit | ⬜ | | Mockup: `party-detail` |
+| 3.12 | Party Detail drill-in | Semua | Klik party | Tabs kontrak, SO, audit | 🟡 | | BRL-CMS-026 tabs; novation/termination placeholder |
 | 3.13 | Global search party | Semua | Search topbar | Navigasi + filter | ⬜ | | |
 
 ---
@@ -152,9 +152,9 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | --- | --- | --- | --- | --- | --- |
 | 9.1 | Tema ink + brass | Sidebar gelap, accent brass | ✅ sebagian (shell.css) | 🟡 | | |
 | 9.2 | Font Serif/Sans/Mono | Source Serif 4, IBM Plex | ✅ loaded | ✅ | | |
-| 9.3 | KPI cards dashboard | Per role | Placeholder teks | ⬜ | | |
+| 9.3 | KPI cards dashboard | Per role | Placeholder teks | 🟡 | | FR-DASH-003 per role dari Supabase |
 | 9.4 | Tabel parties kaya | Kolom dokumen, agreement date, durasi | Tabel minimal | 🟡 | | |
-| 9.5 | Party Detail tabs | Contracts, SO, audit, … | Belum ada | ⬜ | | |
+| 9.5 | Party Detail tabs | Contracts, SO, audit, … | Belum ada | 🟡 | | Dossier head + 7 tabs |
 | 9.6 | Modal pola mockup | Footer ghost/primary konsisten | Modal parties OK | 🟡 | | |
 | 9.7 | Mobile sidebar drawer | Hamburger ≤1100px | Belum ada | ⬜ | | |
 | 9.8 | Global search topbar | Search parties | Belum ada | ⬜ | | |

@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '@/components/AuthProvider'
 import { AddPartyModal } from '@/components/parties/AddPartyModal'
@@ -63,7 +64,7 @@ export default function PartiesPage() {
       <div className="page-head row-actions spread">
         <div>
           <h1>Parties</h1>
-          <p>Party master di Supabase · link ke Odoo Partner (consume-only).</p>
+          <p>Party master Supabase · drill-in Party Detail (BRL-CMS-026).</p>
         </div>
         {canEdit && (
           <button type="button" className="btn primary" onClick={() => setAddOpen(true)}>
@@ -114,13 +115,14 @@ export default function PartiesPage() {
                 <th>Status</th>
                 <th>Odoo Link</th>
                 <th>Partner ID</th>
+                <th></th>
                 {canEdit && <th></th>}
               </tr>
             </thead>
             <tbody>
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={canEdit ? 7 : 6} className="muted">
+                  <td colSpan={canEdit ? 8 : 7} className="muted">
                     {busy ? 'Memuat…' : 'Belum ada party. Tambah party atau jalankan migration Supabase.'}
                   </td>
                 </tr>
@@ -137,6 +139,11 @@ export default function PartiesPage() {
                     </span>
                   </td>
                   <td className="mono">{p.odoo_partner_id ?? '—'}</td>
+                  <td>
+                    <Link href={`/parties/${p.id}`} className="btn ghost">
+                      Detail
+                    </Link>
+                  </td>
                   {canEdit && (
                     <td>
                       <button
