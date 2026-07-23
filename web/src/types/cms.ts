@@ -85,7 +85,43 @@ export type DocumentRow = {
   file_name: string
   mime_type: string | null
   status: DocumentStatus
+  document_category?: string | null
+  description?: string | null
   ragflow_dataset_id: string | null
   ragflow_doc_id: string | null
   extraction_error: string | null
+}
+
+export type ContractAmendment = {
+  id: string
+  parent_contract_id: string
+  party_id: string
+  amendment_code: string
+  title: string
+  doc_type: string
+  change_category: string | null
+  effective_date: string | null
+  reason: string | null
+  summary: string | null
+  status: string
+  status_text: string
+  created_at: string
+}
+
+export type ContractTermination = {
+  id: string
+  contract_id: string
+  party_id: string
+  termination_type: string | null
+  effective_date: string
+  reason: string | null
+  summary: string | null
+  status: string
+  created_at: string
+}
+
+export type SoHealth = {
+  hasActiveContract: boolean
+  hasActiveSo: boolean
+  noActiveSo: boolean
 }

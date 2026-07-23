@@ -11,7 +11,7 @@ type Props = {
   onCreated: (contract: Contract) => void
 }
 
-const DOC_TYPES = ['MSA', 'SLA', 'NDA', 'Amendment', 'Addendum', 'Other']
+const DOC_TYPES = ['MSA', 'SLA', 'NDA', 'Other']
 
 export function AddContractModal({ party, open, onClose, onCreated }: Props) {
   const [contractTitle, setContractTitle] = useState('')
@@ -23,6 +23,7 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
   const [owner, setOwner] = useState('')
   const [department, setDepartment] = useState('')
   const [remarks, setRemarks] = useState('')
+  const [file, setFile] = useState<File | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -44,6 +45,7 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
         department: department.trim() || undefined,
         remarks: remarks.trim() || undefined,
         save_mode: saveMode,
+        file,
       })
       onCreated(contract)
       setContractTitle('')
@@ -53,6 +55,7 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
       setOwner('')
       setDepartment('')
       setRemarks('')
+      setFile(null)
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Gagal membuat kontrak')
@@ -68,7 +71,7 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
           <div>
             <h2>Add Contract</h2>
             <p className="muted">
-              FR-CNT-ADD-001 · {party.party_code} — {party.name}
+              FR-CNT-ADD-001/003/004 · {party.party_code} — {party.name}
             </p>
           </div>
           <button type="button" className="btn ghost" onClick={onClose}>
@@ -150,6 +153,19 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
         </div>
 
         <div className="field">
+          <label htmlFor="ac-file">Contract Document (PDF/DOCX) — FR-CNT-ADD-003</label>
+          <input
+            id="ac-file"
+            type="file"
+            accept=".pdf,.doc,.docx,application/pdf"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+          />
+          <p className="muted" style={{ marginTop: 4, fontSize: 12 }}>
+            Upload → RAGFlow extract → dual metadata (extracted vs confirmed).
+          </p>
+        </div>
+
+        <div className="field">
           <label htmlFor="ac-remarks">Remarks</label>
           <textarea
             id="ac-remarks"
@@ -171,7 +187,7 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
             disabled={busy || !contractTitle.trim()}
             onClick={() => void submit('draft')}
           >
-            Simpan Draft
+            {busy ? 'Processing…' : 'Simpan Draft'}
           </button>
           <button
             type="button"
@@ -179,7 +195,7 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
             disabled={busy || !contractTitle.trim()}
             onClick={() => void submit('review')}
           >
-            {busy ? 'Menyimpan…' : 'Simpan Under Review'}
+            {busy ? 'Processing…' : 'Simpan Under Review'}
           </button>
         </div>
       </div>

@@ -1,4 +1,12 @@
-import type { Contract, DocumentRow, OdooLinkStatus, Party } from '@/types/cms'
+import type {
+  Contract,
+  ContractAmendment,
+  ContractTermination,
+  DocumentRow,
+  OdooLinkStatus,
+  Party,
+  SoHealth,
+} from '@/types/cms'
 
 export type ListPartiesParams = {
   q?: string
@@ -28,6 +36,8 @@ export type PartyDetailPayload = {
   party: Party
   contracts: Contract[]
   documents: DocumentRow[]
+  amendments: ContractAmendment[]
+  terminations: ContractTermination[]
   auditLogs: Array<{
     id: string
     action: string
@@ -36,6 +46,7 @@ export type PartyDetailPayload = {
     created_at: string
     payload: Record<string, unknown>
   }>
+  soHealth: SoHealth
 }
 
 export async function fetchPartyDetail(id: string): Promise<PartyDetailPayload> {

@@ -92,16 +92,17 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | 4.1d | Party Inactive block | Legal | Add contract party inactive | Error BRL-CMS-031 | 🟡 | | |
 | 4.1e | Kontrak muncul di tab Contracts | Legal | Setelah create | Row di Party Detail | 🟡 | | FR-CNT-ADD-009 |
 | 4.1f | Audit log create contract | Legal | Add contract | Row di audit tab party | 🟡 | | |
-| 4.2 | Upload PDF kontrak | Legal | Upload saat create | File ke Supabase Storage | ⬜ | | |
-| 4.3 | Ekstraksi RAGFlow | Legal | Upload → extract | `extracted_metadata` terisi | 🟡 | | Extraction Lab saja |
-| 4.4 | User confirm metadata | Legal | Review screen | `confirmed_metadata` | ⬜ | | |
-| 4.5 | Validasi vs Party + Odoo | Legal | Confirm | validation_status ok/mismatch | 🟡 | | Logic ada, UI belum |
-| 4.6 | Edit Contract Details (admin only) | Legal | Edit | Field sensitif tidak bisa diubah | ⬜ | | BRL-CMS-006 |
-| 4.7 | Review / Sent to CP / Ready for Sign | Legal | Lifecycle actions | Status §9.3 | ⬜ | | |
+| 4.2 | Upload PDF kontrak | Legal | Upload saat create | File ke Supabase Storage + RAGFlow | 🟡 | | Bucket `contracts` wajib ada |
+| 4.3 | Ekstraksi RAGFlow | Legal | Upload → create | `extracted_metadata` terisi | 🟡 | | Saat Add Contract + file |
+| 4.4 | User confirm metadata | Legal | Review screen | `confirmed_metadata` | 🟡 | | Dual metadata; UI review detail belum |
+| 4.5 | Validasi vs Party + Odoo | Legal | Upload + linked party | validation_status ok/mismatch | 🟡 | | Auto saat create dengan file |
 | 4.8 | Change Counterparty | Legal | Modal CP change | Audit + history | ⬜ | | |
-| 4.9 | Amendment / Addendum | Legal | Modal amendment | Linked ke parent | ⬜ | | |
-| 4.10 | Early Termination | Legal | Modal termination | Status terminated | ⬜ | | |
-| 4.11 | Supporting documents | Legal | Upload supporting | List di party | ⬜ | | |
+| 4.9 | Amendment / Addendum | Legal | Party Detail → Amendment | Linked ke parent + audit | 🟡 | | POST `/api/contracts/[id]/amendments` |
+| 4.9a | Amendment list di Party | Legal | Tab Contracts | Tabel amendment_code | 🟡 | | FR-CNT-AMD-008 |
+| 4.10 | Early Termination | Legal | Party Detail → Termination | Record + status update | 🟡 | | Hanya Active; scheduled vs immediate |
+| 4.10a | Termination tab history | Legal | Tab Termination | List effective date | 🟡 | | FR-CNT-TERM-009 |
+| 4.11 | Supporting documents | Legal | Upload supporting | List di tab Supporting | 🟡 | | Tidak ubah lifecycle FR-CNT-SUP-004 |
+| 4.11a | File type / size validation | Legal | Upload >20MB atau selain PDF/DOCX | Error FR-CNT-SUP-003 | 🟡 | | |
 
 ---
 
@@ -114,8 +115,8 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | 5.2a | Run Sync per party | Legal | Party Detail → SO tab → Run Sync | SO party tersebut saja | 🟡 | | body `{ partyId }` |
 | 5.2b | Audit log SO sync | IT | Run Sync | Row audit `SO Sync batch` | 🟡 | | |
 | 5.2c | Upsert idempotent | IT | Run Sync 2× | Tidak duplikat `odoo_order_id` | 🟡 | | |
-| 5.3 | SO status Synchronized | IT | Party dengan SO aktif | Flag synchronized | ⬜ | | |
-| 5.4 | No Active SO flag | IT | Party tanpa SO sale/done | NOTIF path §9.6 | ⬜ | | |
+| 5.3 | SO status Synchronized | IT | Party dengan SO aktif | Flag synchronized | 🟡 | | Via mirror sale/done |
+| 5.4 | No Active SO flag | IT | Party active contract, no SO | Banner di Party Detail SO tab | 🟡 | | FR-CNT-SO-007 / NOTIF-014 path |
 | 5.5 | Sync error handling | IT | Partner ID invalid | Error + notifikasi, tidak silent | ⬜ | | |
 | 5.6 | CMS tidak write SO/Partner | Dev | Review code/API | Tidak ada create/write Odoo | ✅ | | |
 
@@ -203,25 +204,30 @@ Manual UI (5 menit):
 
 1. Login Legal  
 2. `/parties` — list + add + link Odoo  
-3. Party Detail → Add Contract (draft) → cek tab Contracts  
-4. `/renewal` — kalender + tabel agenda  
-5. `/so` — Run Sync Now (party harus linked Odoo)  
-6. `/lab/extraction` — upload PDF kecil  
+3. Party Detail → Add Contract **dengan PDF** → cek validation_status  
+4. Amendment + Early Termination (kontrak status Active dulu)  
+5. Upload Supporting Doc  
+6. `/renewal` — kalender  
+7. `/so` — Run Sync  
 
-**DB (sebelum UI di atas):** jalankan `supabase/migrations/003_lifecycle_and_so.sql` di Supabase SQL Editor.
+**DB (sebelum UI di atas):** migration `003` + `004` di Supabase SQL Editor.
 
 ---
 
-## 11. Database migration 003
+## 12. Database migration 004
 
 | # | Test case | Langkah | Expected | Impl | Hasil |
 | --- | --- | --- | --- | --- | --- |
-| 11.1 | Kolom lifecycle contracts | `\d contracts` atau Table Editor | `agreement_date`, `renewal_date`, `expiry_date`, … | 🟡 | | |
-| 11.2 | Tabel `sale_orders` | Table Editor | Mirror Odoo SO | 🟡 | | |
-| 11.3 | Tabel `contract_terminations` | Table Editor | Schema termination | 🟡 | | | Belum dipakai UI create |
-| 11.4 | Add contract setelah migration | POST `/api/parties/{id}/contracts` | 201 + dates terisi | 🟡 | | |
+| 12.1 | Tabel `contract_amendments` | Table Editor | Schema amendment | 🟡 | | |
+| 12.2 | Kolom `documents.document_category` | Table Editor | contract / supporting | 🟡 | | |
+| 12.3 | Add contract + PDF | Legal | Multipart create | Storage + RAGFlow + documents row | 🟡 | | |
+| 12.4 | Amendment create | Legal | Modal Amendment | Row di contract_amendments | 🟡 | | |
+| 12.5 | Termination scheduled | Legal | Effective date future | status_text Termination Scheduled | 🟡 | | FR-CNT-TERM-007 |
+| 12.6 | Termination immediate | Legal | Effective date today/past | status terminated | 🟡 | | FR-CNT-TERM-008 |
 
-## 12. Go / No-Go live (ringkas)
+---
+
+## 13. Go / No-Go live (ringkas)
 
 **Go-live minimal (MVP integrasi)** — semua harus PASS:
 

@@ -3,11 +3,15 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { AddContractModal } from '@/components/contracts/AddContractModal'
+import { AmendmentModal } from '@/components/contracts/AmendmentModal'
+import { TerminationModal } from '@/components/contracts/TerminationModal'
+import { UploadSupportingModal } from '@/components/contracts/UploadSupportingModal'
 import { LinkOdooModal } from '@/components/parties/LinkOdooModal'
 import { fetchSyncedOrders, runSoSync } from '@/lib/so/api'
 import { fetchPartyDetail, type PartyDetailPayload } from '@/lib/parties/api'
 import { ODOO_LINK_LABELS } from '@/lib/parties/types'
 import type { Contract } from '@/types/cms'
+import { ACTIVE_FOR_TERM } from '@/lib/contracts/constants'
 import { ROLES } from '@/lib/roles'
 import type { AppRole } from '@/types/cms'
 
@@ -38,6 +42,9 @@ export function PartyDetailView({ partyId, role }: Props) {
   const [error, setError] = useState('')
   const [linkOpen, setLinkOpen] = useState(false)
   const [addContractOpen, setAddContractOpen] = useState(false)
+  const [amendmentContract, setAmendmentContract] = useState<Contract | null>(null)
+  const [terminationContract, setTerminationContract] = useState<Contract | null>(null)
+  const [uploadSupportingOpen, setUploadSupportingOpen] = useState(false)
   const [soRows, setSoRows] = useState<Awaited<ReturnType<typeof fetchSyncedOrders>>>([])
   const [soBusy, setSoBusy] = useState(false)
   const [soSyncMsg, setSoSyncMsg] = useState('')
@@ -101,7 +108,10 @@ export function PartyDetailView({ partyId, role }: Props) {
 
   if (!data) return <p className="muted">Memuat party detail…</p>
 
-  const { party, contracts, documents, auditLogs } = data
+  const { party, contracts, documents, amendments, terminations, auditLogs, soHealth } = data
+  const supportingDocs = documents.filter((d) => d.document_category === 'supporting')
+  const contractDocs = documents.filter((d) => d.document_category !== 'supporting')
+  const activeContracts = contracts.filter((c) => ACTIVE_FOR_TERM.includes(c.status))
   const sealNo = party.party_code.replace(/^PTY-/i, '')
 
   return (
@@ -195,8 +205,15 @@ export function PartyDetailView({ partyId, role }: Props) {
             </div>
             <div className="info-item">
               <span>Documents</span>
-              <b>{documents.length} file</b>
+              <b>{documents.length} file ({supportingDocs.length} supporting)</b>
             </div>
+            {soHealth.noActiveSo && (
+              <div className="info-item locked">
+                <span>SO Health</span>
+                <b className="pill pill-urgent">No Active SO</b>
+                <div className="lock-tag">NOTIF-CMS-014 path · FR-CNT-SO-007</div>
+              </div>
+            )}
           </div>
           {!canEdit && (
             <div className="readonly-banner">
@@ -211,13 +228,54 @@ export function PartyDetailView({ partyId, role }: Props) {
           <p className="ref-tag">FR-CNT-SV-006 · FR-CNT-AMD-008</p>
           {canEdit && (
             <div className="row-actions">
-              <button type="button" className="btn ghost" disabled>
-                + Amendment (soon)
+              <button
+                type="button"
+                className="btn ghost"
+                disabled={contracts.length === 0}
+                onClick={() => setAmendmentContract(contracts[0] ?? null)}
+              >
+                + Amendment
               </button>
-              <button type="button" className="btn ghost" disabled>
-                Early Termination (soon)
+              <button
+                type="button"
+                className="btn ghost"
+                disabled={activeContracts.length === 0}
+                onClick={() => setTerminationContract(activeContracts[0] ?? null)}
+              >
+                Early Termination
               </button>
             </div>
+          )}
+          {amendments.length > 0 && (
+            <>
+              <h3 style={{ margin: '8px 0 0', fontSize: 14 }}>Amendments / Addendum</h3>
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Code</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Effective</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {amendments.map((a) => (
+                    <tr key={a.id}>
+                      <td className="mono">{a.amendment_code}</td>
+                      <td>{a.title}</td>
+                      <td>{a.change_category || '—'}</td>
+                      <td>
+                        {a.effective_date
+                          ? new Date(a.effective_date).toLocaleDateString('id-ID')
+                          : '—'}
+                      </td>
+                      <td>{a.status_text}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
           )}
           {contracts.length === 0 ? (
             <p className="muted">Belum ada kontrak untuk party ini. FR-CNT-ADD-009.</p>
@@ -232,6 +290,7 @@ export function PartyDetailView({ partyId, role }: Props) {
                   <th>Expiry</th>
                   <th>Status</th>
                   <th>Validation</th>
+                  <th>Extracted</th>
                 </tr>
               </thead>
               <tbody>
@@ -246,10 +305,20 @@ export function PartyDetailView({ partyId, role }: Props) {
                       <span className="pill">{c.status_text || c.status}</span>
                     </td>
                     <td>{c.validation_status}</td>
+                    <td className="muted" style={{ fontSize: 12 }}>
+                      {Object.keys(c.extracted_metadata ?? {}).length
+                        ? `${Object.keys(c.extracted_metadata).length} field(s)`
+                        : '—'}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          )}
+          {canEdit && contracts.length > 0 && (
+            <p className="muted" style={{ fontSize: 12 }}>
+              Amendment/Termination: gunakan kontrak pertama/active. Pilih kontrak spesifik — fase UI berikutnya.
+            </p>
           )}
         </div>
       )}
@@ -265,39 +334,92 @@ export function PartyDetailView({ partyId, role }: Props) {
       )}
 
       {tab === 'termination' && (
-        <div className="tab-panel active card">
+        <div className="tab-panel active card stack">
           <p className="ref-tag">FR-CNT-TERM-009 · BRL-CMS-013</p>
-          <p className="muted">
-            Early termination history untuk kontrak Active — belum ada record. Termination hanya
-            dari kontrak Active (BRL-CMS-013).
-          </p>
+          {terminations.length === 0 ? (
+            <p className="muted">Belum ada early termination record untuk party ini.</p>
+          ) : (
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Contract</th>
+                  <th>Type</th>
+                  <th>Effective</th>
+                  <th>Status</th>
+                  <th>Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {terminations.map((t) => {
+                  const parent = contracts.find((c) => c.id === t.contract_id)
+                  return (
+                    <tr key={t.id}>
+                      <td className="mono">{parent?.contract_code ?? t.contract_id.slice(0, 8)}</td>
+                      <td>{t.termination_type || '—'}</td>
+                      <td>{new Date(t.effective_date).toLocaleDateString('id-ID')}</td>
+                      <td>{t.status}</td>
+                      <td>{t.reason || '—'}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
       )}
 
       {tab === 'supporting' && (
         <div className="tab-panel active card stack">
           <p className="ref-tag">FR-CNT-SUP-001</p>
-          {documents.length === 0 ? (
-            <p className="muted">Belum ada supporting document / file vault untuk party ini.</p>
+          {canEdit && (
+            <button type="button" className="btn ghost" onClick={() => setUploadSupportingOpen(true)}>
+              + Upload Supporting Doc
+            </button>
+          )}
+          {supportingDocs.length === 0 ? (
+            <p className="muted">Belum ada supporting document untuk party ini.</p>
           ) : (
             <table className="data-table">
               <thead>
                 <tr>
                   <th>File</th>
+                  <th>Description</th>
                   <th>Status</th>
-                  <th>RAGFlow doc</th>
                 </tr>
               </thead>
               <tbody>
-                {documents.map((d) => (
+                {supportingDocs.map((d) => (
                   <tr key={d.id}>
                     <td>{d.file_name}</td>
+                    <td>{d.description || '—'}</td>
                     <td>{d.status}</td>
-                    <td className="mono">{d.ragflow_doc_id || '—'}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          )}
+          {contractDocs.length > 0 && (
+            <>
+              <h3 style={{ marginTop: 16, fontSize: 14 }}>Contract documents (RAGFlow)</h3>
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>File</th>
+                    <th>Status</th>
+                    <th>RAGFlow doc</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {contractDocs.map((d) => (
+                    <tr key={d.id}>
+                      <td>{d.file_name}</td>
+                      <td>{d.status}</td>
+                      <td className="mono">{d.ragflow_doc_id || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
           )}
         </div>
       )}
@@ -305,6 +427,14 @@ export function PartyDetailView({ partyId, role }: Props) {
       {tab === 'so' && showSoTab && (
         <div className="tab-panel active card stack">
           <p className="ref-tag">INT-SO · consume-only · BR-CMS-020</p>
+          {soHealth.noActiveSo && (
+            <div className="notice">
+              <div>
+                <b>No Active SO / Renewal Not Found</b> — kontrak aktif tanpa SO sale/done di mirror
+                (FR-CNT-SO-007 / NOTIF-CMS-014).
+              </div>
+            </div>
+          )}
           {!party.odoo_partner_id ? (
             <p className="muted">Party belum linked ke Odoo Partner — link dulu untuk sync SO.</p>
           ) : (
@@ -384,6 +514,38 @@ export function PartyDetailView({ partyId, role }: Props) {
             </table>
           )}
         </div>
+      )}
+
+      <UploadSupportingModal
+        partyId={partyId}
+        contracts={contracts}
+        open={uploadSupportingOpen}
+        onClose={() => setUploadSupportingOpen(false)}
+        onUploaded={() => void load()}
+      />
+
+      {amendmentContract && (
+        <AmendmentModal
+          contract={amendmentContract}
+          open={Boolean(amendmentContract)}
+          onClose={() => setAmendmentContract(null)}
+          onCreated={() => {
+            setAmendmentContract(null)
+            void load()
+          }}
+        />
+      )}
+
+      {terminationContract && (
+        <TerminationModal
+          contract={terminationContract}
+          open={Boolean(terminationContract)}
+          onClose={() => setTerminationContract(null)}
+          onCreated={() => {
+            setTerminationContract(null)
+            void load()
+          }}
+        />
       )}
 
       <AddContractModal
