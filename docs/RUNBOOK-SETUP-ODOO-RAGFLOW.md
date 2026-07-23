@@ -221,9 +221,23 @@ Kode server: `web/src/lib/odoo/server.ts`, `web/src/lib/ragflow/server.ts`.
 
 | Halaman | URL | Uji |
 | --- | --- | --- |
-| Parties | `/parties` | Search Partner Odoo |
+| Parties | `/parties` | List Supabase + Add Party + Link Odoo |
 | SO Health | `/so` | Load SO |
 | Extraction Lab | `/lab/extraction` | Upload PDF → extract → retrieve |
+
+### C.5 Supabase Parties (server API)
+
+Parties CRUD memakai **service role** di server (auth CMS belum Supabase Auth):
+
+```env
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+```
+
+Ambil dari: Supabase Dashboard → **Project Settings → API → service_role** (secret).
+
+Jalankan migration tambahan: [`../supabase/migrations/002_parties_write_policies.sql`](../supabase/migrations/002_parties_write_policies.sql)
+
+API routes: `GET/POST /api/parties`, `POST /api/parties/[id]/link-odoo`
 
 ---
 

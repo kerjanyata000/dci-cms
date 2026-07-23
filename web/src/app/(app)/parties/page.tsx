@@ -1,57 +1,177 @@
 'use client'
 
-import { useState } from 'react'
-import { ODOO_MODE } from '@/lib/odoo/client'
-import { searchPartnersFromApi } from '@/lib/odoo/api'
-import type { OdooPartner } from '@/lib/odoo/types'
+import { useCallback, useEffect, useState } from 'react'
+import { useAuth } from '@/components/AuthProvider'
+import { AddPartyModal } from '@/components/parties/AddPartyModal'
+import { LinkOdooModal } from '@/components/parties/LinkOdooModal'
+import { fetchParties } from '@/lib/parties/api'
+import { ODOO_LINK_LABELS } from '@/lib/parties/types'
+import { ROLES } from '@/lib/roles'
+import type { OdooLinkStatus, Party } from '@/types/cms'
+
+const LINK_FILTERS: Array<{ value: OdooLinkStatus | 'all'; label: string }> = [
+  { value: 'all', label: 'Semua' },
+  { value: 'linked', label: 'Linked' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'mismatch', label: 'Mismatch' },
+  { value: 'unlinked', label: 'Unlinked' },
+  { value: 'relink', label: 'Relink' },
+]
 
 export default function PartiesPage() {
+  const { user } = useAuth()
+  const canEdit = user ? ROLES[user.role].canEdit : false
+
+  const [rows, setRows] = useState<Party[]>([])
   const [q, setQ] = useState('')
-  const [rows, setRows] = useState<OdooPartner[]>([])
+  const [linkFilter, setLinkFilter] = useState<OdooLinkStatus | 'all'>('all')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
-  async function search() {
+  const [addOpen, setAddOpen] = useState(false)
+  const [linkParty, setLinkParty] = useState<Party | null>(null)
+
+  const load = useCallback(async () => {
     setBusy(true)
     setError('')
     try {
-      const domain = q ? [['name', 'ilike', `%${q}%`]] : []
-      setRows(await searchPartnersFromApi(domain, 20))
+      setRows(await fetchParties({ q, linkStatus: linkFilter }))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Search gagal')
+      setError(err instanceof Error ? err.message : 'Gagal memuat parties')
       setRows([])
     } finally {
       setBusy(false)
     }
+  }, [q, linkFilter])
+
+  useEffect(() => {
+    void load()
+  }, [load])
+
+  function upsertParty(updated: Party) {
+    setRows((prev) => {
+      const i = prev.findIndex((p) => p.id === updated.id)
+      if (i < 0) return [updated, ...prev]
+      const next = [...prev]
+      next[i] = updated
+      return next
+    })
   }
 
   return (
     <div>
-      <div className="page-head">
-        <h1>Parties</h1>
-        <p>
-          Inquiry Odoo Partner via server API ({ODOO_MODE === 'live' ? 'live' : 'dummy'}).
-          List Party CMS penuh akan dari Supabase.
-        </p>
-      </div>
-      <div className="card stack">
-        <div className="field">
-          <label htmlFor="q">Cari Odoo Partner</label>
-          <input id="q" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Nama perusahaan…" />
+      <div className="page-head row-actions spread">
+        <div>
+          <h1>Parties</h1>
+          <p>Party master di Supabase · link ke Odoo Partner (consume-only).</p>
         </div>
-        <button className="btn primary" type="button" onClick={search} disabled={busy}>
-          {busy ? 'Mencari…' : 'Search Partners'}
-        </button>
-        {error && <p style={{ color: 'var(--danger, #b42318)' }}>{error}</p>}
-        <ul className="list">
-          {rows.map((p) => (
-            <li key={p.id}>
-              <span className="mono">#{p.id}</span> {p.name} · VAT {String(p.vat || '—')} · ref{' '}
-              {String(p.ref || '—')}
-            </li>
-          ))}
-        </ul>
+        {canEdit && (
+          <button type="button" className="btn primary" onClick={() => setAddOpen(true)}>
+            + Add Party
+          </button>
+        )}
       </div>
+
+      <div className="card stack">
+        <div className="row-actions">
+          <div className="field" style={{ flex: 1, marginBottom: 0 }}>
+            <label htmlFor="party-q">Cari Party</label>
+            <input
+              id="party-q"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Nama party…"
+            />
+          </div>
+          <div className="field" style={{ minWidth: 200, marginBottom: 0 }}>
+            <label htmlFor="link-filter">Odoo Link</label>
+            <select
+              id="link-filter"
+              value={linkFilter}
+              onChange={(e) => setLinkFilter(e.target.value as OdooLinkStatus | 'all')}
+            >
+              {LINK_FILTERS.map((f) => (
+                <option key={f.value} value={f.value}>
+                  {f.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button type="button" className="btn ghost" disabled={busy} onClick={() => void load()}>
+            Refresh
+          </button>
+        </div>
+
+        {error && <p className="error-text">{error}</p>}
+
+        <div className="table-wrap">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Party Code</th>
+                <th>Nama</th>
+                <th>PIC</th>
+                <th>Status</th>
+                <th>Odoo Link</th>
+                <th>Partner ID</th>
+                {canEdit && <th></th>}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.length === 0 && (
+                <tr>
+                  <td colSpan={canEdit ? 7 : 6} className="muted">
+                    {busy ? 'Memuat…' : 'Belum ada party. Tambah party atau jalankan migration Supabase.'}
+                  </td>
+                </tr>
+              )}
+              {rows.map((p) => (
+                <tr key={p.id}>
+                  <td className="mono">{p.party_code}</td>
+                  <td>{p.name}</td>
+                  <td>{p.pic || '—'}</td>
+                  <td>{p.party_status}</td>
+                  <td>
+                    <span className={`pill pill-${p.odoo_link_status}`}>
+                      {ODOO_LINK_LABELS[p.odoo_link_status]}
+                    </span>
+                  </td>
+                  <td className="mono">{p.odoo_partner_id ?? '—'}</td>
+                  {canEdit && (
+                    <td>
+                      <button
+                        type="button"
+                        className="btn ghost"
+                        onClick={() => setLinkParty(p)}
+                      >
+                        Link Odoo
+                      </button>
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="muted">Menampilkan {rows.length} party</p>
+      </div>
+
+      <AddPartyModal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onCreated={(party) => {
+          setRows((prev) => [party, ...prev])
+        }}
+      />
+
+      {linkParty && (
+        <LinkOdooModal
+          party={linkParty}
+          open={Boolean(linkParty)}
+          onClose={() => setLinkParty(null)}
+          onLinked={upsertParty}
+        />
+      )}
     </div>
   )
 }
