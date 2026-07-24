@@ -247,7 +247,7 @@ export function PartyDetailView({ partyId, role }: Props) {
       </nav>
 
       <header className="dossier-head">
-        <div className="seal" aria-hidden>
+        <div className="seal" aria-label={`Party seal ${sealNo}`}>
           <b>{sealNo}</b>
           <span>DCI · Sealed</span>
         </div>

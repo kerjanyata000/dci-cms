@@ -1903,6 +1903,13 @@ a {
   font-size: 12px;
 }
 
+.dossier-odoo-chip .mono,
+.dossier-meta dd.mono {
+  color: #e8edf4;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .dossier-odoo-chip.link-current-linked {
   border-color: rgba(46, 125, 91, 0.45);
   background: rgba(46, 125, 91, 0.12);
@@ -2183,37 +2190,53 @@ a {
 }
 
 .seal {
-  width: 72px;
-  height: 72px;
+  width: 84px;
+  height: 84px;
   border-radius: 50%;
-  border: 2px solid var(--brass);
+  border: 2.5px solid #d4a574;
   display: grid;
   place-items: center;
+  align-content: center;
+  gap: 2px;
   text-align: center;
-  color: var(--brass);
+  color: var(--brass-light);
   position: relative;
   flex: none;
+  background: radial-gradient(circle at 50% 38%, rgba(241, 228, 208, 0.18) 0%, rgba(168, 120, 60, 0.08) 55%, rgba(0, 0, 0, 0.15) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 0 0 1px rgba(212, 165, 116, 0.2),
+    0 4px 16px rgba(0, 0, 0, 0.25);
 }
 
 .seal::before {
   content: '';
   position: absolute;
-  inset: 6px;
-  border: 1px dashed rgba(168, 120, 60, 0.6);
+  inset: 7px;
+  border: 1px dashed rgba(241, 228, 208, 0.45);
   border-radius: 50%;
   pointer-events: none;
 }
 
 .seal b {
-  font-family: var(--serif);
-  font-size: 22px;
+  font-family: var(--mono);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
   display: block;
+  letter-spacing: 0.04em;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 .seal span {
-  font-size: 9px;
+  font-size: 10px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
+  color: #f1e4d0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 .tabs {
