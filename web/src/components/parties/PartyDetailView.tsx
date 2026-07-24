@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { EditContractModal } from '@/components/contracts/EditContractModal'
@@ -37,6 +37,62 @@ function statusPillClass(status: string | undefined): string {
   if (!status) return 'draft'
   if (status === 'under_review') return 'under_review'
   return status
+}
+
+function LockIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <rect x="3" y="11" width="18" height="11" rx="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  )
+}
+
+function InfoField({
+  label,
+  children,
+  locked,
+  hint,
+}: {
+  label: string
+  children: ReactNode
+  locked?: boolean
+  hint?: string
+}) {
+  return (
+    <div className={`info-item${locked ? ' locked' : ''}`}>
+      <span className="info-label">
+        {locked && <LockIcon />}
+        {label}
+      </span>
+      <div className="info-value">{children}</div>
+      {hint && <div className="lock-tag">{hint}</div>}
+    </div>
+  )
+}
+
+function PartyDetailSkeleton() {
+  return (
+    <div className="party-detail-page" aria-busy="true" aria-label="Memuat party detail">
+      <div className="party-crumb skeleton-line" style={{ width: 160, height: 14 }} />
+      <div className="dossier-head dossier-skeleton">
+        <div className="seal skeleton-block" />
+        <div className="dossier-main">
+          <div className="skeleton-line" style={{ width: '55%', height: 28 }} />
+          <div className="dossier-meta">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="skeleton-block" style={{ height: 44 }} />
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="tabs-skeleton">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="skeleton-block" style={{ width: 96, height: 32 }} />
+        ))}
+      </div>
+    </div>
+  )
 }
 
 const TABS = [
@@ -146,7 +202,7 @@ export function PartyDetailView({ partyId, role }: Props) {
     )
   }
 
-  if (!data) return <p className="muted">Memuat party detail…</p>
+  if (!data) return <PartyDetailSkeleton />
 
   const { party, contracts, documents, amendments, terminations, counterpartyChanges, auditLogs, soHealth } = data
   const supportingDocs = documents.filter((d) => d.document_category === 'supporting')
@@ -155,59 +211,57 @@ export function PartyDetailView({ partyId, role }: Props) {
   const sealNo = party.party_code.replace(/^PTY-/i, '')
   const primary = pickPrimaryContract(contracts)
   const meta = contractMeta(primary)
+  const visibleTabs = TABS.filter((t) => (t.id === 'so' ? showSoTab : true))
 
   return (
-    <div>
-      <div className="crumb">
-        <Link href="/parties">Parties</Link> / <span>{party.party_code}</span>
-      </div>
+    <div className="party-detail-page">
+      <nav className="party-crumb" aria-label="Breadcrumb">
+        <Link href="/parties">Parties</Link>
+        <span aria-hidden>/</span>
+        <span className="mono">{party.party_code}</span>
+      </nav>
 
-      <div className="dossier-head">
-        <div className="seal">
+      <header className="dossier-head">
+        <div className="seal" aria-hidden>
           <b>{sealNo}</b>
           <span>DCI · Sealed</span>
         </div>
-        <div className="dossier-info">
-          <div className="crumb-w">
-            {formatOdooLinkSummary(party)}
-          </div>
-          {party.odoo_partner_id != null && (
-            <div
-              className={`link-current-banner link-current-${party.odoo_link_status}`}
-              style={{ marginTop: 10, marginBottom: 0 }}
-            >
-              <p style={{ margin: 0, fontSize: 13 }}>
+        <div className="dossier-main">
+          <div className="dossier-title-row">
+            <div>
+              <p className="dossier-eyebrow">{formatOdooLinkSummary(party)}</p>
+              <h1>{party.name}</h1>
+            </div>
+            {party.odoo_partner_id != null && (
+              <div className={`dossier-odoo-chip link-current-${party.odoo_link_status}`}>
                 <span className={`status-pill ${party.odoo_link_status}`}>
                   {ODOO_LINK_LABELS[party.odoo_link_status]}
                 </span>
-                <span className="mono" style={{ marginLeft: 8 }}>
-                  Odoo res.partner #{party.odoo_partner_id}
-                </span>
-              </p>
-              <p className="muted" style={{ margin: '6px 0 0', fontSize: 12 }}>
-                {ODOO_LINK_HINTS[party.odoo_link_status]}
-              </p>
-            </div>
-          )}
-          <h1>{party.name}</h1>
-          <div className="dossier-meta">
-            <div>
-              <span>Party Code</span>
-              <b className="mono">{party.party_code}</b>
-            </div>
-            <div>
-              <span>PIC</span>
-              <b>{party.pic || '—'}</b>
-            </div>
-            <div>
-              <span>Party Status</span>
-              <b>{party.party_status}</b>
-            </div>
-            <div>
-              <span>Contracts</span>
-              <b>{contracts.length}</b>
-            </div>
+                <span className="mono">res.partner #{party.odoo_partner_id}</span>
+              </div>
+            )}
           </div>
+          {party.odoo_partner_id != null && (
+            <p className="dossier-odoo-hint">{ODOO_LINK_HINTS[party.odoo_link_status]}</p>
+          )}
+          <dl className="dossier-meta">
+            <div>
+              <dt>Party Code</dt>
+              <dd className="mono">{party.party_code}</dd>
+            </div>
+            <div>
+              <dt>PIC</dt>
+              <dd>{party.pic || '—'}</dd>
+            </div>
+            <div>
+              <dt>Party Status</dt>
+              <dd>{party.party_status}</dd>
+            </div>
+            <div>
+              <dt>Contracts</dt>
+              <dd>{contracts.length}</dd>
+            </div>
+          </dl>
         </div>
         <div className="dossier-actions">
           {canEdit ? (
@@ -215,37 +269,41 @@ export function PartyDetailView({ partyId, role }: Props) {
               <button type="button" className="btn brass" onClick={() => setAddContractOpen(true)}>
                 + Add Contract
               </button>
-              <button type="button" className="btn ghost" onClick={() => setLinkOpen(true)}>
+              <button type="button" className="btn ghost dossier-btn-ghost" onClick={() => setLinkOpen(true)}>
                 {party.odoo_partner_id != null ? 'Kelola Link Odoo' : 'Link Odoo'}
               </button>
             </>
           ) : (
-            <span className="role-badge">View-only</span>
+            <span className="role-badge dossier-viewonly">View-only</span>
           )}
+        </div>
+      </header>
+
+      <div className="tabs-wrap">
+        <div className="tabs" role="tablist" aria-label="Party detail sections">
+          {visibleTabs.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={tab === t.id}
+              className={`tab-btn${tab === t.id ? ' active' : ''}`}
+              onClick={() => setTab(t.id)}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="tabs" role="tablist">
-        {TABS.filter((t) => (t.id === 'so' ? showSoTab : true)).map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            role="tab"
-            className={`tab-btn${tab === t.id ? ' active' : ''}`}
-            onClick={() => setTab(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-
       {tab === 'overview' && (
-        <div className="tab-panel active stack">
-          <p className="ref-tag">FR-PTY-SV-003 · BRL-CMS-026 — konteks utama kontrak & integrasi</p>
-          <div className="info-grid">
-            <div className="info-item">
-              <span>Contract Status</span>
-              <b>
+        <div className="tab-panel active party-overview" role="tabpanel">
+          <p className="ref-tag">FR-PTY-SV-003 · BRL-CMS-026 — konteks utama kontrak &amp; integrasi</p>
+
+          <section className="overview-section">
+            <h2 className="section-title">Contract snapshot</h2>
+            <div className="info-grid info-grid-3">
+              <InfoField label="Contract Status">
                 {primary ? (
                   <span className={`status-pill ${statusPillClass(primary.status)}`}>
                     {primary.status_text || primary.status}
@@ -253,84 +311,73 @@ export function PartyDetailView({ partyId, role }: Props) {
                 ) : (
                   '—'
                 )}
-              </b>
-            </div>
-            <div className="info-item">
-              <span>Contract Value / MRR</span>
-              <b>{meta.contractValue || '—'}</b>
-            </div>
-            <div className="info-item">
-              <span>Payment Term</span>
-              <b>{meta.paymentTerm || '—'}</b>
-            </div>
-            <div className="info-item locked">
-              <span>Counterparty (locked)</span>
-              <b>{party.name}</b>
-              <div className="lock-tag">Change via Change Counterparty (FR-CNT-CP)</div>
-            </div>
-            <div className="info-item locked">
-              <span>Contract Value (locked)</span>
-              <b>{meta.contractValue || '—'}</b>
-              <div className="lock-tag">Change via Amendment</div>
-            </div>
-            <div className="info-item locked">
-              <span>Signed Document (locked)</span>
-              <b className="mono">
-                {primary ? `${primary.contract_code}-Signed.pdf` : '—'}
-              </b>
-              <div className="lock-tag">Not editable directly</div>
-            </div>
-            <div className="info-item">
-              <span>Odoo link</span>
-              <b>
+              </InfoField>
+              <InfoField label="Contract Value / MRR">
+                <b>{meta.contractValue || '—'}</b>
+              </InfoField>
+              <InfoField label="Payment Term">
+                <b>{meta.paymentTerm || '—'}</b>
+              </InfoField>
+              <InfoField label="Documents">
+                <b>
+                  {documents.length} file
+                  <span className="info-muted"> ({supportingDocs.length} supporting)</span>
+                </b>
+              </InfoField>
+              <InfoField label="Odoo link">
                 <span className={`status-pill ${party.odoo_link_status}`}>
                   {ODOO_LINK_LABELS[party.odoo_link_status]}
                 </span>
                 {party.odoo_partner_id != null && (
-                  <span className="mono" style={{ marginLeft: 8 }}>
-                    #{party.odoo_partner_id}
-                  </span>
+                  <span className="mono info-inline-id">#{party.odoo_partner_id}</span>
                 )}
-              </b>
-            </div>
-            <div className="info-item">
-              <span>Documents</span>
-              <b>
-                {documents.length} file ({supportingDocs.length} supporting)
-              </b>
-            </div>
-            {soHealth.noActiveSo && (
-              <div className="info-item locked">
-                <span>SO Health</span>
-                <b>
+              </InfoField>
+              {soHealth.noActiveSo && (
+                <InfoField label="SO Health" hint="NOTIF-CMS-014 · FR-CNT-SO-007">
                   <span className="status-pill no_so">No Active SO</span>
-                </b>
-                <div className="lock-tag">NOTIF-CMS-014 · FR-CNT-SO-007</div>
-              </div>
-            )}
-          </div>
-
-          <div className="sub-card">
-            <h3>Late Payment &amp; Termination Terms</h3>
-            <div className="info-grid">
-              <div className="info-item">
-                <span>Late Payment Penalty</span>
-                <b>{meta.latePaymentPenalty || '—'}</b>
-              </div>
-              <div className="info-item">
-                <span>Early Termination Fee</span>
-                <b>{meta.earlyTerminationFee || '—'}</b>
-              </div>
-              <div className="info-item">
-                <span>Auto-Renewal</span>
-                <b>{meta.autoRenewal || '—'}</b>
-              </div>
+                </InfoField>
+              )}
             </div>
-          </div>
+          </section>
+
+          <section className="overview-section">
+            <h2 className="section-title">Sensitive fields</h2>
+            <p className="section-desc">
+              Field terkontrol — ubah lewat aksi Legal (Change Counterparty, Amendment), bukan edit
+              langsung.
+            </p>
+            <div className="info-grid info-grid-3">
+              <InfoField label="Counterparty" locked hint="Change via Change Counterparty (FR-CNT-CP)">
+                <b>{party.name}</b>
+              </InfoField>
+              <InfoField label="Contract Value" locked hint="Change via Amendment">
+                <b>{meta.contractValue || '—'}</b>
+              </InfoField>
+              <InfoField label="Signed Document" locked hint="Not editable directly">
+                <b className="mono">{primary ? `${primary.contract_code}-Signed.pdf` : '—'}</b>
+              </InfoField>
+            </div>
+          </section>
+
+          <section className="sub-card overview-terms">
+            <h3>Late Payment &amp; Termination Terms</h3>
+            <div className="info-grid info-grid-3">
+              <InfoField label="Late Payment Penalty">
+                <b>{meta.latePaymentPenalty || '—'}</b>
+              </InfoField>
+              <InfoField label="Early Termination Fee">
+                <b>{meta.earlyTerminationFee || '—'}</b>
+              </InfoField>
+              <InfoField label="Auto-Renewal">
+                <b>{meta.autoRenewal || '—'}</b>
+              </InfoField>
+            </div>
+          </section>
 
           {!canEdit && (
-            <div className="readonly-banner">
-              Role Anda memiliki akses view-only pada Party Detail (FR-CNT-SV-004).
+            <div className="readonly-banner party-readonly">
+              <LockIcon />
+              <div>Role Anda memiliki akses view-only pada Party Detail (FR-CNT-SV-004).</div>
             </div>
           )}
         </div>

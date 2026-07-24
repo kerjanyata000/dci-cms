@@ -1,21 +1,27 @@
 # Page override: Party Detail
 
-Extends [`MASTER.md`](../MASTER.md).
+Extends [`MASTER.md`](../MASTER.md). UI may exceed mockup where UX Pro Max improves clarity (theme ink/brass unchanged).
 
 ## Layout
 
-- Crumb: `Parties / {party_code}`
-- **Dossier head:** seal (party no) + Odoo strip + meta grid + actions (Legal: Add Contract brass, Link Odoo ghost)
-- **Tabs:** Overview, Contracts, Novation, Termination, Supporting, SO, Audit — not in sidebar
+- Breadcrumb: `Parties / {party_code}`
+- **Dossier hero:** gradient ink banner — seal, title, Odoo chip (compact), meta dl grid, actions
+- **Tabs:** horizontal scroll on narrow screens; brass underline active
+- Tab content in cards — not sidebar items
 
-## Overview tab
+## Overview tab (sections)
 
-- Info grid: status, value, payment term, locked counterparty/value/signed doc
-- Sub-card: Late Payment & Termination Terms (from `confirmed_metadata`)
-- View-only banner when role cannot edit
+1. **Contract snapshot** — status, value, payment, documents, Odoo, SO health
+2. **Sensitive fields** — locked cards with lock icon + hint (no hatch pattern)
+3. **Late Payment & Termination Terms** — sub-card 3-col grid
+
+## RBAC
+
+- Legal: Add Contract (brass) + Link Odoo
+- View-only: banner with lock icon; hide create/edit actions
 
 ## Components
 
-- Status: `status-pill` (BRD §9), not generic bootstrap badges
-- Tables: paginate audit trail when >10 rows
-- Buttons: `btn brass` for Add Contract; hide Legal actions for view-only roles
+- `status-pill` BRD §9
+- Audit tab: paginate >10 rows
+- Loading: dossier skeleton
