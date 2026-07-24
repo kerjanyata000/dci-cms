@@ -12,8 +12,18 @@ import {
   getDashboardCopy,
   type DashboardPayload,
 } from '@/lib/dashboard/config'
+import { ODOO_MODE } from '@/lib/odoo/client'
 import { ROLES } from '@/lib/roles'
 import type { AppRole } from '@/types/cms'
+
+function OdooModeChip({ mode }: { mode: string }) {
+  const chip = mode === 'live' ? 'live' : 'dummy'
+  return (
+    <span className={`odoo-mode-chip ${chip}`} title="Mode adapter Odoo">
+      Odoo {chip}
+    </span>
+  )
+}
 
 type Props = {
   role: AppRole
@@ -88,12 +98,15 @@ function DashboardInner({ role, userName }: Props) {
 
   return (
     <div className="dashboard-page">
-      <div className="page-head">
-        <div className="crumb">{copy.crumb}</div>
-        <h1>
-          {copy.titlePrefix} — {userName}
-        </h1>
-        <p className="page-desc">{copy.desc}</p>
+      <div className="page-head page-head-spread">
+        <div>
+          <div className="crumb">{copy.crumb}</div>
+          <h1>
+            {copy.titlePrefix} — {userName}
+          </h1>
+          <p className="page-desc">{copy.desc}</p>
+        </div>
+        <OdooModeChip mode={data?.integration.odooMode ?? ODOO_MODE} />
       </div>
 
       {!roleCfg.canEdit && (
@@ -148,9 +161,16 @@ export function DashboardView(props: Props) {
     <Suspense
       fallback={
         <div className="dashboard-page">
-          <div className="kpi-grid kpi-cols-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="kpi-card kpi-skeleton" />
+          <div className="page-head page-head-spread">
+            <div>
+              <div className="skeleton-line" style={{ width: 140, height: 12, marginBottom: 8 }} />
+              <div className="skeleton-line" style={{ width: 320, height: 28, marginBottom: 8 }} />
+            </div>
+            <span className={`odoo-mode-chip ${ODOO_MODE}`}>Odoo {ODOO_MODE}</span>
+          </div>
+          <div className="kpi-grid kpi-cols-5">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="kpi-card kpi-skeleton" aria-hidden />
             ))}
           </div>
         </div>

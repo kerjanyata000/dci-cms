@@ -578,7 +578,7 @@ export function RenewalCalendarView() {
                 <article key={e.id} className="cal-side-item">
                   <div className="row-top">
                     <b>{KIND_LABEL[e.kind]}</b>
-                    <span className={`pill pill-${e.bucket}`}>{e.bucket}</span>
+                    <span className={`status-pill ${e.bucket}`}>{e.bucket}</span>
                   </div>
                   <div className="meta">
                     {e.partyCode} · {e.contractCode ?? '—'}
@@ -642,7 +642,7 @@ export function RenewalCalendarView() {
                 <td>{formatIdDate(row.eventDate)}</td>
                 <td>{daysLabel(row.daysLeft)}</td>
                 <td>
-                  <span className={`pill pill-${row.bucket}`}>{row.bucket}</span>
+                  <span className={`status-pill ${row.bucket}`}>{row.bucket}</span>
                 </td>
                 <td>
                   <Link href={`/parties/${row.partyId}`} className="btn ghost">

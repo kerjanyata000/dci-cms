@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
+import { BellIcon } from '@/components/ui/icons'
 import { cmsFetch } from '@/lib/api/http'
 
 type NotificationItem = {
@@ -47,7 +48,7 @@ export function NotificationsBell() {
         aria-label="Notifikasi"
         onClick={() => setOpen((v) => !v)}
       >
-        🔔
+        <BellIcon />
         {urgentCount > 0 && <span className="notif-badge">{urgentCount}</span>}
       </button>
       {open && (

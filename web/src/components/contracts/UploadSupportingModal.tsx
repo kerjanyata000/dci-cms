@@ -1,5 +1,6 @@
 'use client'
 
+import { ModalCloseButton } from '@/components/ui/icons'
 import { useState } from 'react'
 import { uploadSupportingDocument } from '@/lib/contracts/api'
 import type { Contract, DocumentRow } from '@/types/cms'
@@ -52,9 +53,7 @@ export function UploadSupportingModal({ partyId, contracts, open, onClose, onUpl
             <h2>Upload Supporting Document</h2>
             <p className="muted">FR-CNT-SUP-001/004 — tidak mengubah lifecycle kontrak</p>
           </div>
-          <button type="button" className="btn ghost" onClick={onClose}>
-            ✕
-          </button>
+          <ModalCloseButton onClick={onClose} />
         </div>
 
         <div className="field">

@@ -6,6 +6,7 @@ import { useAuth } from '@/components/AuthProvider'
 import { AddPartyModal } from '@/components/parties/AddPartyModal'
 import { LinkOdooModal } from '@/components/parties/LinkOdooModal'
 import { TablePagination, paginateSlice } from '@/components/ui/TablePagination'
+import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { fetchParties, type PartyListItem } from '@/lib/parties/api'
 import { formatAgreementDate, formatDuration } from '@/lib/parties/list'
 import { ODOO_LINK_LABELS } from '@/lib/parties/types'
@@ -211,16 +212,18 @@ export default function PartiesPage() {
             </tr>
           </thead>
           <tbody>
-            {pageRows.length === 0 && (
+            {busy && rows.length === 0 && (
+              <TableSkeleton rows={PAGE_SIZE} cols={canEdit ? 9 : 8} />
+            )}
+            {!busy && pageRows.length === 0 && (
               <tr>
                 <td colSpan={canEdit ? 9 : 8} className="muted">
-                  {busy
-                    ? 'Memuat…'
-                    : 'Tidak ada party yang cocok. Jalankan npm run seed:demo atau tambah party baru.'}
+                  Tidak ada party yang cocok. Jalankan npm run seed:demo atau tambah party baru.
                 </td>
               </tr>
             )}
-            {pageRows.map((p) => {
+            {!busy &&
+              pageRows.map((p) => {
               const pc = p.primary_contract
               return (
                 <tr

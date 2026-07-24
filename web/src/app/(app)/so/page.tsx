@@ -23,6 +23,7 @@ export default function SoHealthPage() {
   const [summary, setSummary] = useState<SoHealthSummary | null>(null)
   const [error, setError] = useState('')
   const [syncMsg, setSyncMsg] = useState('')
+  const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [page, setPage] = useState(1)
 
@@ -31,6 +32,7 @@ export default function SoHealthPage() {
 
   async function load() {
     setError('')
+    setLoading(true)
     try {
       const data = await fetchSyncedOrders()
       setRows(data.orders)
@@ -39,6 +41,8 @@ export default function SoHealthPage() {
       setError(err instanceof Error ? err.message : 'Load SO gagal')
       setRows([])
       setSummary(null)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -75,6 +79,7 @@ export default function SoHealthPage() {
   return (
     <div>
       <div className="page-head">
+        <div className="crumb">Registry</div>
         <h1>SO Health</h1>
         <p>
           INT-SO · consume-only Odoo ({ODOO_MODE === 'live' ? 'live' : 'dummy'}). Run Sync menarik
@@ -82,7 +87,15 @@ export default function SoHealthPage() {
         </p>
       </div>
 
-      {summary && (
+      {loading && (
+        <div className="kpi-grid kpi-cols-4" style={{ marginBottom: 16 }}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="kpi-card kpi-skeleton" aria-hidden />
+          ))}
+        </div>
+      )}
+
+      {!loading && summary && (
         <div className="kpi-grid kpi-cols-4" style={{ marginBottom: 16 }}>
           <div className="kpi-card kpi-green">
             <div className="kpi-top">

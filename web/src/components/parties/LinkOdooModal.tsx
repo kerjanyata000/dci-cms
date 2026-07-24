@@ -1,5 +1,6 @@
 'use client'
 
+import { ModalCloseButton } from '@/components/ui/icons'
 import { useCallback, useEffect, useState } from 'react'
 import { searchPartnersFromApi } from '@/lib/odoo/api'
 import { linkPartyOdoo, previewPartyOdooLink } from '@/lib/parties/api'
@@ -166,9 +167,7 @@ export function LinkOdooModal({ party, open, onClose, onLinked }: Props) {
               {party.party_code} · {party.name}
             </p>
           </div>
-          <button type="button" className="btn ghost" aria-label="Tutup" onClick={onClose}>
-            ✕
-          </button>
+          <ModalCloseButton onClick={onClose} />
         </div>
 
         {hasExistingLink && (
@@ -190,7 +189,7 @@ export function LinkOdooModal({ party, open, onClose, onLinked }: Props) {
 
         {!hasExistingLink && (
           <p className="muted modal-hint">
-            Kandidat Partner di bawah sudah dicari otomatis. Modal hanya tertutup lewat Batal / ✕
+            Kandidat Partner di bawah sudah dicari otomatis. Modal hanya tertutup lewat Batal atau tombol tutup.
             (klik area gelap tidak menutup).
           </p>
         )}

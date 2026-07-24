@@ -1,5 +1,6 @@
 'use client'
 
+import { ModalCloseButton } from '@/components/ui/icons'
 import { useState } from 'react'
 import { createTermination } from '@/lib/contracts/api'
 import type { Contract, ContractTermination } from '@/types/cms'
@@ -55,9 +56,7 @@ export function TerminationModal({ contract, open, onClose, onCreated }: Props) 
               FR-CNT-TERM-001 · BRL-CMS-013 · Hanya kontrak Active · tanpa approval internal
             </p>
           </div>
-          <button type="button" className="btn ghost" onClick={onClose}>
-            ✕
-          </button>
+          <ModalCloseButton onClick={onClose} />
         </div>
 
         <div className="field">

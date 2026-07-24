@@ -122,15 +122,6 @@ export function AppShell({ user, onLogout, children }: Props) {
           Extraction Lab
         </Link>
       )}
-      {role.views.includes('notifications') && (
-        <Link
-          href="/notifications"
-          className={`nav-item${pathname.startsWith('/notifications') ? ' active' : ''}`}
-          onClick={() => setDrawerOpen(false)}
-        >
-          Notifikasi
-        </Link>
-      )}
     </>
   )
 

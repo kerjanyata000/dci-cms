@@ -23,6 +23,13 @@ const STATUS_FILTERS = [
   { value: 'terminated', label: 'Terminated' },
 ]
 
+const EXAMPLE_QUERIES = ['Customer ABC', 'MSA', 'perpanjangan otomatis', 'PTY-00006']
+
+function contractStatusClass(status: string): string {
+  if (status === 'under_review') return 'under_review'
+  return status
+}
+
 type Props = {
   canEdit: boolean
 }
@@ -157,7 +164,41 @@ export function SmartSearchView({ canEdit }: Props) {
 
       {error && <p className="error-text">{error}</p>}
 
-      {result && (
+      {!q.trim() && !busy && !result && (
+        <div className="search-empty-state card stack">
+          <h2>Cari di registry kontrak</h2>
+          <p className="muted">
+            Gunakan kata kunci party, PIC, nomor agreement, kode kontrak, atau isi dokumen yang
+            terindeks RAGFlow.
+          </p>
+          <div className="search-empty-examples">
+            <span className="muted">Contoh pencarian:</span>
+            {EXAMPLE_QUERIES.map((sample) => (
+              <button
+                key={sample}
+                type="button"
+                className="filter-chip clickable"
+                onClick={() => setQ(sample)}
+              >
+                {sample}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {busy && (
+        <div className="search-results-skeleton stack" aria-busy="true" aria-label="Mencari">
+          <div className="skeleton-line" style={{ width: 180, height: 14 }} />
+          <div className="card stack">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="skeleton-block" style={{ height: 48 }} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {result && !busy && (
         <div className="stack" style={{ marginTop: 16 }}>
           <p className="muted">
             {total} hasil untuk &ldquo;{result.query}&rdquo;
@@ -220,7 +261,9 @@ export function SmartSearchView({ canEdit }: Props) {
                       <td>{c.party_name}</td>
                       <td>{c.agreement_no || '—'}</td>
                       <td>
-                        <span className="pill">{c.status_text}</span>
+                        <span className={`status-pill ${contractStatusClass(c.status)}`}>
+                          {c.status_text}
+                        </span>
                       </td>
                       <td>
                         <Link href={`/parties/${c.party_id}`} className="btn ghost">

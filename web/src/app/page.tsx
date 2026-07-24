@@ -3,6 +3,7 @@
 import { Suspense, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/components/AuthProvider'
+import { LoginRedirectOverlay } from '@/components/LoginRedirectOverlay'
 import { LoginPage, LoginPageSkeleton } from '@/components/LoginPage'
 
 function safeNextPath(raw: string | null): string {
@@ -21,7 +22,7 @@ function HomeInner() {
   }, [ready, user, router, nextPath])
 
   if (!ready) return <LoginPageSkeleton />
-  if (user) return null
+  if (user) return <LoginRedirectOverlay />
 
   return (
     <LoginPage

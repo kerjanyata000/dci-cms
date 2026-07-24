@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { ModalCloseButton } from '@/components/ui/icons'
 import { createParty } from '@/lib/parties/api'
 import type { Party } from '@/types/cms'
 
@@ -44,9 +45,7 @@ export function AddPartyModal({ open, onClose, onCreated }: Props) {
             <h2>Add New Party</h2>
             <p className="muted">Disimpan ke Supabase · status awal Pending Odoo Link</p>
           </div>
-          <button type="button" className="btn ghost" onClick={onClose}>
-            ✕
-          </button>
+          <ModalCloseButton onClick={onClose} />
         </div>
 
         <div className="field">

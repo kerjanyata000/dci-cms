@@ -1,5 +1,6 @@
 'use client'
 
+import { ModalCloseButton } from '@/components/ui/icons'
 import { useState } from 'react'
 import { createContract } from '@/lib/contracts/api'
 import type { Contract, Party } from '@/types/cms'
@@ -74,9 +75,7 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
               FR-CNT-ADD-001/003/004 · {party.party_code} — {party.name}
             </p>
           </div>
-          <button type="button" className="btn ghost" onClick={onClose}>
-            ✕
-          </button>
+          <ModalCloseButton onClick={onClose} />
         </div>
 
         <p className="ref-tag">Counterparty locked · {party.name} (BRL-CMS-006)</p>

@@ -1,5 +1,6 @@
 'use client'
 
+import { ModalCloseButton } from '@/components/ui/icons'
 import { useEffect, useState } from 'react'
 import { changeContractCounterparty } from '@/lib/contracts/api'
 import { fetchParties } from '@/lib/parties/api'
@@ -83,9 +84,7 @@ export function ChangeCounterpartyModal({
               FR-CNT-CP-001 · {contract.contract_code} · tanpa approval internal (BRL-CMS-007)
             </p>
           </div>
-          <button type="button" className="btn ghost" onClick={onClose}>
-            ✕
-          </button>
+          <ModalCloseButton onClick={onClose} />
         </div>
 
         <div className="field">

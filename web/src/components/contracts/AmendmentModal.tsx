@@ -1,5 +1,6 @@
 'use client'
 
+import { ModalCloseButton } from '@/components/ui/icons'
 import { useState } from 'react'
 import { createAmendment } from '@/lib/contracts/api'
 import type { Contract, ContractAmendment } from '@/types/cms'
@@ -60,9 +61,7 @@ export function AmendmentModal({ contract, open, onClose, onCreated }: Props) {
               FR-CNT-AMD-001 · Parent {contract.contract_code} — tidak overwrite dokumen asli
             </p>
           </div>
-          <button type="button" className="btn ghost" onClick={onClose}>
-            ✕
-          </button>
+          <ModalCloseButton onClick={onClose} />
         </div>
 
         <div className="field">

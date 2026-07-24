@@ -1,5 +1,6 @@
 'use client'
 
+import { ModalCloseButton } from '@/components/ui/icons'
 import { useEffect, useState } from 'react'
 import { updateContractAdminDetails } from '@/lib/contracts/api'
 import type { Contract } from '@/types/cms'
@@ -62,9 +63,7 @@ export function EditContractModal({ contract, open, onClose, onUpdated }: Props)
               FR-CNT-EDIT-001 · BRL-CMS-006 — metadata administratif saja
             </p>
           </div>
-          <button type="button" className="btn ghost" onClick={onClose}>
-            ✕
-          </button>
+          <ModalCloseButton onClick={onClose} />
         </div>
 
         <div className="field">

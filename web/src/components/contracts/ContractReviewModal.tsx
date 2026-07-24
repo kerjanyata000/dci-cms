@@ -1,5 +1,6 @@
 'use client'
 
+import { ModalCloseButton } from '@/components/ui/icons'
 import { useEffect, useState } from 'react'
 import type { Contract, ContractMetadata } from '@/types/cms'
 import { confirmContractMetadata, transitionContractStatus } from '@/lib/contracts/api'
@@ -102,9 +103,7 @@ export function ContractReviewModal({ contract, open, onClose, onUpdated }: Prop
               FR-CNT-ADD-004/005 · {contract.contract_code} · {contract.status_text}
             </p>
           </div>
-          <button type="button" className="btn ghost" onClick={onClose}>
-            ✕
-          </button>
+          <ModalCloseButton onClick={onClose} />
         </div>
 
         <p className="ref-tag">
