@@ -541,11 +541,19 @@ export function RenewalCalendarView() {
             {calCells.map((cell) => {
               const evts = eventsByKey.get(cell.key) ?? []
               return (
-                <button
+                <div
                   key={cell.key}
-                  type="button"
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={cell.key === selectedKey}
                   className={`cal-cell${cell.inMonth ? '' : ' out'}${cell.key === todayKey ? ' today' : ''}${cell.key === selectedKey ? ' selected' : ''}`}
                   onClick={() => setSelectedKey(cell.key)}
+                  onKeyDown={(ev) => {
+                    if (ev.key === 'Enter' || ev.key === ' ') {
+                      ev.preventDefault()
+                      setSelectedKey(cell.key)
+                    }
+                  }}
                 >
                   <span className="cal-daynum">{cell.date.getDate()}</span>
                   <div className="cal-events">
@@ -565,7 +573,7 @@ export function RenewalCalendarView() {
                     ))}
                     {evts.length > 2 && <span className="cal-more">+{evts.length - 2}</span>}
                   </div>
-                </button>
+                </div>
               )
             })}
           </div>
