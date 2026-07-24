@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
 import { runSearch } from '@/lib/search/api'
 import type { SearchScope } from '@/lib/search/server'
 import type { SmartSearchResult } from '@/lib/search/server'
@@ -30,18 +30,22 @@ function contractStatusClass(status: string): string {
   return status
 }
 
+function readScope(raw: string | null): SearchScope {
+  const allowed: SearchScope[] = ['all', 'parties', 'contracts', 'content']
+  return allowed.includes(raw as SearchScope) ? (raw as SearchScope) : 'all'
+}
+
 type Props = {
   canEdit: boolean
 }
 
 export function SmartSearchView({ canEdit }: Props) {
+  const router = useRouter()
   const searchParams = useSearchParams()
-  const [q, setQ] = useState(searchParams.get('q') ?? '')
-  const [scope, setScope] = useState<SearchScope>(
-    (searchParams.get('scope') as SearchScope) ?? 'all',
-  )
-  const [status, setStatus] = useState(searchParams.get('status') ?? '')
-  const [docType, setDocType] = useState(searchParams.get('docType') ?? '')
+  const [q, setQ] = useState(() => searchParams.get('q') ?? '')
+  const [scope, setScope] = useState<SearchScope>(() => readScope(searchParams.get('scope')))
+  const [status, setStatus] = useState(() => searchParams.get('status') ?? '')
+  const [docType, setDocType] = useState(() => searchParams.get('docType') ?? '')
   const [result, setResult] = useState<SmartSearchResult | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -73,17 +77,27 @@ export function SmartSearchView({ canEdit }: Props) {
   }, [q, scope, status, docType])
 
   useEffect(() => {
-    const urlQ = searchParams.get('q')
-    if (urlQ != null && urlQ !== q) setQ(urlQ)
-  }, [searchParams, q])
+    const params = new URLSearchParams()
+    if (q.trim()) params.set('q', q.trim())
+    if (scope !== 'all') params.set('scope', scope)
+    if (status) params.set('status', status)
+    if (docType.trim()) params.set('docType', docType.trim())
+    const qs = params.toString()
+    router.replace(qs ? `/search?${qs}` : '/search', { scroll: false })
+  }, [q, scope, status, docType, router])
 
   useEffect(() => {
     if (q.trim()) void execute()
+    else setResult(null)
   }, [execute, q])
 
   function submit(e: React.FormEvent) {
     e.preventDefault()
     void execute()
+  }
+
+  function pickExample(sample: string) {
+    setQ(sample)
   }
 
   const total =
@@ -94,6 +108,7 @@ export function SmartSearchView({ canEdit }: Props) {
   return (
     <div>
       <div className="page-head">
+        <div className="crumb">Registry</div>
         <h1>Smart Search</h1>
         <p>
           FR-CNT-SV-003 · BRL-CMS-003 — metadata Party/Kontrak + isi dokumen terindeks (RAGFlow).
@@ -178,7 +193,7 @@ export function SmartSearchView({ canEdit }: Props) {
                 key={sample}
                 type="button"
                 className="filter-chip clickable"
-                onClick={() => setQ(sample)}
+                onClick={() => pickExample(sample)}
               >
                 {sample}
               </button>

@@ -430,6 +430,84 @@ a {
   margin-top: 4px;
 }
 
+.sortable-th {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.sortable-th:hover,
+.sortable-th.active {
+  color: var(--ink);
+}
+
+.sortable-th:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.btn-on-row {
+  background: var(--paper-2);
+}
+
+.dossier-sticky-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 15;
+  padding-bottom: 8px;
+  background: linear-gradient(to bottom, var(--paper) 85%, transparent);
+}
+
+.contract-row-actions {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.contract-actions-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  min-width: 180px;
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(18, 32, 58, 0.12);
+  z-index: 30;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.contract-actions-menu button {
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.contract-actions-menu button:hover {
+  background: var(--slate-light);
+}
+
+.contract-actions-menu button:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: -2px;
+}
+
 .notif-btn svg,
 .modal-close svg {
   width: 18px;

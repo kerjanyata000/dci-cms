@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuth } from '@/components/AuthProvider'
 import { AddPartyModal } from '@/components/parties/AddPartyModal'
 import { LinkOdooModal } from '@/components/parties/LinkOdooModal'
+import { SortableTh } from '@/components/ui/SortableTh'
 import { TablePagination, paginateSlice } from '@/components/ui/TablePagination'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { fetchParties, type PartyListItem } from '@/lib/parties/api'
@@ -34,6 +35,9 @@ const STATUS_FILTERS: Array<{ value: string; label: string }> = [
   { value: 'terminated', label: 'Terminated' },
 ]
 
+type SortKey = 'party_code' | 'agreement_date' | 'status'
+type SortDir = 'asc' | 'desc'
+
 function initials(name: string): string {
   return name
     .split(/\s+/)
@@ -56,6 +60,33 @@ function odooStatusClass(status: OdooLinkStatus): string {
   return 'pending'
 }
 
+function sortRows(rows: PartyListItem[], key: SortKey, dir: SortDir): PartyListItem[] {
+  const mul = dir === 'asc' ? 1 : -1
+  return [...rows].sort((a, b) => {
+    let av = ''
+    let bv = ''
+    if (key === 'party_code') {
+      av = a.party_code
+      bv = b.party_code
+    } else if (key === 'agreement_date') {
+      av = a.primary_contract?.agreement_date ?? ''
+      bv = b.primary_contract?.agreement_date ?? ''
+    } else {
+      av = a.primary_contract?.status ?? ''
+      bv = b.primary_contract?.status ?? ''
+    }
+    if (av < bv) return -1 * mul
+    if (av > bv) return 1 * mul
+    return 0
+  })
+}
+
+function readLinkFilter(raw: string | null): OdooLinkStatus | 'all' {
+  if (!raw || raw === 'all') return 'all'
+  const allowed: OdooLinkStatus[] = ['linked', 'pending', 'mismatch', 'unlinked', 'relink']
+  return allowed.includes(raw as OdooLinkStatus) ? (raw as OdooLinkStatus) : 'all'
+}
+
 export default function PartiesPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -63,16 +94,34 @@ export default function PartiesPage() {
   const canEdit = user ? ROLES[user.role].canEdit : false
 
   const [rows, setRows] = useState<PartyListItem[]>([])
-  const [q, setQ] = useState(searchParams.get('q') ?? '')
-  const [picFilter, setPicFilter] = useState('all')
-  const [linkFilter, setLinkFilter] = useState<OdooLinkStatus | 'all'>('all')
-  const [statusFilter, setStatusFilter] = useState('all')
+  const [allPics, setAllPics] = useState<string[]>([])
+  const [q, setQ] = useState(() => searchParams.get('q') ?? '')
+  const [picFilter, setPicFilter] = useState(() => searchParams.get('pic') ?? 'all')
+  const [linkFilter, setLinkFilter] = useState<OdooLinkStatus | 'all'>(() =>
+    readLinkFilter(searchParams.get('link')),
+  )
+  const [statusFilter, setStatusFilter] = useState(() => searchParams.get('status') ?? 'all')
+  const [sortKey, setSortKey] = useState<SortKey>(
+    () => (searchParams.get('sort') as SortKey) || 'party_code',
+  )
+  const [sortDir, setSortDir] = useState<SortDir>(
+    () => (searchParams.get('dir') as SortDir) || 'asc',
+  )
   const [page, setPage] = useState(1)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
   const [addOpen, setAddOpen] = useState(false)
   const [linkParty, setLinkParty] = useState<Party | null>(null)
+
+  useEffect(() => {
+    fetchParties({})
+      .then((all) => {
+        const pics = [...new Set(all.map((p) => p.pic).filter(Boolean))] as string[]
+        setAllPics(pics.sort((a, b) => a.localeCompare(b)))
+      })
+      .catch(() => setAllPics([]))
+  }, [])
 
   const load = useCallback(async () => {
     setBusy(true)
@@ -96,20 +145,33 @@ export default function PartiesPage() {
   }, [q, linkFilter, picFilter, statusFilter])
 
   useEffect(() => {
-    const urlQ = searchParams.get('q')
-    if (urlQ != null && urlQ !== q) setQ(urlQ)
-  }, [searchParams, q])
-
-  useEffect(() => {
     void load()
   }, [load])
 
-  const picOptions = useMemo(() => {
-    const pics = [...new Set(rows.map((p) => p.pic).filter(Boolean))] as string[]
-    return pics.sort((a, b) => a.localeCompare(b))
-  }, [rows])
+  useEffect(() => {
+    const params = new URLSearchParams()
+    if (q.trim()) params.set('q', q.trim())
+    if (statusFilter !== 'all') params.set('status', statusFilter)
+    if (linkFilter !== 'all') params.set('link', linkFilter)
+    if (picFilter !== 'all') params.set('pic', picFilter)
+    if (sortKey !== 'party_code') params.set('sort', sortKey)
+    if (sortDir !== 'asc') params.set('dir', sortDir)
+    const qs = params.toString()
+    router.replace(qs ? `/parties?${qs}` : '/parties', { scroll: false })
+  }, [q, statusFilter, linkFilter, picFilter, sortKey, sortDir, router])
 
-  const pageRows = useMemo(() => paginateSlice(rows, page, PAGE_SIZE), [rows, page])
+  const sortedRows = useMemo(() => sortRows(rows, sortKey, sortDir), [rows, sortKey, sortDir])
+  const pageRows = useMemo(() => paginateSlice(sortedRows, page, PAGE_SIZE), [sortedRows, page])
+
+  function toggleSort(key: string) {
+    const k = key as SortKey
+    if (sortKey === k) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+    } else {
+      setSortKey(k)
+      setSortDir('asc')
+    }
+  }
 
   function upsertParty(updated: Party) {
     setRows((prev) => {
@@ -119,6 +181,9 @@ export default function PartiesPage() {
       next[i] = { ...next[i], ...updated }
       return next
     })
+    if (updated.pic && !allPics.includes(updated.pic)) {
+      setAllPics((prev) => [...prev, updated.pic!].sort((a, b) => a.localeCompare(b)))
+    }
   }
 
   return (
@@ -171,7 +236,7 @@ export default function PartiesPage() {
           onChange={(e) => setPicFilter(e.target.value)}
         >
           <option value="all">PIC: Semua</option>
-          {picOptions.map((pic) => (
+          {allPics.map((pic) => (
             <option key={pic} value={pic}>
               {pic}
             </option>
@@ -200,12 +265,30 @@ export default function PartiesPage() {
         <table className="data-table">
           <thead>
             <tr>
-              <th>Party ID</th>
+              <SortableTh
+                label="Party ID"
+                sortKey="party_code"
+                activeKey={sortKey}
+                dir={sortDir}
+                onSort={toggleSort}
+              />
               <th>PIC</th>
               <th>Dokumen Utama</th>
-              <th>Agreement Date</th>
+              <SortableTh
+                label="Agreement Date"
+                sortKey="agreement_date"
+                activeKey={sortKey}
+                dir={sortDir}
+                onSort={toggleSort}
+              />
               <th>Durasi</th>
-              <th>Status</th>
+              <SortableTh
+                label="Status"
+                sortKey="status"
+                activeKey={sortKey}
+                dir={sortDir}
+                onSort={toggleSort}
+              />
               <th>Odoo Link</th>
               <th></th>
               {canEdit && <th></th>}
@@ -224,68 +307,67 @@ export default function PartiesPage() {
             )}
             {!busy &&
               pageRows.map((p) => {
-              const pc = p.primary_contract
-              return (
-                <tr
-                  key={p.id}
-                  className="clickable-row"
-                  onClick={() => router.push(`/parties/${p.id}`)}
-                >
-                  <td className="mono">{p.party_code}</td>
-                  <td>
-                    {p.pic ? (
-                      <span className="row-flex">
-                        <span className="avatar-sm">{initials(p.pic)}</span>
-                        {p.pic}
+                const pc = p.primary_contract
+                return (
+                  <tr
+                    key={p.id}
+                    className="clickable-row"
+                    onClick={() => router.push(`/parties/${p.id}`)}
+                  >
+                    <td className="mono">{p.party_code}</td>
+                    <td>
+                      {p.pic ? (
+                        <span className="row-flex">
+                          <span className="avatar-sm">{initials(p.pic)}</span>
+                          {p.pic}
+                        </span>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                    <td>{pc?.contract_title ?? '—'}</td>
+                    <td className="mono">{formatAgreementDate(pc?.agreement_date ?? null)}</td>
+                    <td className="mono">{formatDuration(pc?.duration_months ?? null)}</td>
+                    <td>
+                      {pc ? (
+                        <span className={`status-pill ${contractStatusClass(pc.status)}`}>
+                          {pc.status_text || pc.status}
+                        </span>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                    <td onClick={(e) => e.stopPropagation()}>
+                      <span className={`status-pill ${odooStatusClass(p.odoo_link_status)}`}>
+                        {ODOO_LINK_LABELS[p.odoo_link_status]}
                       </span>
-                    ) : (
-                      '—'
-                    )}
-                  </td>
-                  <td>{pc?.contract_title ?? '—'}</td>
-                  <td className="mono">{formatAgreementDate(pc?.agreement_date ?? null)}</td>
-                  <td className="mono">{formatDuration(pc?.duration_months ?? null)}</td>
-                  <td>
-                    {pc ? (
-                      <span className={`status-pill ${contractStatusClass(pc.status)}`}>
-                        {pc.status_text || pc.status}
-                      </span>
-                    ) : (
-                      '—'
-                    )}
-                  </td>
-                  <td onClick={(e) => e.stopPropagation()}>
-                    <span className={`status-pill ${odooStatusClass(p.odoo_link_status)}`}>
-                      {ODOO_LINK_LABELS[p.odoo_link_status]}
-                    </span>
-                    {p.odoo_partner_id != null && (
-                      <span className="mono odoo-link-id"> #{p.odoo_partner_id}</span>
-                    )}
-                  </td>
-                  <td onClick={(e) => e.stopPropagation()}>
-                    <button
-                      type="button"
-                      className="btn ghost small"
-                      style={{ background: '#fff' }}
-                      onClick={() => router.push(`/parties/${p.id}`)}
-                    >
-                      Lihat →
-                    </button>
-                  </td>
-                  {canEdit && (
+                      {p.odoo_partner_id != null && (
+                        <span className="mono odoo-link-id"> #{p.odoo_partner_id}</span>
+                      )}
+                    </td>
                     <td onClick={(e) => e.stopPropagation()}>
                       <button
                         type="button"
-                        className="btn ghost small"
-                        onClick={() => setLinkParty(p)}
+                        className="btn ghost small btn-on-row"
+                        onClick={() => router.push(`/parties/${p.id}`)}
                       >
-                        {p.odoo_partner_id != null ? 'Kelola Link' : 'Link Odoo'}
+                        Lihat →
                       </button>
                     </td>
-                  )}
-                </tr>
-              )
-            })}
+                    {canEdit && (
+                      <td onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          className="btn ghost small"
+                          onClick={() => setLinkParty(p)}
+                        >
+                          {p.odoo_partner_id != null ? 'Kelola Link' : 'Link Odoo'}
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                )
+              })}
           </tbody>
         </table>
       </div>
@@ -293,7 +375,7 @@ export default function PartiesPage() {
       <TablePagination
         page={page}
         pageSize={PAGE_SIZE}
-        total={rows.length}
+        total={sortedRows.length}
         onPageChange={setPage}
         itemLabel="Party"
       />

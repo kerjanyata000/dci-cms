@@ -2,8 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { cmsFetch } from '@/lib/api/http'
+import { useRouter } from 'next/navigation'
 import { TablePagination, paginateSlice } from '@/components/ui/TablePagination'
+import { TableSkeleton } from '@/components/ui/TableSkeleton'
+import { formatCurrency } from '@/lib/format/currency'
 import { fetchSyncedOrders, runSoSync, type SoHealthSummary, type SyncedOrderRow } from '@/lib/so/api'
 import { ODOO_MODE } from '@/lib/odoo/client'
 import { useAuth } from '@/components/AuthProvider'
@@ -18,6 +20,7 @@ function syncStatusLabel(state: string): { label: string; className: string } {
 const SO_PAGE_SIZE = 10
 
 export default function SoHealthPage() {
+  const router = useRouter()
   const { user } = useAuth()
   const [rows, setRows] = useState<SyncedOrderRow[]>([])
   const [summary, setSummary] = useState<SoHealthSummary | null>(null)
@@ -154,19 +157,26 @@ export default function SoHealthPage() {
               </tr>
             </thead>
             <tbody>
-              {pageRows.length === 0 && (
+              {loading && <TableSkeleton rows={5} cols={6} />}
+              {!loading && pageRows.length === 0 && (
                 <tr>
                   <td colSpan={6} className="muted">
                     Belum ada SO tersimpan. Link party ke Odoo lalu Run Sync.
                   </td>
                 </tr>
               )}
-              {pageRows.map((o) => {
+              {!loading &&
+                pageRows.map((o) => {
                 const st = syncStatusLabel(o.state)
+                const partyHref = o.party_id ? `/parties/${o.party_id}` : null
                 return (
-                  <tr key={o.id}>
+                  <tr
+                    key={o.id}
+                    className={partyHref ? 'clickable-row' : undefined}
+                    onClick={partyHref ? () => router.push(partyHref) : undefined}
+                  >
                     <td className="mono">{o.name}</td>
-                    <td>
+                    <td onClick={(e) => e.stopPropagation()}>
                       {o.parties?.party_code ? (
                         <Link href={`/parties/${o.party_id}`} className="mono">
                           {o.parties.party_code}
@@ -179,7 +189,7 @@ export default function SoHealthPage() {
                       <span className={`status-pill ${st.className}`}>{st.label}</span>
                     </td>
                     <td>{o.state}</td>
-                    <td>{o.amount_total ?? '—'}</td>
+                    <td className="mono">{formatCurrency(o.amount_total)}</td>
                     <td className="mono">{new Date(o.synced_at).toLocaleString('id-ID')}</td>
                   </tr>
                 )

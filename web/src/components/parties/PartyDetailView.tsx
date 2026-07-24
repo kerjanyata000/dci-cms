@@ -11,6 +11,7 @@ import { ChangeCounterpartyModal } from '@/components/contracts/ChangeCounterpar
 import { ContractReviewModal } from '@/components/contracts/ContractReviewModal'
 import { TerminationModal } from '@/components/contracts/TerminationModal'
 import { UploadSupportingModal } from '@/components/contracts/UploadSupportingModal'
+import { ContractRowActions } from '@/components/parties/ContractRowActions'
 import { LinkOdooModal } from '@/components/parties/LinkOdooModal'
 import { TablePagination, paginateSlice } from '@/components/ui/TablePagination'
 import { fetchSyncedOrders, runSoSync, type SyncedOrderRow } from '@/lib/so/api'
@@ -215,6 +216,7 @@ export function PartyDetailView({ partyId, role }: Props) {
 
   return (
     <div className="party-detail-page">
+      <div className="dossier-sticky-wrap">
       <nav className="party-crumb" aria-label="Breadcrumb">
         <Link href="/parties">Parties</Link>
         <span aria-hidden>/</span>
@@ -278,6 +280,7 @@ export function PartyDetailView({ partyId, role }: Props) {
           )}
         </div>
       </header>
+      </div>
 
       <div className="tabs-wrap">
         <div className="tabs" role="tablist" aria-label="Party detail sections">
@@ -454,45 +457,14 @@ export function PartyDetailView({ partyId, role }: Props) {
                     <td>{c.validation_status}</td>
                     {canEdit && (
                       <td>
-                        <div className="row-actions contract-actions">
-                          <button
-                            type="button"
-                            className="btn ghost"
-                            onClick={() => setReviewContract(c)}
-                          >
-                            Review
-                          </button>
-                          <button
-                            type="button"
-                            className="btn ghost"
-                            onClick={() => setEditContract(c)}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            className="btn ghost"
-                            onClick={() => setAmendmentContract(c)}
-                          >
-                            AMD
-                          </button>
-                          {ACTIVE_FOR_TERM.includes(c.status) && (
-                            <button
-                              type="button"
-                              className="btn ghost"
-                              onClick={() => setTerminationContract(c)}
-                            >
-                              Term
-                            </button>
-                          )}
-                          <button
-                            type="button"
-                            className="btn ghost"
-                            onClick={() => setCpChangeContract(c)}
-                          >
-                            CP
-                          </button>
-                        </div>
+                        <ContractRowActions
+                          contract={c}
+                          onReview={() => setReviewContract(c)}
+                          onEdit={() => setEditContract(c)}
+                          onAmendment={() => setAmendmentContract(c)}
+                          onTermination={() => setTerminationContract(c)}
+                          onCpChange={() => setCpChangeContract(c)}
+                        />
                       </td>
                     )}
                   </tr>

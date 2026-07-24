@@ -56,6 +56,10 @@
 | Dashboard | [`pages/dashboard.md`](pages/dashboard.md) |
 | Renewal Calendar | [`pages/renewal.md`](pages/renewal.md) |
 | Party Detail | [`pages/party-detail.md`](pages/party-detail.md) |
+| Smart Search | [`pages/search.md`](pages/search.md) |
+| SO Health | [`pages/so.md`](pages/so.md) |
+| Notifikasi | [`pages/notifications.md`](pages/notifications.md) |
+| Activity Log | [`pages/activity.md`](pages/activity.md) |
 
 ## UX checklist (pre-delivery)
 

@@ -5,9 +5,10 @@ Extends [`MASTER.md`](../MASTER.md). UI may exceed mockup where UX Pro Max impro
 ## Layout
 
 - Breadcrumb: `Parties / {party_code}`
-- **Dossier hero:** gradient ink banner — seal, title, Odoo chip (compact), meta dl grid, actions
+- **Dossier hero:** gradient ink banner — seal, title, Odoo chip (compact), meta dl grid, actions — **sticky** (`dossier-sticky-wrap`) saat scroll tab content
 - **Tabs:** horizontal scroll on narrow screens; brass underline active
 - Tab content in cards — not sidebar items
+- Contracts tab: **Review** primary + **Lainnya ▾** overflow menu (Edit, Amendment, Termination, Change CP)
 
 ## Overview tab (sections)
 

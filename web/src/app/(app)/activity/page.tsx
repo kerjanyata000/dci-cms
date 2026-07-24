@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { cmsFetch } from '@/lib/api/http'
 import { TablePagination, paginateSlice } from '@/components/ui/TablePagination'
+import { TableSkeleton } from '@/components/ui/TableSkeleton'
 
 type AuditRow = {
   id: string
@@ -11,6 +12,7 @@ type AuditRow = {
   action_type: string | null
   actor_name: string | null
   party_id: string | null
+  party_code: string | null
   created_at: string
 }
 
@@ -29,11 +31,14 @@ const ACTIVITY_PAGE_SIZE = 15
 
 export default function ActivityPage() {
   const [rows, setRows] = useState<AuditRow[]>([])
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
   const [page, setPage] = useState(1)
 
   useEffect(() => {
+    setLoading(true)
+    setError('')
     cmsFetch('/api/audit')
       .then((r) => r.json())
       .then((p) => {
@@ -41,6 +46,7 @@ export default function ActivityPage() {
         else setError(p.error ?? 'Gagal memuat')
       })
       .catch((err) => setError(err instanceof Error ? err.message : 'Gagal memuat'))
+      .finally(() => setLoading(false))
   }, [])
 
   const visible = useMemo(() => {
@@ -55,11 +61,18 @@ export default function ActivityPage() {
   const pageRows = useMemo(() => paginateSlice(visible, page, ACTIVITY_PAGE_SIZE), [visible, page])
 
   function exportCsv() {
-    const header = ['created_at', 'action', 'action_type', 'actor_name', 'party_id']
+    const header = ['created_at', 'action', 'action_type', 'actor_name', 'party_code', 'party_id']
     const lines = [
       header.join(','),
       ...visible.map((r) =>
-        [r.created_at, r.action, r.action_type ?? '', r.actor_name ?? '', r.party_id ?? '']
+        [
+          r.created_at,
+          r.action,
+          r.action_type ?? '',
+          r.actor_name ?? '',
+          r.party_code ?? '',
+          r.party_id ?? '',
+        ]
           .map((v) => `"${String(v).replace(/"/g, '""')}"`)
           .join(','),
       ),
@@ -77,6 +90,7 @@ export default function ActivityPage() {
     <div>
       <div className="page-head row-actions spread">
         <div>
+          <div className="crumb">Registry</div>
           <h1>Activity Log</h1>
           <p>BRL-CMS-025 · audit trail global (80 entri terbaru).</p>
         </div>
@@ -110,30 +124,34 @@ export default function ActivityPage() {
               </tr>
             </thead>
             <tbody>
-              {pageRows.length === 0 && (
+              {loading && <TableSkeleton rows={8} cols={5} />}
+              {!loading && pageRows.length === 0 && (
                 <tr>
                   <td colSpan={5} className="muted">
-                    {rows.length === 0 ? 'Memuat…' : 'Tidak ada entri untuk filter ini.'}
+                    {rows.length === 0
+                      ? 'Belum ada entri audit.'
+                      : 'Tidak ada entri untuk filter ini.'}
                   </td>
                 </tr>
               )}
-              {pageRows.map((r) => (
-                <tr key={r.id}>
-                  <td className="mono">{new Date(r.created_at).toLocaleString('id-ID')}</td>
-                  <td>{r.action}</td>
-                  <td>{r.action_type ?? '—'}</td>
-                  <td>{r.actor_name ?? '—'}</td>
-                  <td>
-                    {r.party_id ? (
-                      <Link href={`/parties/${r.party_id}`} className="mono">
-                        Detail
-                      </Link>
-                    ) : (
-                      '—'
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {!loading &&
+                pageRows.map((r) => (
+                  <tr key={r.id}>
+                    <td className="mono">{new Date(r.created_at).toLocaleString('id-ID')}</td>
+                    <td>{r.action}</td>
+                    <td>{r.action_type ?? '—'}</td>
+                    <td>{r.actor_name ?? '—'}</td>
+                    <td>
+                      {r.party_id ? (
+                        <Link href={`/parties/${r.party_id}`} className="mono">
+                          {r.party_code ?? r.party_id.slice(0, 8)}
+                        </Link>
+                      ) : (
+                        '—'
+                      )}
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
