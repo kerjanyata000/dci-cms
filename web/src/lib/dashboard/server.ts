@@ -5,7 +5,9 @@ import type {
   LifecycleBreakdown,
   PicWorkloadRow,
   RenewalTimelineRow,
+  CommercialBar,
 } from '@/lib/dashboard/config'
+import type { ContractMetadata } from '@/types/cms'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 import { PARTY_ON_AMENDMENT, PARTY_ON_CONTRACT } from '@/lib/supabase/embeds'
 import { loadSoHealthSummary } from '@/lib/so/server'
@@ -80,10 +82,34 @@ async function loadNoActiveSoParties(db: ReturnType<typeof getSupabaseAdmin>) {
   return result
 }
 
+function buildCommercialBars(
+  contracts: Array<{ confirmed_metadata: unknown }>,
+): CommercialBar[] {
+  const total = contracts.length || 1
+  const meta = (c: { confirmed_metadata: unknown }) =>
+    (c.confirmed_metadata ?? {}) as ContractMetadata
+
+  const late = contracts.filter((c) => meta(c).latePaymentPenalty?.trim()).length
+  const early = contracts.filter((c) => meta(c).earlyTerminationFee?.trim()).length
+  const withPayment = contracts.filter((c) => meta(c).paymentTerm?.trim()).length
+  const payment30 = contracts.filter((c) => /30/.test(meta(c).paymentTerm ?? '')).length
+
+  return [
+    { label: 'Late Payment Penalty clause', filled: late, total, tone: 'green' },
+    { label: 'Early Termination Fee clause', filled: early, total, tone: 'brass' },
+    {
+      label: 'Payment Term = 30 hari',
+      filled: payment30,
+      total: withPayment || total,
+      tone: 'amber',
+    },
+  ]
+}
+
 export async function loadDashboardPayload(): Promise<DashboardPayload> {
   const db = getSupabaseAdmin()
 
-  const [partiesRes, contractsRes, renewalRes, amendmentsRes, soHealth, noActiveSoParties] =
+  const [partiesRes, contractsRes, renewalRes, amendmentsRes, soHealth, noActiveSoParties, auditCountRes] =
     await Promise.all([
       db.from('parties').select('id, party_code, name, pic, odoo_link_status, party_status'),
       db.from('contracts').select('id, party_id, contract_code, status, status_text, renewal_date, confirmed_metadata'),
@@ -100,6 +126,7 @@ export async function loadDashboardPayload(): Promise<DashboardPayload> {
         .limit(6),
       loadSoHealthSummary(),
       loadNoActiveSoParties(db),
+      db.from('audit_logs').select('id', { count: 'exact', head: true }),
     ])
 
   if (partiesRes.error) throw new Error(partiesRes.error.message)
@@ -221,6 +248,8 @@ export async function loadDashboardPayload(): Promise<DashboardPayload> {
     picWorkload,
     renewalTimeline,
     soHealth,
+    commercialBars: buildCommercialBars(contracts),
+    auditEventCount: auditCountRes.count ?? 0,
     noActiveSoParties,
     integration: {
       odooMode: process.env.NEXT_PUBLIC_ODOO_MODE === 'live' ? 'live' : 'dummy',

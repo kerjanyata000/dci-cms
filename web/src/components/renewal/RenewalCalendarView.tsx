@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { TablePagination, paginateSlice } from '@/components/ui/TablePagination'
 import { fetchRenewalAgenda, type RenewalPayload } from '@/lib/renewal/api'
 import type { RenewalAgendaItem } from '@/lib/renewal/types'
 
@@ -49,6 +50,8 @@ function decadeLabel(start: number) {
   return `${start}–${start + 8}`
 }
 
+const TABLE_PAGE_SIZE = 10
+
 export function RenewalCalendarView() {
   const [data, setData] = useState<RenewalPayload | null>(null)
   const [error, setError] = useState('')
@@ -64,6 +67,7 @@ export function RenewalCalendarView() {
     const y = new Date().getFullYear()
     return y - (y % 9)
   })
+  const [tablePage, setTablePage] = useState(1)
 
   useEffect(() => {
     fetchRenewalAgenda()
@@ -118,6 +122,15 @@ export function RenewalCalendarView() {
       return true
     })
   }, [items, filter, cursor])
+
+  useEffect(() => {
+    setTablePage(1)
+  }, [filter, cursor])
+
+  const tablePageRows = useMemo(
+    () => paginateSlice(filteredTable, tablePage, TABLE_PAGE_SIZE),
+    [filteredTable, tablePage],
+  )
 
   const eventsByKey = useMemo(() => {
     const map = new Map<string, RenewalAgendaItem[]>()
@@ -482,7 +495,7 @@ export function RenewalCalendarView() {
                 </td>
               </tr>
             )}
-            {filteredTable.map((row) => (
+            {tablePageRows.map((row) => (
               <tr key={row.id}>
                 <td className="mono">{row.partyCode}</td>
                 <td>{row.pic || '—'}</td>
@@ -503,6 +516,14 @@ export function RenewalCalendarView() {
           </tbody>
         </table>
       </div>
+
+      <TablePagination
+        page={tablePage}
+        pageSize={TABLE_PAGE_SIZE}
+        total={filteredTable.length}
+        onPageChange={setTablePage}
+        itemLabel="Agenda"
+      />
     </div>
   )
 }

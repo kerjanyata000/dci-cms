@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { cmsFetch } from '@/lib/api/http'
+import { TablePagination, paginateSlice } from '@/components/ui/TablePagination'
 import { fetchSyncedOrders, runSoSync, type SoHealthSummary, type SyncedOrderRow } from '@/lib/so/api'
 import { ODOO_MODE } from '@/lib/odoo/client'
 import { useAuth } from '@/components/AuthProvider'
@@ -14,6 +15,8 @@ function syncStatusLabel(state: string): { label: string; className: string } {
   return { label: state, className: 'draft' }
 }
 
+const SO_PAGE_SIZE = 10
+
 export default function SoHealthPage() {
   const { user } = useAuth()
   const [rows, setRows] = useState<SyncedOrderRow[]>([])
@@ -21,9 +24,10 @@ export default function SoHealthPage() {
   const [error, setError] = useState('')
   const [syncMsg, setSyncMsg] = useState('')
   const [busy, setBusy] = useState(false)
+  const [page, setPage] = useState(1)
 
-  if (!user) return null
-  const canSync = ROLES[user.role].canSync || ROLES[user.role].canEdit
+  const canSync = user ? ROLES[user.role].canSync || ROLES[user.role].canEdit : false
+  const pageRows = useMemo(() => paginateSlice(rows, page, SO_PAGE_SIZE), [rows, page])
 
   async function load() {
     setError('')
@@ -66,6 +70,8 @@ export default function SoHealthPage() {
     void load()
   }, [])
 
+  if (!user) return null
+
   return (
     <div>
       <div className="page-head">
@@ -77,26 +83,34 @@ export default function SoHealthPage() {
       </div>
 
       {summary && (
-        <div className="kpi-grid" style={{ marginBottom: 16 }}>
-          <div className="kpi-card tone-green">
-            <span className="kpi-label">Synchronized</span>
-            <span className="kpi-value">{summary.synchronized}</span>
-            <span className="kpi-sub">Party aktif + SO sale/done</span>
+        <div className="kpi-grid kpi-cols-4" style={{ marginBottom: 16 }}>
+          <div className="kpi-card kpi-green">
+            <div className="kpi-top">
+              <span className="kpi-label">Synchronized</span>
+            </div>
+            <div className="kpi-value">{summary.synchronized}</div>
+            <div className="kpi-sub up">Party aktif + SO sale/done</div>
           </div>
-          <div className="kpi-card tone-amber">
-            <span className="kpi-label">No Active SO</span>
-            <span className="kpi-value">{summary.noActiveSo}</span>
-            <span className="kpi-sub">NOTIF-CMS-014</span>
+          <div className="kpi-card kpi-amber">
+            <div className="kpi-top">
+              <span className="kpi-label">No Active SO</span>
+            </div>
+            <div className="kpi-value">{summary.noActiveSo}</div>
+            <div className="kpi-sub warn">NOTIF-CMS-014</div>
           </div>
-          <div className="kpi-card tone-brass">
-            <span className="kpi-label">In Progress</span>
-            <span className="kpi-value">{summary.inProgress}</span>
-            <span className="kpi-sub">State sale (belum done)</span>
+          <div className="kpi-card kpi-brass">
+            <div className="kpi-top">
+              <span className="kpi-label">In Progress</span>
+            </div>
+            <div className="kpi-value">{summary.inProgress}</div>
+            <div className="kpi-sub">State sale (belum done)</div>
           </div>
-          <div className="kpi-card tone-red">
-            <span className="kpi-label">Sync Errors (7d)</span>
-            <span className="kpi-value">{summary.syncErrors}</span>
-            <span className="kpi-sub">NOTIF-CMS-015</span>
+          <div className="kpi-card kpi-red">
+            <div className="kpi-top">
+              <span className="kpi-label">Sync Errors (7d)</span>
+            </div>
+            <div className="kpi-value">{summary.syncErrors}</div>
+            <div className="kpi-sub warn">NOTIF-CMS-015</div>
           </div>
         </div>
       )}
@@ -127,14 +141,14 @@ export default function SoHealthPage() {
               </tr>
             </thead>
             <tbody>
-              {rows.length === 0 && (
+              {pageRows.length === 0 && (
                 <tr>
                   <td colSpan={6} className="muted">
                     Belum ada SO tersimpan. Link party ke Odoo lalu Run Sync.
                   </td>
                 </tr>
               )}
-              {rows.map((o) => {
+              {pageRows.map((o) => {
                 const st = syncStatusLabel(o.state)
                 return (
                   <tr key={o.id}>
@@ -149,7 +163,7 @@ export default function SoHealthPage() {
                       )}
                     </td>
                     <td>
-                      <span className={`pill pill-${st.className}`}>{st.label}</span>
+                      <span className={`status-pill ${st.className}`}>{st.label}</span>
                     </td>
                     <td>{o.state}</td>
                     <td>{o.amount_total ?? '—'}</td>
@@ -160,6 +174,13 @@ export default function SoHealthPage() {
             </tbody>
           </table>
         </div>
+        <TablePagination
+          page={page}
+          pageSize={SO_PAGE_SIZE}
+          total={rows.length}
+          onPageChange={setPage}
+          itemLabel="SO"
+        />
       </div>
     </div>
   )

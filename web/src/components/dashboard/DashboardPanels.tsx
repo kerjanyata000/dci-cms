@@ -7,6 +7,7 @@ import type {
   PendingItem,
   PicWorkloadRow,
   RenewalTimelineRow,
+  CommercialBar,
 } from '@/lib/dashboard/config'
 import type { AppRole } from '@/types/cms'
 
@@ -137,15 +138,44 @@ export function PendingList({ items }: { items: PendingItem[] }) {
             <span className="muted">{item.sub}</span>
           </div>
           {item.href ? (
-            <Link href={item.href} className="btn ghost">
+            <Link href={item.href} className="btn ghost small">
               Buka
             </Link>
           ) : item.pill ? (
-            <span className={`pill pill-${item.pillClass ?? 'pending'}`}>{item.pill}</span>
+            <span className={`status-pill ${item.pillClass ?? 'pending'}`}>{item.pill}</span>
           ) : null}
         </li>
       ))}
     </ul>
+  )
+}
+
+export function CommercialBars({ bars }: { bars: CommercialBar[] }) {
+  if (bars.length === 0) {
+    return <p className="muted">Belum ada metadata komersial pada kontrak.</p>
+  }
+  return (
+    <div>
+      {bars.map((bar) => {
+        const pct = bar.total > 0 ? Math.round((bar.filled / bar.total) * 1000) / 10 : 0
+        return (
+          <div key={bar.label} className="bar-row">
+            <div className="bar-top">
+              <span>{bar.label}</span>
+              <span>
+                {bar.filled} / {bar.total}
+              </span>
+            </div>
+            <div className="bar-track">
+              <div
+                className={`bar-fill ${bar.tone}`}
+                style={{ width: `${Math.min(100, pct)}%` }}
+              />
+            </div>
+          </div>
+        )
+      })}
+    </div>
   )
 }
 
@@ -177,36 +207,36 @@ export function DashboardRolePanels({
   if (role === 'legal') {
     return (
       <>
-        <div className="grid-2">
-          <div className="card stack">
+        <div className="grid-2" style={{ marginTop: 0 }}>
+          <div className="card stack" style={{ marginTop: 0 }}>
             <div className="card-head">
               <h3>Antrian Legal (Pending Actions)</h3>
               <span className="ref-tag">FR-DASH-005</span>
             </div>
             <PendingList items={pending} />
           </div>
-          <div className="card stack">
+          <div className="card stack" style={{ marginTop: 0 }}>
             <div className="card-head">
               <h3>Contract Lifecycle</h3>
             </div>
             <LifecycleDonut lifecycle={data.lifecycle} />
           </div>
         </div>
-        <div className="grid-2" style={{ marginTop: 16 }}>
-          <div className="card stack">
+        <div className="grid-2">
+          <div className="card stack" style={{ marginTop: 0 }}>
             <div className="card-head">
               <h3>PIC Workload</h3>
             </div>
             <PicWorkloadList rows={data.picWorkload} />
           </div>
-          <div className="card stack">
+          <div className="card stack" style={{ marginTop: 0 }}>
             <div className="card-head">
-              <h3>Odoo adapter</h3>
+              <h3>Renewal upcoming</h3>
+              <Link href="/renewal" className="link-tag">
+                Kalender →
+              </Link>
             </div>
-            <IntegrationCard
-              odooMode={data.integration.odooMode}
-              ragflowMode={data.integration.ragflowMode}
-            />
+            <RenewalTimeline rows={data.renewalTimeline} />
           </div>
         </div>
       </>
@@ -215,17 +245,17 @@ export function DashboardRolePanels({
 
   if (role === 'management') {
     return (
-      <div className="grid-2">
-        <div className="card stack">
+      <div className="grid-2" style={{ marginTop: 0 }}>
+        <div className="card stack" style={{ marginTop: 0 }}>
           <div className="card-head">
             <h3>Renewal risk</h3>
-            <Link href="/renewal" className="ref-tag">
+            <Link href="/renewal" className="link-tag">
               Kalender →
             </Link>
           </div>
           <RenewalTimeline rows={data.renewalTimeline} />
         </div>
-        <div className="card stack">
+        <div className="card stack" style={{ marginTop: 0 }}>
           <div className="card-head">
             <h3>Portfolio composition</h3>
           </div>
@@ -240,23 +270,18 @@ export function DashboardRolePanels({
 
   if (role === 'finance') {
     return (
-      <div className="grid-2">
-        <div className="card stack">
+      <div className="grid-2" style={{ marginTop: 0 }}>
+        <div className="card stack" style={{ marginTop: 0 }}>
           <div className="card-head">
-            <h3>SO snapshot</h3>
+            <h3>Commercial snapshot</h3>
             <span className="ref-tag">INT-SO</span>
           </div>
-          <ul className="list">
-            <li>Synchronized: {data.soHealth.synchronized}</li>
-            <li>No Active SO: {data.soHealth.noActiveSo}</li>
-            <li>In Progress: {data.soHealth.inProgress}</li>
-            <li>Sync errors (7d): {data.soHealth.syncErrors}</li>
-          </ul>
+          <CommercialBars bars={data.commercialBars} />
         </div>
-        <div className="card stack">
+        <div className="card stack" style={{ marginTop: 0 }}>
           <div className="card-head">
             <h3>SO yang perlu perhatian</h3>
-            <Link href="/so" className="ref-tag">
+            <Link href="/so" className="link-tag">
               SO Monitor →
             </Link>
           </div>
@@ -268,14 +293,14 @@ export function DashboardRolePanels({
 
   if (role === 'it') {
     return (
-      <div className="grid-2">
-        <div className="card stack">
+      <div className="grid-2" style={{ marginTop: 0 }}>
+        <div className="card stack" style={{ marginTop: 0 }}>
           <div className="card-head">
             <h3>Integration exceptions</h3>
           </div>
           <PendingList items={pending} />
         </div>
-        <div className="card stack">
+        <div className="card stack" style={{ marginTop: 0 }}>
           <div className="card-head">
             <h3>Integrasi</h3>
           </div>
@@ -290,13 +315,13 @@ export function DashboardRolePanels({
 
   // business
   return (
-    <div className="grid-2">
-      <div className="card stack">
+    <div className="grid-2" style={{ marginTop: 0 }}>
+      <div className="card stack" style={{ marginTop: 0 }}>
         <div className="card-head">
-          <h3>Status kontrak (view-only)</h3>
+          <h3>Status permintaan saya</h3>
         </div>
         <PendingList
-          items={data.recentContracts.slice(0, 4).map((c) => ({
+          items={data.recentContracts.slice(0, 5).map((c) => ({
             title: c.contract_code,
             sub: `${c.party_code ?? 'Party'} · ${c.status_text}`,
             href: `/parties/${c.party_id}`,
@@ -305,7 +330,7 @@ export function DashboardRolePanels({
           }))}
         />
       </div>
-      <div className="card stack">
+      <div className="card stack" style={{ marginTop: 0 }}>
         <div className="card-head">
           <h3>Akses Requestor</h3>
         </div>

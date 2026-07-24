@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { cmsFetch } from '@/lib/api/http'
+import { TablePagination, paginateSlice } from '@/components/ui/TablePagination'
 
 type AuditRow = {
   id: string
@@ -24,10 +25,13 @@ const TYPE_FILTERS = [
   { value: 'link', label: 'Odoo Link' },
 ]
 
+const ACTIVITY_PAGE_SIZE = 15
+
 export default function ActivityPage() {
   const [rows, setRows] = useState<AuditRow[]>([])
   const [error, setError] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
     cmsFetch('/api/audit')
@@ -43,6 +47,12 @@ export default function ActivityPage() {
     if (typeFilter === 'all') return rows
     return rows.filter((r) => r.action_type === typeFilter)
   }, [rows, typeFilter])
+
+  useEffect(() => {
+    setPage(1)
+  }, [typeFilter])
+
+  const pageRows = useMemo(() => paginateSlice(visible, page, ACTIVITY_PAGE_SIZE), [visible, page])
 
   function exportCsv() {
     const header = ['created_at', 'action', 'action_type', 'actor_name', 'party_id']
@@ -100,14 +110,14 @@ export default function ActivityPage() {
               </tr>
             </thead>
             <tbody>
-              {visible.length === 0 && (
+              {pageRows.length === 0 && (
                 <tr>
                   <td colSpan={5} className="muted">
                     {rows.length === 0 ? 'Memuat…' : 'Tidak ada entri untuk filter ini.'}
                   </td>
                 </tr>
               )}
-              {visible.map((r) => (
+              {pageRows.map((r) => (
                 <tr key={r.id}>
                   <td className="mono">{new Date(r.created_at).toLocaleString('id-ID')}</td>
                   <td>{r.action}</td>
@@ -127,6 +137,13 @@ export default function ActivityPage() {
             </tbody>
           </table>
         </div>
+        <TablePagination
+          page={page}
+          pageSize={ACTIVITY_PAGE_SIZE}
+          total={visible.length}
+          onPageChange={setPage}
+          itemLabel="Entri"
+        />
       </div>
     </div>
   )

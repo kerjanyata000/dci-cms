@@ -1,42 +1,58 @@
 'use client'
 
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
 import { useAuth } from '@/components/AuthProvider'
 import { AddPartyModal } from '@/components/parties/AddPartyModal'
 import { LinkOdooModal } from '@/components/parties/LinkOdooModal'
+import { TablePagination, paginateSlice } from '@/components/ui/TablePagination'
 import { fetchParties, type PartyListItem } from '@/lib/parties/api'
 import { formatAgreementDate, formatDuration } from '@/lib/parties/list'
 import { ODOO_LINK_LABELS } from '@/lib/parties/types'
 import { ROLES } from '@/lib/roles'
 import type { OdooLinkStatus, Party } from '@/types/cms'
 
-const PAGE_SIZE = 12
+const PAGE_SIZE = 8
 
 const LINK_FILTERS: Array<{ value: OdooLinkStatus | 'all'; label: string }> = [
-  { value: 'all', label: 'Semua' },
+  { value: 'all', label: 'Odoo Link: Semua' },
   { value: 'linked', label: 'Linked' },
-  { value: 'pending', label: 'Pending' },
+  { value: 'pending', label: 'Pending Odoo Link' },
   { value: 'mismatch', label: 'Mismatch' },
   { value: 'unlinked', label: 'Unlinked' },
-  { value: 'relink', label: 'Relink' },
+  { value: 'relink', label: 'Relink Required' },
 ]
 
 const STATUS_FILTERS: Array<{ value: string; label: string }> = [
-  { value: 'all', label: 'Semua status' },
+  { value: 'all', label: 'Semua Status' },
   { value: 'active', label: 'Active' },
   { value: 'fully_signed', label: 'Fully Signed' },
   { value: 'under_review', label: 'Under Review' },
   { value: 'draft', label: 'Draft' },
   { value: 'ready_for_sign', label: 'Ready for Sign' },
+  { value: 'terminated', label: 'Terminated' },
 ]
+
+function initials(name: string): string {
+  return name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+}
 
 function contractStatusClass(status: string | undefined): string {
   if (!status) return 'draft'
   if (status === 'under_review') return 'under_review'
   return status
+}
+
+function odooStatusClass(status: OdooLinkStatus): string {
+  if (status === 'linked') return 'linked'
+  if (status === 'mismatch' || status === 'relink') return status
+  if (status === 'pending' || status === 'unlinked') return status
+  return 'pending'
 }
 
 export default function PartiesPage() {
@@ -47,7 +63,7 @@ export default function PartiesPage() {
 
   const [rows, setRows] = useState<PartyListItem[]>([])
   const [q, setQ] = useState(searchParams.get('q') ?? '')
-  const [picFilter, setPicFilter] = useState('')
+  const [picFilter, setPicFilter] = useState('all')
   const [linkFilter, setLinkFilter] = useState<OdooLinkStatus | 'all'>('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [page, setPage] = useState(1)
@@ -64,7 +80,7 @@ export default function PartiesPage() {
       setRows(
         await fetchParties({
           q,
-          pic: picFilter || undefined,
+          pic: picFilter !== 'all' ? picFilter : undefined,
           linkStatus: linkFilter,
           contractStatus: statusFilter,
         }),
@@ -87,12 +103,12 @@ export default function PartiesPage() {
     void load()
   }, [load])
 
-  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE))
-  const safePage = Math.min(page, totalPages)
-  const pageRows = useMemo(() => {
-    const start = (safePage - 1) * PAGE_SIZE
-    return rows.slice(start, start + PAGE_SIZE)
-  }, [rows, safePage])
+  const picOptions = useMemo(() => {
+    const pics = [...new Set(rows.map((p) => p.pic).filter(Boolean))] as string[]
+    return pics.sort((a, b) => a.localeCompare(b))
+  }, [rows])
+
+  const pageRows = useMemo(() => paginateSlice(rows, page, PAGE_SIZE), [rows, page])
 
   function upsertParty(updated: Party) {
     setRows((prev) => {
@@ -108,172 +124,176 @@ export default function PartiesPage() {
     <div>
       <div className="page-head row-actions spread">
         <div>
-          <h1>Parties</h1>
-          <p>Register party-centric — kolom kontrak primer dari master agreement (mockup parity).</p>
+          <div className="crumb">Parties</div>
+          <h1>Parties — Search &amp; View</h1>
+          <p>
+            Inquiry party-centric per BRD §6.11 — register, kontrak primer, link Odoo, dan Party
+            Detail.
+          </p>
         </div>
         {canEdit && (
           <button type="button" className="btn primary" onClick={() => setAddOpen(true)}>
-            + Add Party
+            + Add New Party
           </button>
         )}
       </div>
 
-      <div className="card stack">
-        <div className="row-actions" style={{ flexWrap: 'wrap', gap: 12 }}>
-          <div className="field" style={{ flex: '1 1 200px', marginBottom: 0 }}>
-            <label htmlFor="party-q">Cari Party</label>
-            <input
-              id="party-q"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Nama party…"
-            />
-          </div>
-          <div className="field" style={{ flex: '0 1 140px', marginBottom: 0 }}>
-            <label htmlFor="pic-filter">PIC</label>
-            <input
-              id="pic-filter"
-              value={picFilter}
-              onChange={(e) => setPicFilter(e.target.value)}
-              placeholder="Semua PIC"
-            />
-          </div>
-          <div className="field" style={{ flex: '0 1 160px', marginBottom: 0 }}>
-            <label htmlFor="status-filter">Status Kontrak</label>
-            <select
-              id="status-filter"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              {STATUS_FILTERS.map((f) => (
-                <option key={f.value} value={f.value}>
-                  {f.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="field" style={{ flex: '0 1 160px', marginBottom: 0 }}>
-            <label htmlFor="link-filter">Odoo Link</label>
-            <select
-              id="link-filter"
-              value={linkFilter}
-              onChange={(e) => setLinkFilter(e.target.value as OdooLinkStatus | 'all')}
-            >
-              {LINK_FILTERS.map((f) => (
-                <option key={f.value} value={f.value}>
-                  {f.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <button type="button" className="btn ghost" disabled={busy} onClick={() => void load()}>
-            Refresh
-          </button>
-        </div>
-
-        {error && <p className="error-text">{error}</p>}
-
-        <div className="table-wrap">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Party Code</th>
-                <th>PIC</th>
-                <th>Dokumen Utama</th>
-                <th>Agreement Date</th>
-                <th>Durasi</th>
-                <th>Status</th>
-                <th>Odoo Link</th>
-                <th></th>
-                {canEdit && <th></th>}
-              </tr>
-            </thead>
-            <tbody>
-              {pageRows.length === 0 && (
-                <tr>
-                  <td colSpan={canEdit ? 9 : 8} className="muted">
-                    {busy
-                      ? 'Memuat…'
-                      : 'Tidak ada party yang cocok. Jalankan npm run seed:demo atau tambah party baru.'}
-                  </td>
-                </tr>
-              )}
-              {pageRows.map((p) => {
-                const pc = p.primary_contract
-                return (
-                  <tr
-                    key={p.id}
-                    className="clickable-row"
-                    onClick={() => router.push(`/parties/${p.id}`)}
-                  >
-                    <td className="mono">{p.party_code}</td>
-                    <td>{p.pic || '—'}</td>
-                    <td>{pc?.contract_title ?? '—'}</td>
-                    <td className="mono">{formatAgreementDate(pc?.agreement_date ?? null)}</td>
-                    <td className="mono">{formatDuration(pc?.duration_months ?? null)}</td>
-                    <td>
-                      {pc ? (
-                        <span className={`pill pill-${contractStatusClass(pc.status)}`}>
-                          {pc.status_text || pc.status}
-                        </span>
-                      ) : (
-                        '—'
-                      )}
-                    </td>
-                    <td onClick={(e) => e.stopPropagation()}>
-                      <div className="odoo-link-cell">
-                        <span className={`pill pill-${p.odoo_link_status}`}>
-                          {ODOO_LINK_LABELS[p.odoo_link_status]}
-                        </span>
-                        {p.odoo_partner_id != null && (
-                          <span className="mono odoo-link-id">#{p.odoo_partner_id}</span>
-                        )}
-                      </div>
-                    </td>
-                    <td onClick={(e) => e.stopPropagation()}>
-                      <Link href={`/parties/${p.id}`} className="btn ghost">
-                        Detail
-                      </Link>
-                    </td>
-                    {canEdit && (
-                      <td onClick={(e) => e.stopPropagation()}>
-                        <button
-                          type="button"
-                          className="btn ghost"
-                          onClick={() => setLinkParty(p)}
-                        >
-                          {p.odoo_partner_id != null ? 'Kelola Link' : 'Link Odoo'}
-                        </button>
-                      </td>
-                    )}
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="row-actions spread">
-          <p className="muted">
-            Menampilkan {pageRows.length} dari {rows.length} party
-            {rows.length > PAGE_SIZE && ` · halaman ${safePage}/${totalPages}`}
-          </p>
-          {totalPages > 1 && (
-            <div className="pagination-btns">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  className={n === safePage ? 'active' : ''}
-                  onClick={() => setPage(n)}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+      <div className="table-toolbar">
+        <select
+          id="status-filter"
+          className="status-select"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          {STATUS_FILTERS.map((f) => (
+            <option key={f.value} value={f.value}>
+              {f.label}
+            </option>
+          ))}
+        </select>
+        <select
+          id="link-filter"
+          className="status-select"
+          value={linkFilter}
+          onChange={(e) => setLinkFilter(e.target.value as OdooLinkStatus | 'all')}
+        >
+          {LINK_FILTERS.map((f) => (
+            <option key={f.value} value={f.value}>
+              {f.label}
+            </option>
+          ))}
+        </select>
+        <select
+          id="pic-filter"
+          className="status-select"
+          value={picFilter}
+          onChange={(e) => setPicFilter(e.target.value)}
+        >
+          <option value="all">PIC: Semua</option>
+          {picOptions.map((pic) => (
+            <option key={pic} value={pic}>
+              {pic}
+            </option>
+          ))}
+        </select>
+        <input
+          id="party-q"
+          className="status-select"
+          style={{ flex: '1 1 180px', minWidth: 160 }}
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Cari nama party…"
+          aria-label="Cari party"
+        />
+        <button type="button" className="btn ghost" disabled={busy} onClick={() => void load()}>
+          Refresh
+        </button>
+        <span className="filter-count-chip">
+          Menampilkan {pageRows.length} dari {rows.length} party
+        </span>
       </div>
+
+      {error && <p className="error-text">{error}</p>}
+
+      <div className="table-wrap">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>Party ID</th>
+              <th>PIC</th>
+              <th>Dokumen Utama</th>
+              <th>Agreement Date</th>
+              <th>Durasi</th>
+              <th>Status</th>
+              <th>Odoo Link</th>
+              <th></th>
+              {canEdit && <th></th>}
+            </tr>
+          </thead>
+          <tbody>
+            {pageRows.length === 0 && (
+              <tr>
+                <td colSpan={canEdit ? 9 : 8} className="muted">
+                  {busy
+                    ? 'Memuat…'
+                    : 'Tidak ada party yang cocok. Jalankan npm run seed:demo atau tambah party baru.'}
+                </td>
+              </tr>
+            )}
+            {pageRows.map((p) => {
+              const pc = p.primary_contract
+              return (
+                <tr
+                  key={p.id}
+                  className="clickable-row"
+                  onClick={() => router.push(`/parties/${p.id}`)}
+                >
+                  <td className="mono">{p.party_code}</td>
+                  <td>
+                    {p.pic ? (
+                      <span className="row-flex">
+                        <span className="avatar-sm">{initials(p.pic)}</span>
+                        {p.pic}
+                      </span>
+                    ) : (
+                      '—'
+                    )}
+                  </td>
+                  <td>{pc?.contract_title ?? '—'}</td>
+                  <td className="mono">{formatAgreementDate(pc?.agreement_date ?? null)}</td>
+                  <td className="mono">{formatDuration(pc?.duration_months ?? null)}</td>
+                  <td>
+                    {pc ? (
+                      <span className={`status-pill ${contractStatusClass(pc.status)}`}>
+                        {pc.status_text || pc.status}
+                      </span>
+                    ) : (
+                      '—'
+                    )}
+                  </td>
+                  <td onClick={(e) => e.stopPropagation()}>
+                    <span className={`status-pill ${odooStatusClass(p.odoo_link_status)}`}>
+                      {ODOO_LINK_LABELS[p.odoo_link_status]}
+                    </span>
+                    {p.odoo_partner_id != null && (
+                      <span className="mono odoo-link-id"> #{p.odoo_partner_id}</span>
+                    )}
+                  </td>
+                  <td onClick={(e) => e.stopPropagation()}>
+                    <button
+                      type="button"
+                      className="btn ghost small"
+                      style={{ background: '#fff' }}
+                      onClick={() => router.push(`/parties/${p.id}`)}
+                    >
+                      Lihat →
+                    </button>
+                  </td>
+                  {canEdit && (
+                    <td onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        className="btn ghost small"
+                        onClick={() => setLinkParty(p)}
+                      >
+                        {p.odoo_partner_id != null ? 'Kelola Link' : 'Link Odoo'}
+                      </button>
+                    </td>
+                  )}
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <TablePagination
+        page={page}
+        pageSize={PAGE_SIZE}
+        total={rows.length}
+        onPageChange={setPage}
+        itemLabel="Party"
+      />
 
       <AddPartyModal
         open={addOpen}

@@ -56,12 +56,21 @@ export type SoHealthSnapshot = {
   syncErrors: number
 }
 
+export type CommercialBar = {
+  label: string
+  filled: number
+  total: number
+  tone: 'green' | 'brass' | 'amber'
+}
+
 export type DashboardPayload = {
   stats: DashboardStats
   lifecycle: LifecycleBreakdown
   picWorkload: PicWorkloadRow[]
   renewalTimeline: RenewalTimelineRow[]
   soHealth: SoHealthSnapshot
+  commercialBars: CommercialBar[]
+  auditEventCount: number
   noActiveSoParties: Array<{ id: string; party_code: string; name: string }>
   integration: { odooMode: string; ragflowMode: string }
   pendingOdooParties: Array<{ id: string; party_code: string; name: string; odoo_link_status: string }>
@@ -92,37 +101,42 @@ export type DashboardPayload = {
 
 const DASHBOARD_COPY: Record<
   AppRole,
-  { crumb: string; title: string; desc: string; notice: string }
+  { crumb: string; titlePrefix: string; desc: string; notice: string }
 > = {
   legal: {
-    crumb: 'Legal Workspace',
-    title: 'Contract Registry',
-    desc: 'FR-DASH-003 · FR-DASH-005 — monitoring lifecycle & pending Legal actions (BRL-CMS-026 party-centric).',
-    notice: 'Aksi create/edit kontrak & link Odoo tersedia. Party Detail = konteks utama kontrak.',
+    crumb: 'Home · Legal Workspace',
+    titlePrefix: 'Contract Registry',
+    desc: 'Dashboard monitoring & pending Legal actions · FR-DASH-003 / FR-DASH-005.',
+    notice:
+      'Alur utama: Dashboard → Parties → Renewal. SO Health & Activity Log lewat menu profil / sidebar.',
   },
   business: {
-    crumb: 'Requestor View',
-    title: 'My Contract Requests',
-    desc: 'FR-DASH-003 — view-only; lacak status permintaan kontrak terkait unit Anda.',
-    notice: 'Tidak ada CTA create di dashboard. Buka Parties untuk detail (FR-CNT-SV-004).',
+    crumb: 'Home · Business Requestor',
+    titlePrefix: 'Portal Requestor',
+    desc: 'Melihat kontrak & party terkait, mengajukan permintaan ke Legal (view-only).',
+    notice:
+      'Fokus status permintaan. Detail party dari daftar Parties; notifikasi dari lonceng. Tidak ada CTA create di dashboard.',
   },
   finance: {
-    crumb: 'Commercial Monitor',
-    title: 'SO & Commercial Health',
-    desc: 'FR-DASH-003 · INT-SO — monitor SO sync & commercial metadata (consume-only Odoo).',
-    notice: 'Run Sync di SO Health, bukan menu terpisah (BRD §6.10).',
+    crumb: 'Home · Finance / Commercial',
+    titlePrefix: 'Commercial Reference',
+    desc: 'Referensi kontrak, party, dan SO untuk follow-up operasional/komersial.',
+    notice:
+      'SO Health di sidebar (inti kerja Anda). Run Sync hanya untuk role sync/Legal.',
   },
   management: {
-    crumb: 'Executive Oversight',
-    title: 'Portfolio Overview',
-    desc: 'FR-DASH-003 · FR-DASH-004 — view-only portfolio & renewal risk indicators.',
-    notice: 'Oversight tanpa create/edit. Renewal detail di Renewal Calendar.',
+    crumb: 'Home · Executive Monitor',
+    titlePrefix: 'Executive Overview',
+    desc: 'Monitoring & pelaporan lintas kontrak, akses view-only (BRD §5).',
+    notice:
+      'Monitoring portofolio & renewal. Activity Log tersedia di menu profil / sidebar.',
   },
   it: {
-    crumb: 'Integration Ops',
-    title: 'Odoo & Integration Health',
-    desc: 'FR-DASH-005 · INT-PTY · INT-SO — exception monitoring & adapter status.',
-    notice: 'Run Sync di SO Health. Odoo Partner/SO consume-only (BR-CMS-020).',
+    crumb: 'Home · IT / Integration',
+    titlePrefix: 'Integration Health',
+    desc: 'Dukungan integrasi Odoo, Access Rights, dan technical support.',
+    notice:
+      'SO Health & Renewal Calendar di sidebar. Run Sync di SO Health — bukan di dashboard.',
   },
 }
 
@@ -217,33 +231,36 @@ export function buildKpisForRole(role: AppRole, data: DashboardPayload): KpiItem
         },
       ]
     }
-    case 'management':
+    case 'management': {
+      const urgent = data.renewalSoon.filter((r) => r.days_left <= 30).length
+      const soon = data.renewalSoon.filter((r) => r.days_left > 30 && r.days_left <= 180).length
       return [
         {
-          label: 'Portfolio Parties',
-          value: String(s.totalParties),
-          sub: 'Party-centric register',
-          tone: 'green',
-        },
-        {
-          label: 'Active Contracts',
-          value: String(s.activeContracts),
-          sub: pct(s.activeContracts, s.totalContracts),
+          label: 'Portfolio Active',
+          value: pctContracts(s.activeContracts, s.totalContracts),
+          sub: 'Fully Signed / Active',
           tone: 'green',
         },
         {
           label: 'Renewal ≤30 hari',
-          value: String(data.renewalSoon.filter((r) => r.days_left <= 30).length),
-          sub: 'Urgent renewal bucket',
+          value: String(urgent),
+          sub: 'Urgent bucket',
+          tone: 'red',
+        },
+        {
+          label: 'Renewal 31–180 hari',
+          value: String(soon),
+          sub: 'Segera',
           tone: 'amber',
         },
         {
-          label: 'Mismatch Odoo',
-          value: String(s.mismatchOdooLink),
-          sub: 'Resolusi Legal/IT',
-          tone: 'red',
+          label: 'Audit events',
+          value: String(data.auditEventCount),
+          sub: 'Activity Log',
+          tone: '',
         },
       ]
+    }
     case 'it': {
       const so = data.soHealth
       return [
@@ -328,7 +345,7 @@ export function buildPendingForRole(role: AppRole, data: DashboardPayload): Pend
         sub: 'No Active SO / Renewal Not Found',
         href: `/parties/${p.id}`,
         pill: 'No SO',
-        pillClass: 'pending',
+        pillClass: 'no_so',
       })
     }
   }

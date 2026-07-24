@@ -12,6 +12,7 @@ import {
   getDashboardCopy,
   type DashboardPayload,
 } from '@/lib/dashboard/config'
+import { ROLES } from '@/lib/roles'
 import type { AppRole } from '@/types/cms'
 
 type Props = {
@@ -40,6 +41,7 @@ function DashboardInner({ role, userName }: Props) {
   const [error, setError] = useState('')
 
   const copy = getDashboardCopy(role)
+  const roleCfg = ROLES[role]
 
   useEffect(() => {
     fetchDashboard()
@@ -52,31 +54,35 @@ function DashboardInner({ role, userName }: Props) {
 
   return (
     <div>
-      <div className="page-head">
-        <div className="crumb">{copy.crumb}</div>
-        <h1>
-          {copy.title} — {userName}
-        </h1>
-        <p>{copy.desc}</p>
+      <div className="page-head spread-head">
+        <div>
+          <div className="crumb">{copy.crumb}</div>
+          <h1>
+            {copy.titlePrefix} — {userName}
+          </h1>
+          <p>{copy.desc}</p>
+        </div>
+        {data && (
+          <div className="odoo-mode-chip" title="Mode integrasi">
+            Odoo: {data.integration.odooMode.toUpperCase()} · RAGFlow:{' '}
+            {data.integration.ragflowMode.toUpperCase()}
+          </div>
+        )}
       </div>
 
-      {showDevBanner && data && (
-        <div className="notice">
-          <div>
-            <b>FR-DASH-003</b> · {copy.notice}
-            <div className="mono" style={{ marginTop: 6 }}>
-              Odoo: {data.integration.odooMode.toUpperCase()} · RAGFlow:{' '}
-              {data.integration.ragflowMode.toUpperCase()}
-            </div>
+      <div className="notice">
+        <div>
+          <span className={`role-workspace-chip ${role}`}>{roleCfg.label}</span>
+          <div style={{ marginTop: 6 }}>
+            <b>{roleCfg.label}.</b> {copy.notice}
           </div>
+          {showDevBanner && data && (
+            <div className="mono" style={{ marginTop: 8, fontSize: 11 }}>
+              FR-DASH-003 · dev banner
+            </div>
+          )}
         </div>
-      )}
-
-      {!showDevBanner && (
-        <div className="notice">
-          <div>{copy.notice}</div>
-        </div>
-      )}
+      </div>
 
       {error && <p className="error-text">{error}</p>}
 
@@ -93,15 +99,22 @@ function DashboardInner({ role, userName }: Props) {
       {data ? (
         <DashboardRolePanels role={role} data={data} pending={pending} />
       ) : (
-        <div className="card muted" style={{ marginTop: 16 }}>
+        <div className="card muted" style={{ marginTop: 0 }}>
           Memuat panel dashboard…
         </div>
       )}
 
-      {data && (role === 'legal' || role === 'management') && (
-        <p className="muted" style={{ marginTop: 16 }}>
-          Renewal agenda lengkap: <Link href="/renewal">Renewal Calendar</Link> (FR-DASH-004) ·{' '}
-          <Link href="/notifications">Notifikasi</Link>
+      {data && (
+        <p className="footer-note">
+          Dashboard monitoring (tanpa CTA create) · Odoo adapter {data.integration.odooMode.toUpperCase()}{' '}
+          · BRD FR-DASH-003
+          {(role === 'legal' || role === 'management') && (
+            <>
+              {' '}
+              · <Link href="/renewal">Renewal Calendar</Link> ·{' '}
+              <Link href="/notifications">Notifikasi</Link>
+            </>
+          )}
         </p>
       )}
     </div>
