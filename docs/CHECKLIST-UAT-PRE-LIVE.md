@@ -9,7 +9,7 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 
 ---
 
-## Legenda status implementasi (per 2026-07-23)
+## Legenda status implementasi (per 2026-07-24)
 
 | Simbol | Arti |
 | --- | --- |
@@ -17,6 +17,18 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | 🟡 | Partial / POC — uji sebagian |
 | ⬜ | Belum diimplementasi — uji mockup atau rencanakan post-live |
 | 🔒 | Wajib lulus sebelum live |
+
+### Progress AIDLC (fase dev)
+
+| Fase | Status | Ringkasan |
+| --- | --- | --- |
+| **1. Integrasi backend** | ✅ Selesai | Odoo live, RAGFlow, Supabase schema 001–008, seed demo mockup |
+| **2. Domain core** | ✅ ~95% | Parties, link Odoo, kontrak lifecycle, SO sync, audit |
+| **3. Port UI mockup** | 🟡 **Sedang** | Party list kaya, Dashboard KPI+, SO KPI, Notifikasi page, Activity filter |
+| **4. Polish & pre-live** | ⬜ Belum | E-sign, donut/lifecycle chart, Supabase Auth wajib prod, UAT PASS |
+| **5. Verify & ship** | ⬜ Belum | Go/No-Go §14, hardening §10 |
+
+**Posisi saat ini:** akhir **Fase 3** — UI mendekati mockup; lanjut polish visual + auth production + UAT manual.
 
 ---
 
@@ -26,7 +38,7 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | --- | --- | --- | --- | --- | --- |
 | 0.1 | `web/.env.local` lengkap (Supabase, Odoo, RAGFlow, service role) | Tidak error saat start | 🟡 | | |
 | 0.2 | `npm run dev` dari folder `web/` | App di `:3000` | ✅ | | |
-| 0.3 | Migration `001_initial.sql` + `002_parties_write_policies.sql` | Tabel ada di Supabase | 🟡 | | |
+| 0.3 | Migration `001`–`008` (+ seed demo) | Tabel ada + data mockup | 🟡 | | `npm run seed:demo` |
 | 0.4 | Bucket Storage `contracts` (private) | Bucket ada | 🟡 | | |
 | 0.5 | Odoo: Contacts + Sales terpasang | API Partner/SO OK | ✅ | | |
 | 0.6 | RAGFlow self-host Up + healthz OK | `status: ok` | ✅ | | |
@@ -84,8 +96,10 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | 3.11b | Auto-search saat buka Link | Legal | Buka Link Odoo | Kandidat muncul tanpa klik Search dulu | 🟡 | | |
 | 3.11c | Success screen setelah link | Legal | Konfirmasi link | Tampil Partner #id + status pill | 🟡 | | |
 | 3.11d | Mismatch tetap tampil Partner ID | Legal | Link nama beda | Pill Mismatch + `#partner_id` di list & Detail | 🟡 | | Bukan berarti unlinked |
-| 3.12 | Party Detail drill-in | Semua | Klik party | Tabs kontrak, SO, audit | 🟡 | | BRL-CMS-026 tabs; novation/termination placeholder |
-| 3.13 | Global search party | Semua | Search topbar → Enter | Navigasi ke `/parties?q=` | 🟡 | | |
+| 3.12 | Party Detail drill-in | Semua | Klik party | Tabs kontrak, SO, audit | ✅ | | 7 tabs + modals |
+| 3.13 | Global search party | Semua | Search topbar → Enter | Navigasi ke `/search?q=` | ✅ | | |
+| 3.14 | Party list kolom mockup | Semua | `/parties` | Dokumen Utama, Date, Durasi, Status | 🟡 | | Primary contract roll-up |
+| 3.15 | Filter PIC + status kontrak | Semua | Filter di list | Hasil benar | 🟡 | | |
 
 ---
 
@@ -172,8 +186,8 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 
 | # | Test case | Langkah | Expected | Impl | Hasil |
 | --- | --- | --- | --- | --- | --- |
-| 8.1 | Bell notifikasi topbar | Klik lonceng | List NOTIF-CMS-* | 🟡 | | Odoo mismatch + audit + no SO |
-| 8.2 | Activity Log dari menu profil | Sidebar / notif link | `/activity` audit global | 🟡 | | GET `/api/audit` |
+| 8.1 | Bell notifikasi topbar | Klik lonceng | List NOTIF-CMS-* | 🟡 | | + `/notifications` |
+| 8.2 | Activity Log dari menu profil | Sidebar / notif link | `/activity` audit global | 🟡 | | Filter tipe + Export CSV |
 | 8.3 | Audit di Party Detail | Buka party | Riwayat aksi party | 🟡 | | Termasuk link Odoo + create contract |
 | 8.4 | Audit link/relink Odoo | Link party | Row di `audit_logs` | ✅ | | |
 
@@ -186,8 +200,8 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | 9.1 | Tema ink + brass | Sidebar gelap, accent brass | ✅ sebagian (shell.css) | 🟡 | | |
 | 9.2 | Font Serif/Sans/Mono | Source Serif 4, IBM Plex | ✅ loaded | ✅ | | |
 | 9.3 | KPI cards dashboard | Per role | Placeholder teks | 🟡 | | FR-DASH-003 per role dari Supabase |
-| 9.4 | Tabel parties kaya | Kolom dokumen, agreement date, durasi | Tabel minimal | 🟡 | | |
-| 9.5 | Party Detail tabs | Contracts, SO, audit, … | Belum ada | 🟡 | | Dossier head + 7 tabs |
+| 9.4 | Tabel parties kaya | Kolom dokumen, agreement date, durasi | Kolom mockup parity | 🟡 | | |
+| 9.5 | Party Detail tabs | Contracts, SO, audit, … | 7 tabs | ✅ | | |
 | 9.6 | Modal pola mockup | Footer ghost/primary konsisten | Modal parties + Add Contract | 🟡 | | |
 | 9.7 | Mobile sidebar drawer | Hamburger ≤1100px | Drawer + backdrop | 🟡 | | AppShell menu-toggle |
 | 9.8 | Global search topbar | Search parties | Input → `/search` + Advanced link | 🟡 | | |
@@ -298,10 +312,11 @@ Ini **by design** pada fase saat ini — bukan bug:
 
 **Urutan dev yang disepakati (AIDLC):**
 
-1. ✅ Integrasi backend (Odoo, RAGFlow, Supabase schema)  
-2. 🟡 Domain core (Parties + link Odoo) — **sedang di sini**  
-3. ⬜ Port UI mockup ke komponen React (Party Detail, Renewal, KPI dashboard)  
-4. ⬜ Kontrak lifecycle + notifikasi + polish visual  
+1. ✅ Integrasi backend (Odoo, RAGFlow, Supabase schema + seed)  
+2. ✅ Domain core (Parties + link Odoo + kontrak lifecycle)  
+3. 🟡 Port UI mockup ke komponen React — **sedang di sini**  
+4. ⬜ E-sign + polish visual + UAT pre-live  
+5. ⬜ Verify & ship (Go/No-Go)
 
 Jadi localhost **sudah benar** untuk fase integrasi; belum waktunya pixel-perfect dengan mockup sampai fitur domain core stabil.
 

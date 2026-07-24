@@ -168,3 +168,62 @@ export async function listRecentSyncErrors(limit = 5) {
   if (error) throw new Error(error.message)
   return data ?? []
 }
+
+export type SoHealthSummary = {
+  synchronized: number
+  noActiveSo: number
+  inProgress: number
+  syncErrors: number
+}
+
+export async function loadSoHealthSummary(): Promise<SoHealthSummary> {
+  const db = getSupabaseAdmin()
+
+  const [partiesRes, ordersRes, contractsRes, errorsRes] = await Promise.all([
+    db.from('parties').select('id'),
+    db.from('sale_orders').select('party_id, state'),
+    db
+      .from('contracts')
+      .select('party_id, status')
+      .in('status', ['active', 'fully_signed', 'signed']),
+    db
+      .from('audit_logs')
+      .select('id')
+      .eq('action_type', 'sync_error')
+      .gte('created_at', new Date(Date.now() - 7 * 86400000).toISOString()),
+  ])
+
+  if (partiesRes.error) throw new Error(partiesRes.error.message)
+  if (ordersRes.error) throw new Error(ordersRes.error.message)
+  if (contractsRes.error) throw new Error(contractsRes.error.message)
+  if (errorsRes.error) throw new Error(errorsRes.error.message)
+
+  const activeContractParties = new Set((contractsRes.data ?? []).map((c) => c.party_id))
+  const ordersByParty = new Map<string, string[]>()
+  for (const o of ordersRes.data ?? []) {
+    if (!o.party_id) continue
+    const list = ordersByParty.get(o.party_id) ?? []
+    list.push(String(o.state))
+    ordersByParty.set(o.party_id, list)
+  }
+
+  let synchronized = 0
+  let noActiveSo = 0
+  let inProgress = 0
+
+  for (const partyId of activeContractParties) {
+    const states = ordersByParty.get(partyId) ?? []
+    const hasDone = states.some((s) => s === 'done')
+    const hasSale = states.some((s) => s === 'sale')
+    if (hasDone || hasSale) synchronized += 1
+    else noActiveSo += 1
+    if (hasSale && !hasDone) inProgress += 1
+  }
+
+  return {
+    synchronized,
+    noActiveSo,
+    inProgress,
+    syncErrors: (errorsRes.data ?? []).length,
+  }
+}

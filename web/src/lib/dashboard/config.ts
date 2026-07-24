@@ -38,6 +38,20 @@ export type DashboardPayload = {
     party_code?: string
     party_name?: string
   }>
+  renewalSoon: Array<{
+    party_id: string
+    party_code: string
+    contract_code: string
+    renewal_date: string
+    days_left: number
+  }>
+  amendmentsReady: Array<{
+    id: string
+    party_id: string
+    party_code: string
+    amendment_code: string
+    title: string
+  }>
 }
 
 const DASHBOARD_COPY: Record<
@@ -95,13 +109,13 @@ export function buildKpisForRole(role: AppRole, data: DashboardPayload): KpiItem
         {
           label: 'Active / Signed',
           value: String(s.activeContracts),
-          sub: 'status active/signed',
+          sub: pct(s.activeContracts, s.totalContracts),
           tone: 'green',
         },
         {
-          label: 'Under Review',
-          value: String(s.reviewContracts),
-          sub: 'Perlu tindak lanjut Legal',
+          label: 'Renewal ≤14 hari',
+          value: String(data.renewalSoon.filter((r) => r.days_left <= 14).length),
+          sub: 'NOTIF-CMS-017 path · FR-DASH-004',
           tone: 'amber',
         },
         {
@@ -176,17 +190,17 @@ export function buildKpisForRole(role: AppRole, data: DashboardPayload): KpiItem
         {
           label: 'Active Contracts',
           value: String(s.activeContracts),
-          sub: `dari ${s.totalContracts} total`,
+          sub: pct(s.activeContracts, s.totalContracts),
           tone: 'green',
         },
         {
-          label: 'Pending Odoo',
-          value: String(s.pendingOdooLink),
-          sub: 'Integration gap',
+          label: 'Renewal ≤30 hari',
+          value: String(data.renewalSoon.filter((r) => r.days_left <= 30).length),
+          sub: 'Urgent renewal bucket',
           tone: 'amber',
         },
         {
-          label: 'Mismatch',
+          label: 'Mismatch Odoo',
           value: String(s.mismatchOdooLink),
           sub: 'Resolusi Legal/IT',
           tone: 'red',
@@ -227,7 +241,27 @@ export function buildKpisForRole(role: AppRole, data: DashboardPayload): KpiItem
 export function buildPendingForRole(role: AppRole, data: DashboardPayload): PendingItem[] {
   const items: PendingItem[] = []
 
-  for (const p of data.pendingOdooParties.slice(0, 4)) {
+  for (const r of data.renewalSoon.filter((x) => x.days_left <= 14).slice(0, 2)) {
+    items.push({
+      title: `Renewal H-14 — ${r.party_code}`,
+      sub: `${r.contract_code} · jatuh tempo ${r.renewal_date}`,
+      href: `/parties/${r.party_id}`,
+      pill: 'Urgent',
+      pillClass: 'urgent',
+    })
+  }
+
+  for (const a of data.amendmentsReady.slice(0, 2)) {
+    items.push({
+      title: `Ready for Signature — ${a.amendment_code}`,
+      sub: `${a.party_code} · ${a.title}`,
+      href: `/parties/${a.party_id}`,
+      pill: 'Sign',
+      pillClass: 'ready_sign',
+    })
+  }
+
+  for (const p of data.pendingOdooParties.slice(0, 3)) {
     items.push({
       title: `Odoo Link — ${p.odoo_link_status}`,
       sub: `${p.party_code} · ${p.name}`,

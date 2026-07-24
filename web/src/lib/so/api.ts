@@ -22,10 +22,21 @@ export type SyncedOrderRow = SaleOrderRow & {
   parties?: { party_code: string; name: string } | null
 }
 
-export async function fetchSyncedOrders(partyId?: string): Promise<SyncedOrderRow[]> {
+export type SoHealthSummary = {
+  synchronized: number
+  noActiveSo: number
+  inProgress: number
+  syncErrors: number
+}
+
+export async function fetchSyncedOrders(partyId?: string): Promise<{
+  orders: SyncedOrderRow[]
+  summary: SoHealthSummary | null
+}> {
   const qs = partyId ? `?partyId=${encodeURIComponent(partyId)}` : ''
-  const data = await parseJson<{ orders: SyncedOrderRow[] }>(await cmsFetch(`/api/so${qs}`))
-  return data.orders
+  return parseJson<{ orders: SyncedOrderRow[]; summary: SoHealthSummary | null }>(
+    await cmsFetch(`/api/so${qs}`),
+  )
 }
 
 export async function runSoSync(partyId?: string): Promise<SyncSoResult> {

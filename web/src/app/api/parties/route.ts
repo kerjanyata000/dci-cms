@@ -1,4 +1,5 @@
 import { authErrorResponse, requireActor, requireCanEdit } from '@/lib/auth/guard'
+import { enrichPartiesWithContracts } from '@/lib/parties/list'
 import { jsonError, jsonOk } from '@/lib/server/api-route'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 import { mapPartyRow, nextPartyCode, type PartyRow } from '@/lib/parties/types'
@@ -12,11 +13,14 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const q = searchParams.get('q')?.trim() ?? ''
     const linkStatus = searchParams.get('linkStatus') as OdooLinkStatus | 'all' | null
+    const pic = searchParams.get('pic')?.trim() ?? ''
+    const contractStatus = searchParams.get('contractStatus')?.trim() ?? ''
 
     const db = getSupabaseAdmin()
     let query = db.from('parties').select('*').order('party_code', { ascending: true })
 
     if (q) query = query.ilike('name', `%${q}%`)
+    if (pic) query = query.ilike('pic', `%${pic}%`)
     if (linkStatus && linkStatus !== 'all') {
       query = query.eq('odoo_link_status', linkStatus)
     }
@@ -24,7 +28,29 @@ export async function GET(request: Request) {
     const { data, error } = await query
     if (error) throw new Error(error.message)
 
-    return jsonOk({ parties: (data as PartyRow[]).map(mapPartyRow) })
+    const parties = (data as PartyRow[]).map(mapPartyRow)
+    const partyIds = parties.map((p) => p.id)
+
+    let contractsQuery = db
+      .from('contracts')
+      .select(
+        'party_id, contract_title, agreement_date, duration_months, status, status_text, created_at',
+      )
+
+    if (partyIds.length > 0) {
+      contractsQuery = contractsQuery.in('party_id', partyIds)
+    }
+
+    const { data: contractRows, error: contractsError } = await contractsQuery
+    if (contractsError) throw new Error(contractsError.message)
+
+    let list = enrichPartiesWithContracts(parties, contractRows ?? [])
+
+    if (contractStatus && contractStatus !== 'all') {
+      list = list.filter((p) => p.primary_contract?.status === contractStatus)
+    }
+
+    return jsonOk({ parties: list })
   } catch (err) {
     const auth = authErrorResponse(err)
     if (auth) return auth

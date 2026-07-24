@@ -12,7 +12,7 @@ import { ContractReviewModal } from '@/components/contracts/ContractReviewModal'
 import { TerminationModal } from '@/components/contracts/TerminationModal'
 import { UploadSupportingModal } from '@/components/contracts/UploadSupportingModal'
 import { LinkOdooModal } from '@/components/parties/LinkOdooModal'
-import { fetchSyncedOrders, runSoSync } from '@/lib/so/api'
+import { fetchSyncedOrders, runSoSync, type SyncedOrderRow } from '@/lib/so/api'
 import { fetchPartyDetail, type PartyDetailPayload } from '@/lib/parties/api'
 import { ODOO_LINK_HINTS, ODOO_LINK_LABELS, formatOdooLinkSummary } from '@/lib/parties/types'
 import type { Contract } from '@/types/cms'
@@ -54,7 +54,7 @@ export function PartyDetailView({ partyId, role }: Props) {
   const [cpChangeContract, setCpChangeContract] = useState<Contract | null>(null)
   const [editContract, setEditContract] = useState<Contract | null>(null)
   const [uploadSupportingOpen, setUploadSupportingOpen] = useState(false)
-  const [soRows, setSoRows] = useState<Awaited<ReturnType<typeof fetchSyncedOrders>>>([])
+  const [soRows, setSoRows] = useState<SyncedOrderRow[]>([])
   const [soBusy, setSoBusy] = useState(false)
   const [soSyncMsg, setSoSyncMsg] = useState('')
   const [soSyncError, setSoSyncError] = useState('')
@@ -77,7 +77,8 @@ export function PartyDetailView({ partyId, role }: Props) {
     setSoBusy(true)
     setSoSyncMsg('')
     try {
-      setSoRows(await fetchSyncedOrders(partyId))
+      const { orders } = await fetchSyncedOrders(partyId)
+      setSoRows(orders)
     } finally {
       setSoBusy(false)
     }

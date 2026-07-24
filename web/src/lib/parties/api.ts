@@ -1,4 +1,5 @@
 import { cmsFetch } from '@/lib/api/http'
+import type { PartyListItem } from '@/lib/parties/list'
 import type {
   Contract,
   ContractAmendment,
@@ -10,9 +11,13 @@ import type {
   SoHealth,
 } from '@/types/cms'
 
+export type { PartyListItem } from '@/lib/parties/list'
+
 export type ListPartiesParams = {
   q?: string
   linkStatus?: OdooLinkStatus | 'all'
+  pic?: string
+  contractStatus?: string
 }
 
 async function parseJson<T>(res: Response): Promise<T> {
@@ -23,14 +28,20 @@ async function parseJson<T>(res: Response): Promise<T> {
   return payload.data as T
 }
 
-export async function fetchParties(params: ListPartiesParams = {}): Promise<Party[]> {
+export async function fetchParties(params: ListPartiesParams = {}): Promise<PartyListItem[]> {
   const search = new URLSearchParams()
   if (params.q) search.set('q', params.q)
+  if (params.pic) search.set('pic', params.pic)
+  if (params.contractStatus && params.contractStatus !== 'all') {
+    search.set('contractStatus', params.contractStatus)
+  }
   if (params.linkStatus && params.linkStatus !== 'all') {
     search.set('linkStatus', params.linkStatus)
   }
   const qs = search.toString()
-  const data = await parseJson<{ parties: Party[] }>(await cmsFetch(`/api/parties${qs ? `?${qs}` : ''}`))
+  const data = await parseJson<{ parties: PartyListItem[] }>(
+    await cmsFetch(`/api/parties${qs ? `?${qs}` : ''}`),
+  )
   return data.parties
 }
 

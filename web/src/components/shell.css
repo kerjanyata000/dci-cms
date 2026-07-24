@@ -1497,3 +1497,51 @@ textarea {
   padding: 4px 8px;
   font-size: 11px;
 }
+
+.clickable-row {
+  cursor: pointer;
+}
+
+.clickable-row:hover td {
+  background: #f8fafc;
+}
+
+.pagination-btns {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.pagination-btns button {
+  min-width: 32px;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.pagination-btns button.active {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+}
+
+.notif-list-page li a,
+.notif-list-page li > div {
+  padding: 14px 0;
+}
+
+.notif-row-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.btn.ghost.active {
+  background: rgba(197, 160, 89, 0.12);
+  border-color: var(--brass);
+}

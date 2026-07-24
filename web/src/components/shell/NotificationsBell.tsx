@@ -54,8 +54,8 @@ export function NotificationsBell() {
         <div className="notif-panel">
           <div className="notif-panel-head">
             <b>Notifikasi</b>
-            <Link href="/activity" className="muted" onClick={() => setOpen(false)}>
-              Activity Log
+            <Link href="/notifications" className="muted" onClick={() => setOpen(false)}>
+              Lihat semua
             </Link>
           </div>
           {items.length === 0 ? (
