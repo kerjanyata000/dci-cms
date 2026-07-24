@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { GlobalSearch } from '@/components/shell/GlobalSearch'
 import { IntegrationStatus } from '@/components/shell/IntegrationStatus'
 import { NotificationsBell } from '@/components/shell/NotificationsBell'
+import { UserProfileMenu } from '@/components/shell/UserProfileMenu'
 import { ROLES, type SessionUser } from '@/lib/roles'
 import './shell.css'
 
@@ -113,15 +114,6 @@ export function AppShell({ user, onLogout, children }: Props) {
           </Link>
         )
       })}
-      {(user.role === 'legal' || user.role === 'it') && (
-        <Link
-          href="/lab/extraction"
-          className={`nav-item${pathname.startsWith('/lab/extraction') ? ' active' : ''}`}
-          onClick={() => setDrawerOpen(false)}
-        >
-          Extraction Lab
-        </Link>
-      )}
     </>
   )
 
@@ -149,19 +141,6 @@ export function AppShell({ user, onLogout, children }: Props) {
         <nav className="nav-group">{navLinks}</nav>
         <div className="sidebar-foot">
           <IntegrationStatus variant="sidebar" />
-          <div className="sidebar-foot-user">
-            {user.name}
-            <br />
-            <span className="role-badge">{role.label}</span>
-          </div>
-          {role.views.includes('audit') && (
-            <>
-              <br />
-              <Link href="/activity" className="sidebar-link" onClick={() => setDrawerOpen(false)}>
-                Activity Log
-              </Link>
-            </>
-          )}
         </div>
       </aside>
 
@@ -178,17 +157,11 @@ export function AppShell({ user, onLogout, children }: Props) {
           </button>
           <GlobalSearch />
           <div className="top-right">
+            {sidebarCollapsed && !isMobile && (
+              <IntegrationStatus variant="inline" className="topbar-integration" />
+            )}
             {role.views.includes('notifications') && <NotificationsBell />}
-            <span className="user-chip">
-              <span className="user-avatar">{role.initials}</span>
-              <span>
-                <b>{user.name}</b>
-                <span className="muted">{role.label}</span>
-              </span>
-            </span>
-            <button type="button" className="btn ghost" onClick={onLogout}>
-              Keluar
-            </button>
+            <UserProfileMenu user={user} onLogout={onLogout} onNavigate={() => setDrawerOpen(false)} />
           </div>
         </header>
         <main className="content">{children}</main>

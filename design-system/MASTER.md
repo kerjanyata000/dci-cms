@@ -60,6 +60,7 @@
 | SO Health | [`pages/so.md`](pages/so.md) |
 | Notifikasi | [`pages/notifications.md`](pages/notifications.md) |
 | Activity Log | [`pages/activity.md`](pages/activity.md) |
+| Extraction Lab | [`pages/extraction-lab.md`](pages/extraction-lab.md) |
 
 ## UX checklist (pre-delivery)
 
@@ -68,7 +69,7 @@
 - [x] `:focus-visible` on buttons, tabs, nav
 - [x] `prefers-reduced-motion` respected
 - [x] Table pagination on long lists
-- [ ] Responsive 375 / 768 / 1024 (shell drawer exists)
+- [x] Responsive 375 / 768 / 1024 (shell drawer + 375px pass Sprint 3)
 
 ## Skill CLI (eksplorasi)
 

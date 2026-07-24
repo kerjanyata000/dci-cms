@@ -9,6 +9,7 @@ type ConnState = 'live' | 'dummy' | 'offline'
 type Props = {
   /** Sidebar = compact on dark bg; inline = for light surfaces */
   variant?: 'sidebar' | 'inline'
+  className?: string
 }
 
 function deriveState(mode: string, healthy: boolean | null): ConnState {
@@ -50,7 +51,7 @@ function Badge({
   )
 }
 
-export function IntegrationStatus({ variant = 'sidebar' }: Props) {
+export function IntegrationStatus({ variant = 'sidebar', className }: Props) {
   const [odooOk, setOdooOk] = useState<boolean | null>(null)
   const [ragOk, setRagOk] = useState<boolean | null>(null)
 
@@ -83,7 +84,11 @@ export function IntegrationStatus({ variant = 'sidebar' }: Props) {
   const ragState = deriveState(RAGFLOW_MODE, ragOk)
 
   return (
-    <div className={`sys-status sys-status-${variant}`} role="status" aria-live="polite">
+    <div
+      className={`sys-status sys-status-${variant}${className ? ` ${className}` : ''}`}
+      role="status"
+      aria-live="polite"
+    >
       <Badge
         name="Odoo"
         state={odooState}

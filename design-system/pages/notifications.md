@@ -6,13 +6,15 @@ Extends [`MASTER.md`](../MASTER.md).
 
 - **Primary:** bell icon di topbar (`NotificationsBell`) — dropdown preview + link "Lihat semua"
 - **Full page:** `/notifications` — **bukan** item sidebar nav (DESIGN_GUIDELINES §8)
+- **Profile menu:** link Notifikasi untuk role dengan `views.notifications`
 
 ## Layout
 
 - Crumb **Registry** + title Notifikasi
-- Filter chips: Semua / Urgent
-- List `notif-list-page` + paginasi
-- Empty state: pesan + hint (bukan blank)
+- Filter chips: Semua / Urgent · sort **Terbaru** / **Urgent dulu**
+- Tombol **Tandai semua dibaca** (localStorage prototype)
+- List `notif-list-page` + paginasi · item dibaca = opacity reduced (`.notif-read`)
+- Timestamp `notif-time` per item
 
 ## Visual
 

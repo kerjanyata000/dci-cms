@@ -157,7 +157,10 @@ export async function loadNotifications(): Promise<NotificationItem[]> {
   }
 
   return items
-    .sort((a, b) => Number(b.urgent) - Number(a.urgent))
+    .sort((a, b) => {
+      if (a.urgent !== b.urgent) return Number(b.urgent) - Number(a.urgent)
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    })
     .slice(0, 16)
 }
 
