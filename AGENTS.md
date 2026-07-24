@@ -35,6 +35,9 @@ Untuk pekerjaan non-trivial (fitur, bug, UI baru, integrasi Odoo, skema data): b
 | `docs/BRD-…v1.3.md` | Requirement resmi |
 | `List MSA Customer (Updated).xlsx` | Data register sumber demo |
 | `DESIGN_GUIDELINES.md` | Token & pola UI |
+| `design-system/MASTER.md` | Design system (UI UX Pro Max + override ink/brass) |
 | `docs/ODOO_INTEGRATION.md` | Batas & pola integrasi Odoo |
 
 Instruksi agen hanya di root (`AGENTS.md` / `CLAUDE.md`). Jangan commit secrets (API key Odoo, password e-sign, `.env.local`).
+
+**UI UX Pro Max (opsional):** skill Cursor di `.cursor/skills/` — install `npm i -g ui-ux-pro-max-cli && uipro init --ai cursor`. Wajib hormati `DESIGN_GUIDELINES.md` + `design-system/MASTER.md` (jangan ganti tema ke Tailwind/generik).

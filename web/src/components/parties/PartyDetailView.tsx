@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { EditContractModal } from '@/components/contracts/EditContractModal'
@@ -12,13 +12,32 @@ import { ContractReviewModal } from '@/components/contracts/ContractReviewModal'
 import { TerminationModal } from '@/components/contracts/TerminationModal'
 import { UploadSupportingModal } from '@/components/contracts/UploadSupportingModal'
 import { LinkOdooModal } from '@/components/parties/LinkOdooModal'
+import { TablePagination, paginateSlice } from '@/components/ui/TablePagination'
 import { fetchSyncedOrders, runSoSync, type SyncedOrderRow } from '@/lib/so/api'
 import { fetchPartyDetail, type PartyDetailPayload } from '@/lib/parties/api'
 import { ODOO_LINK_HINTS, ODOO_LINK_LABELS, formatOdooLinkSummary } from '@/lib/parties/types'
-import type { Contract } from '@/types/cms'
+import type { Contract, ContractMetadata } from '@/types/cms'
 import { ACTIVE_FOR_TERM } from '@/lib/contracts/constants'
 import { ROLES } from '@/lib/roles'
 import type { AppRole } from '@/types/cms'
+
+const AUDIT_PAGE_SIZE = 10
+
+function pickPrimaryContract(contracts: Contract[]): Contract | undefined {
+  return (
+    contracts.find((c) => ['active', 'fully_signed', 'signed'].includes(c.status)) ?? contracts[0]
+  )
+}
+
+function contractMeta(c: Contract | undefined): ContractMetadata {
+  return (c?.confirmed_metadata ?? {}) as ContractMetadata
+}
+
+function statusPillClass(status: string | undefined): string {
+  if (!status) return 'draft'
+  if (status === 'under_review') return 'under_review'
+  return status
+}
 
 const TABS = [
   { id: 'overview', label: 'Overview', brd: 'FR-PTY-SV-003' },
@@ -58,6 +77,7 @@ export function PartyDetailView({ partyId, role }: Props) {
   const [soBusy, setSoBusy] = useState(false)
   const [soSyncMsg, setSoSyncMsg] = useState('')
   const [soSyncError, setSoSyncError] = useState('')
+  const [auditPage, setAuditPage] = useState(1)
 
   const load = useCallback(async () => {
     setError('')
@@ -110,6 +130,11 @@ export function PartyDetailView({ partyId, role }: Props) {
     if (tab === 'so' && data?.party.odoo_partner_id) void loadSo()
   }, [tab, data?.party.odoo_partner_id])
 
+  const auditPageRows = useMemo(
+    () => paginateSlice(data?.auditLogs ?? [], auditPage, AUDIT_PAGE_SIZE),
+    [data?.auditLogs, auditPage],
+  )
+
   if (error) {
     return (
       <div>
@@ -128,6 +153,8 @@ export function PartyDetailView({ partyId, role }: Props) {
   const contractDocs = documents.filter((d) => d.document_category !== 'supporting')
   const activeContracts = contracts.filter((c) => ACTIVE_FOR_TERM.includes(c.status))
   const sealNo = party.party_code.replace(/^PTY-/i, '')
+  const primary = pickPrimaryContract(contracts)
+  const meta = contractMeta(primary)
 
   return (
     <div>
@@ -150,7 +177,7 @@ export function PartyDetailView({ partyId, role }: Props) {
               style={{ marginTop: 10, marginBottom: 0 }}
             >
               <p style={{ margin: 0, fontSize: 13 }}>
-                <span className={`pill pill-${party.odoo_link_status}`}>
+                <span className={`status-pill ${party.odoo_link_status}`}>
                   {ODOO_LINK_LABELS[party.odoo_link_status]}
                 </span>
                 <span className="mono" style={{ marginLeft: 8 }}>
@@ -213,22 +240,50 @@ export function PartyDetailView({ partyId, role }: Props) {
       </div>
 
       {tab === 'overview' && (
-        <div className="tab-panel active card stack">
+        <div className="tab-panel active stack">
           <p className="ref-tag">FR-PTY-SV-003 · BRL-CMS-026 — konteks utama kontrak & integrasi</p>
           <div className="info-grid">
             <div className="info-item">
-              <span>Legal name</span>
-              <b>{party.name}</b>
+              <span>Contract Status</span>
+              <b>
+                {primary ? (
+                  <span className={`status-pill ${statusPillClass(primary.status)}`}>
+                    {primary.status_text || primary.status}
+                  </span>
+                ) : (
+                  '—'
+                )}
+              </b>
+            </div>
+            <div className="info-item">
+              <span>Contract Value / MRR</span>
+              <b>{meta.contractValue || '—'}</b>
+            </div>
+            <div className="info-item">
+              <span>Payment Term</span>
+              <b>{meta.paymentTerm || '—'}</b>
             </div>
             <div className="info-item locked">
               <span>Counterparty (locked)</span>
               <b>{party.name}</b>
               <div className="lock-tag">Change via Change Counterparty (FR-CNT-CP)</div>
             </div>
+            <div className="info-item locked">
+              <span>Contract Value (locked)</span>
+              <b>{meta.contractValue || '—'}</b>
+              <div className="lock-tag">Change via Amendment</div>
+            </div>
+            <div className="info-item locked">
+              <span>Signed Document (locked)</span>
+              <b className="mono">
+                {primary ? `${primary.contract_code}-Signed.pdf` : '—'}
+              </b>
+              <div className="lock-tag">Not editable directly</div>
+            </div>
             <div className="info-item">
               <span>Odoo link</span>
               <b>
-                <span className={`pill pill-${party.odoo_link_status}`}>
+                <span className={`status-pill ${party.odoo_link_status}`}>
                   {ODOO_LINK_LABELS[party.odoo_link_status]}
                 </span>
                 {party.odoo_partner_id != null && (
@@ -237,20 +292,42 @@ export function PartyDetailView({ partyId, role }: Props) {
                   </span>
                 )}
               </b>
-              <div className="lock-tag">{ODOO_LINK_HINTS[party.odoo_link_status]}</div>
             </div>
             <div className="info-item">
               <span>Documents</span>
-              <b>{documents.length} file ({supportingDocs.length} supporting)</b>
+              <b>
+                {documents.length} file ({supportingDocs.length} supporting)
+              </b>
             </div>
             {soHealth.noActiveSo && (
               <div className="info-item locked">
                 <span>SO Health</span>
-                <b className="pill pill-urgent">No Active SO</b>
-                <div className="lock-tag">NOTIF-CMS-014 path · FR-CNT-SO-007</div>
+                <b>
+                  <span className="status-pill no_so">No Active SO</span>
+                </b>
+                <div className="lock-tag">NOTIF-CMS-014 · FR-CNT-SO-007</div>
               </div>
             )}
           </div>
+
+          <div className="sub-card">
+            <h3>Late Payment &amp; Termination Terms</h3>
+            <div className="info-grid">
+              <div className="info-item">
+                <span>Late Payment Penalty</span>
+                <b>{meta.latePaymentPenalty || '—'}</b>
+              </div>
+              <div className="info-item">
+                <span>Early Termination Fee</span>
+                <b>{meta.earlyTerminationFee || '—'}</b>
+              </div>
+              <div className="info-item">
+                <span>Auto-Renewal</span>
+                <b>{meta.autoRenewal || '—'}</b>
+              </div>
+            </div>
+          </div>
+
           {!canEdit && (
             <div className="readonly-banner">
               Role Anda memiliki akses view-only pada Party Detail (FR-CNT-SV-004).
@@ -323,7 +400,9 @@ export function PartyDetailView({ partyId, role }: Props) {
                     <td>{c.doc_type || '—'}</td>
                     <td>{c.expiry_date ? new Date(c.expiry_date).toLocaleDateString('id-ID') : '—'}</td>
                     <td>
-                      <span className="pill">{c.status_text || c.status}</span>
+                      <span className={`status-pill ${statusPillClass(c.status)}`}>
+                        {c.status_text || c.status}
+                      </span>
                     </td>
                     <td>{c.validation_status}</td>
                     {canEdit && (
@@ -590,26 +669,35 @@ export function PartyDetailView({ partyId, role }: Props) {
           {auditLogs.length === 0 ? (
             <p className="muted">Belum ada audit log untuk party ini.</p>
           ) : (
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Waktu</th>
-                  <th>Aksi</th>
-                  <th>Tipe</th>
-                  <th>Actor</th>
-                </tr>
-              </thead>
-              <tbody>
-                {auditLogs.map((a) => (
-                  <tr key={a.id}>
-                    <td className="mono">{new Date(a.created_at).toLocaleString('id-ID')}</td>
-                    <td>{a.action}</td>
-                    <td>{a.action_type || '—'}</td>
-                    <td>{a.actor_name || '—'}</td>
+            <>
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Waktu</th>
+                    <th>Aksi</th>
+                    <th>Tipe</th>
+                    <th>Actor</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {auditPageRows.map((a) => (
+                    <tr key={a.id}>
+                      <td className="mono">{new Date(a.created_at).toLocaleString('id-ID')}</td>
+                      <td>{a.action}</td>
+                      <td>{a.action_type || '—'}</td>
+                      <td>{a.actor_name || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <TablePagination
+                page={auditPage}
+                pageSize={AUDIT_PAGE_SIZE}
+                total={auditLogs.length}
+                onPageChange={setAuditPage}
+                itemLabel="Entri"
+              />
+            </>
           )}
         </div>
       )}
