@@ -7,7 +7,7 @@ alwaysApply: true
 
 - Ikuti fase & checklist di **`docs/AI_DEVELOPMENT_LIFECYCLE.md`** untuk pekerjaan non-trivial.
 - **Requirement:** `docs/BRD-Contract-Management-System-v1.3.md` (status §9, BRL §10, scope §4).
-- **UI:** `DESIGN_GUIDELINES.md` + pola di `CMS_Mockup.html` (party-centric, ink/brass, RBAC hide vs view-only).
+- **UI:** `DESIGN_GUIDELINES.md` §0 + `design-system/MASTER.md` + pola di `CMS_Mockup.html` (party-centric, ink/brass, shell.css, RBAC hide vs view-only).
 - **Odoo:** `docs/ODOO_INTEGRATION.md` — consume Partner/SO only; no SO/Partner master write-back.
 - **How-to alur:** `docs/PANDUAN-OPERASIONAL-CMS.md`.
 - **Keamanan:** jangan commit secrets / `.env` Odoo atau e-sign.

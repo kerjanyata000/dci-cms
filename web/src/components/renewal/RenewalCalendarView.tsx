@@ -52,6 +52,28 @@ function decadeLabel(start: number) {
 
 const TABLE_PAGE_SIZE = 10
 
+function InfoIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="16" x2="12" y2="12" />
+      <line x1="12" y1="8" x2="12.01" y2="8" />
+    </svg>
+  )
+}
+
+function FilterDot({ kind }: { kind: 'urgent' | 'soon' | 'later' }) {
+  return <span className={`filter-dot ${kind}`} aria-hidden />
+}
+
+const FILTERS: Array<{ id: Filter; label: string; dot?: 'urgent' | 'soon' | 'later' }> = [
+  { id: 'all', label: 'Semua' },
+  { id: 'urgent', label: 'Urgent', dot: 'urgent' },
+  { id: 'soon', label: 'Segera', dot: 'soon' },
+  { id: 'later', label: 'Terjadwal', dot: 'later' },
+  { id: 'month', label: 'Bulan tampilan' },
+]
+
 export function RenewalCalendarView() {
   const [data, setData] = useState<RenewalPayload | null>(null)
   const [error, setError] = useState('')
@@ -193,7 +215,7 @@ export function RenewalCalendarView() {
   const currentYear = today.getFullYear()
 
   return (
-    <div>
+    <div className="renewal-page">
       <div className="page-head row-actions spread">
         <div>
           <div className="crumb">Registry</div>
@@ -202,15 +224,32 @@ export function RenewalCalendarView() {
         </div>
       </div>
 
-      <div className="notice">
+      <div className="notice renewal-notice">
+        <InfoIcon />
         <div>
           <b>Metodologi.</b> Estimasi jatuh tempo dari Agreement Date + Duration. Renewal date =
-          expiry − 90 hari. Data dari kontrak Supabase + termination records.
+          expiry − 90 hari. Klik tanggal untuk detail agenda; gunakan panah atau picker bulan/tahun.
         </div>
       </div>
 
       {error && <p className="error-text">{error}</p>}
 
+      {!data && !error && (
+        <div className="renewal-loading" aria-busy="true" aria-label="Memuat agenda renewal">
+          <div className="summary-strip">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="summary-chip skeleton-block" />
+            ))}
+          </div>
+          <div className="cal-layout">
+            <div className="cal-card skeleton-block" style={{ minHeight: 360 }} />
+            <div className="cal-side skeleton-block" style={{ minHeight: 320 }} />
+          </div>
+        </div>
+      )}
+
+      {(data) && (
+        <>
       <div className="summary-strip">
         <div className="summary-chip urgent">
           <b>{data?.summary.urgent ?? 0}</b>
@@ -220,11 +259,11 @@ export function RenewalCalendarView() {
           <b>{data?.summary.soon ?? 0}</b>
           <span>Segera · 31–180 hari</span>
         </div>
-        <div className="summary-chip">
+        <div className="summary-chip later">
           <b>{data?.summary.later ?? 0}</b>
           <span>Terjadwal · &gt;180 hari</span>
         </div>
-        <div className="summary-chip">
+        <div className="summary-chip month">
           <b>{data?.summary.inMonth ?? 0}</b>
           <span>Di bulan ini</span>
         </div>
@@ -453,21 +492,14 @@ export function RenewalCalendarView() {
       </div>
 
       <div className="table-toolbar">
-        {(
-          [
-            ['all', 'Semua'],
-            ['urgent', '🔴 Urgent'],
-            ['soon', '🟠 Segera'],
-            ['later', '⚪ Terjadwal'],
-            ['month', 'Bulan tampilan'],
-          ] as const
-        ).map(([id, label]) => (
+        {FILTERS.map(({ id, label, dot }) => (
           <button
             key={id}
             type="button"
             className={`filter-chip clickable${filter === id ? ' active' : ''}`}
             onClick={() => setFilter(id)}
           >
+            {dot && <FilterDot kind={dot} />}
             {label}
           </button>
         ))}
@@ -524,6 +556,8 @@ export function RenewalCalendarView() {
         onPageChange={setTablePage}
         itemLabel="Agenda"
       />
+        </>
+      )}
     </div>
   )
 }

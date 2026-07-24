@@ -3,6 +3,60 @@
 Pedoman desain **single source of truth** untuk UI Contract Management System (DCI).  
 Mockup referensi: [`CMS_Mockup.html`](CMS_Mockup.html). Kontribusi UI baru wajib selaras agar terasa **dokumen legal / registry**, bukan dashboard generik.
 
+**Base workflow desain:** [`design-system/MASTER.md`](design-system/MASTER.md) (UI UX Pro Max + override proyek ink/brass). Setiap halaman/komponen baru wajib ikuti hierarki di §0.
+
+---
+
+## 0. Alur desain — UI UX Pro Max (wajib)
+
+Semua pekerjaan UI (halaman baru, polish, komponen) memakai **UI UX Pro Max** sebagai *process base*, dengan **override DCI** yang tidak boleh dilanggar.
+
+### Hierarki sumber (urutan kebenaran)
+
+| Prioritas | Dokumen | Fungsi |
+| --- | --- | --- |
+| 1 | **`DESIGN_GUIDELINES.md`** (file ini) | Prinsip, token ink/brass, RBAC UI, do/don't |
+| 2 | **`design-system/MASTER.md`** | Ringkasan design system + checklist UX Pro Max |
+| 3 | **`design-system/pages/<page>.md`** | Override per halaman (login, dashboard, renewal, …) |
+| 4 | **`CMS_Mockup.html`** | Interaksi & layout referensi |
+| 5 | **`web/src/components/shell.css`** | Implementasi CSS (bukan Tailwind/shadcn) |
+
+### Workflow developer / agent
+
+1. **Baca** §1–§7 di file ini + `MASTER.md`.
+2. **Cek** apakah ada `design-system/pages/<page>.md`; buat jika halaman baru.
+3. **Opsional — eksplorasi skill** (jangan ganti token proyek):
+
+   ```bash
+   npm install -g ui-ux-pro-max-cli   # sekali per mesin
+   uipro init --ai cursor             # sekali per repo clone
+   python .cursor/skills/ui-ux-pro-max/scripts/search.py "legal enterprise registry calendar" --design-system -p "DCI CMS"
+   ```
+
+4. **Terapkan override wajib** setelah saran skill:
+   - Warna: `--ink` / `--brass` / `--paper` — **bukan** palet generik skill (navy ungu, cream SaaS, dll.).
+   - Font: Source Serif 4 + IBM Plex Sans/Mono — **bukan** Plus Jakarta / Inter default skill.
+   - Stack: `shell.css` + Next.js — **tanpa** Tailwind/shadcn kecuali keputusan arsitektur terpisah.
+   - Pola: party-centric, status pill BRD §9, RBAC hide vs view-only.
+5. **Implement** di `web/src/components/`; style hanya lewat kelas di `shell.css`.
+6. **Checklist pre-ship** (dari UI UX Pro Max, disesuaikan proyek):
+   - Hover/focus 150–200ms, `:focus-visible` pada kontrol interaktif
+   - `cursor-pointer` pada baris/kartu/tab yang bisa diklik
+   - `prefers-reduced-motion` dihormati
+   - Ikon inline SVG — hindari emoji sebagai ikon UI
+   - Paginasi pada list panjang (Parties, Renewal, SO, Activity, Audit)
+   - Responsive 375 / 768 / 1024 (drawer sidebar sudah ada)
+
+### Instalasi skill (per developer)
+
+```bash
+npm install -g ui-ux-pro-max-cli
+cd dci-cms
+uipro init --ai cursor
+```
+
+Skill lokal: `.cursor/skills/ui-ux-pro-max/` (gitignored). Artefak **commit**: `design-system/`.
+
 ---
 
 ## 1. Prinsip desain
@@ -129,6 +183,8 @@ Jangan memakai label register lama (`Closed` / `In Process`) di UI produk — ma
 
 ## 8. Referensi
 
+- **Design system (UI UX Pro Max + override):** [`design-system/MASTER.md`](design-system/MASTER.md), [`design-system/pages/`](design-system/pages/)
 - Interaksi lengkap: `CMS_Mockup.html`
 - Requirement: `docs/BRD-Contract-Management-System-v1.3.md`
 - How-to: `docs/PANDUAN-OPERASIONAL-CMS.md`
+- CSS produk: `web/src/components/shell.css`

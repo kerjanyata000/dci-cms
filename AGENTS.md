@@ -10,7 +10,7 @@ Untuk pekerjaan non-trivial (fitur, bug, UI baru, integrasi Odoo, skema data): b
 
 1. **Domain / requirement** — [`docs/BRD-Contract-Management-System-v1.3.md`](docs/BRD-Contract-Management-System-v1.3.md) (sumber kebenaran bisnis). Status & BRL wajib dihormati (§9, §10).
 2. **Alur operasional** — [`docs/PANDUAN-OPERASIONAL-CMS.md`](docs/PANDUAN-OPERASIONAL-CMS.md) (A→B→C: login, party, kontrak, review/sign, SO, audit).
-3. **UI / mockup / desain** — [`DESIGN_GUIDELINES.md`](DESIGN_GUIDELINES.md), lalu [`CMS_Mockup.html`](CMS_Mockup.html) sebagai referensi interaksi & role UI.
+3. **UI / mockup / desain** — [`DESIGN_GUIDELINES.md`](DESIGN_GUIDELINES.md) §0 (UI UX Pro Max workflow), [`design-system/MASTER.md`](design-system/MASTER.md), lalu [`CMS_Mockup.html`](CMS_Mockup.html) sebagai referensi interaksi & role UI.
 4. **Integrasi Odoo** — [`docs/ODOO_INTEGRATION.md`](docs/ODOO_INTEGRATION.md) + BRD §12 (SO sync, Party–Partner link). CMS **tidak** write-back SO / Partner master kecuali disepakati terpisah.
 5. **Siklus kerja AI** — [`docs/AI_DEVELOPMENT_LIFECYCLE.md`](docs/AI_DEVELOPMENT_LIFECYCLE.md).
 

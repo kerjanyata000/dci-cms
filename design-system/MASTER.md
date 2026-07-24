@@ -1,20 +1,30 @@
 # DCI CMS — Design System (Master)
 
-Generated with [UI UX Pro Max Skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill), **overridden** by [`DESIGN_GUIDELINES.md`](../DESIGN_GUIDELINES.md) and [`CMS_Mockup.html`](../CMS_Mockup.html).
+**Base process:** [UI UX Pro Max Skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill)  
+**Project overrides (wajib):** [`DESIGN_GUIDELINES.md`](../DESIGN_GUIDELINES.md) §0 + [`CMS_Mockup.html`](../CMS_Mockup.html)
 
-## Pattern (from skill: Trust & Authority + Executive Dashboard)
+> Skill memberi rekomendasi pola/UX/checklist. **Token, font, dan stack DCI selalu menang** atas default skill.
+
+## Hierarki baca
+
+1. `DESIGN_GUIDELINES.md` — prinsip & token
+2. **`MASTER.md`** (file ini) — ringkasan global
+3. `design-system/pages/<page>.md` — override per halaman
+4. `CMS_Mockup.html` — interaksi
+5. `web/src/components/shell.css` — implementasi
+
+## Pattern (Trust & Authority + Executive Dashboard)
 
 - **Product:** Legal / enterprise contract registry (B2B, party-centric)
 - **Conversion:** Monitoring & pending actions — **no create CTA on dashboard**
 - **Sections:** Role dashboard → Parties list → Party Detail (tabs) → modals
 
-## Style
+## Style — Sealed Registry
 
-- **Name:** Sealed Registry (project override — not generic SaaS)
 - **Keywords:** Legal dossier, ink/brass, status pills, audit trail, trustworthy
-- **Avoid:** Purple/pink AI gradients, playful UI, landing-page hero, Tailwind/shadcn migration without decision
+- **Avoid:** Purple/pink AI gradients, playful UI, landing hero generik, Tailwind/shadcn tanpa keputusan
 
-## Colors (project tokens — do NOT replace with skill defaults)
+## Colors (do NOT replace with skill defaults)
 
 | Role | Token | Hex |
 |------|-------|-----|
@@ -26,7 +36,7 @@ Generated with [UI UX Pro Max Skill](https://github.com/nextlevelbuilder/ui-ux-p
 | Warning | `--amber` | `#C08A2E` |
 | Danger | `--red` | `#B84A3A` |
 
-## Typography (project — keep)
+## Typography (keep)
 
 - **Heading:** Source Serif 4 (`--serif`)
 - **UI:** IBM Plex Sans (`--sans`)
@@ -36,24 +46,32 @@ Generated with [UI UX Pro Max Skill](https://github.com/nextlevelbuilder/ui-ux-p
 
 - **Framework:** Next.js App Router (`web/`)
 - **Styling:** `web/src/components/shell.css` — **no Tailwind**
-- **Icons:** Inline SVG or minimal — no emoji as icons
+- **Icons:** Inline SVG — no emoji as UI icons
 
-## UX checklist (UI UX Pro Max pre-delivery)
+## Page overrides
+
+| Page | File |
+|------|------|
+| Login | [`pages/login.md`](pages/login.md) |
+| Dashboard | [`pages/dashboard.md`](pages/dashboard.md) |
+| Renewal Calendar | [`pages/renewal.md`](pages/renewal.md) |
+| Party Detail | [`pages/party-detail.md`](pages/party-detail.md) |
+
+## UX checklist (pre-delivery)
 
 - [x] `cursor-pointer` on clickable rows, tabs, pagination
 - [x] Hover/focus transitions 150–200ms
-- [x] `:focus-visible` ring on buttons, tabs, nav
+- [x] `:focus-visible` on buttons, tabs, nav
 - [x] `prefers-reduced-motion` respected
-- [x] Table pagination on long lists (Parties, Renewal, Activity, SO, Audit)
+- [x] Table pagination on long lists
 - [ ] Responsive 375 / 768 / 1024 (shell drawer exists)
 
-## Install skill (per developer)
+## Skill CLI (eksplorasi)
 
 ```bash
 npm install -g ui-ux-pro-max-cli
-cd dci-cms
 uipro init --ai cursor
 python .cursor/skills/ui-ux-pro-max/scripts/search.py "legal enterprise dashboard" --design-system -p "DCI CMS"
 ```
 
-Always re-apply **MASTER overrides** above after skill suggestions.
+Selalu **re-apply overrides** di atas setelah output skill.
