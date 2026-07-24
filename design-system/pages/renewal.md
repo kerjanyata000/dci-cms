@@ -26,7 +26,10 @@ Filter chip pakai **filter-dot** (bukan emoji). Pill & cal-evt warna konsisten b
 - Month/year picker dropdown
 - **Filter** di header panel "Daftar agenda" (bukan floating di antara kalender & tabel)
 - Link **Party Detail** per baris agenda
+- **Export iCal** dari daftar agenda (filter aktif)
+- Calendar event chips **clickable** → Party Detail
 - Empty state: hint agreement date + duration
+- **ErrorBanner** dengan retry saat load gagal
 
 ## Shell
 

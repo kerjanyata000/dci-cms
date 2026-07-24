@@ -6,6 +6,7 @@ import { useAuth } from '@/components/AuthProvider'
 import { AddPartyModal } from '@/components/parties/AddPartyModal'
 import { LinkOdooModal } from '@/components/parties/LinkOdooModal'
 import { SortableTh } from '@/components/ui/SortableTh'
+import { ErrorBanner } from '@/components/ui/ErrorBanner'
 import { TablePagination, paginateSlice } from '@/components/ui/TablePagination'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { fetchParties, type PartyListItem } from '@/lib/parties/api'
@@ -259,7 +260,7 @@ export default function PartiesPage() {
         </span>
       </div>
 
-      {error && <p className="error-text">{error}</p>}
+      {error && <ErrorBanner message={error} onRetry={() => void load()} />}
 
       <div className="table-wrap">
         <table className="data-table">

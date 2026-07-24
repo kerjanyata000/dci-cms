@@ -13,7 +13,10 @@ import { TerminationModal } from '@/components/contracts/TerminationModal'
 import { UploadSupportingModal } from '@/components/contracts/UploadSupportingModal'
 import { ContractRowActions } from '@/components/parties/ContractRowActions'
 import { LinkOdooModal } from '@/components/parties/LinkOdooModal'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { ErrorBanner } from '@/components/ui/ErrorBanner'
 import { TablePagination, paginateSlice } from '@/components/ui/TablePagination'
+import { formatCurrency } from '@/lib/format/currency'
 import { fetchSyncedOrders, runSoSync, type SyncedOrderRow } from '@/lib/so/api'
 import { fetchPartyDetail, type PartyDetailPayload } from '@/lib/parties/api'
 import { ODOO_LINK_HINTS, ODOO_LINK_LABELS, formatOdooLinkSummary } from '@/lib/parties/types'
@@ -34,10 +37,24 @@ function contractMeta(c: Contract | undefined): ContractMetadata {
   return (c?.confirmed_metadata ?? {}) as ContractMetadata
 }
 
+function partyStatusClass(status: string): string {
+  const s = status.toLowerCase().replace(/\s+/g, '_')
+  if (s === 'active') return 'active'
+  if (s.includes('review')) return 'under_review'
+  if (s.includes('termin')) return 'terminated'
+  return 'draft'
+}
+
 function statusPillClass(status: string | undefined): string {
   if (!status) return 'draft'
   if (status === 'under_review') return 'under_review'
   return status
+}
+
+function soSyncClass(state: string): { label: string; className: string } {
+  if (state === 'done') return { label: 'Synchronized', className: 'linked' }
+  if (state === 'sale') return { label: 'In Progress', className: 'pending' }
+  return { label: state, className: 'draft' }
 }
 
 function LockIcon() {
@@ -193,13 +210,19 @@ export function PartyDetailView({ partyId, role }: Props) {
   )
 
   if (error) {
+    const notFound = /not found/i.test(error)
+    if (notFound) {
+      return (
+        <EmptyState
+          title="Party tidak ditemukan"
+          description="ID party tidak ada di register atau Anda tidak memiliki akses (RBAC)."
+          primaryAction={{ label: '← Kembali ke Parties', href: '/parties' }}
+          secondaryAction={{ label: 'Coba lagi', onClick: () => void load() }}
+        />
+      )
+    }
     return (
-      <div>
-        <p className="error-text">{error}</p>
-        <Link href="/parties" className="btn ghost">
-          ← Kembali ke Parties
-        </Link>
-      </div>
+      <ErrorBanner message={error} onRetry={() => void load()} />
     )
   }
 
@@ -257,7 +280,11 @@ export function PartyDetailView({ partyId, role }: Props) {
             </div>
             <div>
               <dt>Party Status</dt>
-              <dd>{party.party_status}</dd>
+              <dd>
+                <span className={`status-pill ${partyStatusClass(party.party_status)}`}>
+                  {party.party_status}
+                </span>
+              </dd>
             </div>
             <div>
               <dt>Contracts</dt>
@@ -660,20 +687,27 @@ export function PartyDetailView({ partyId, role }: Props) {
                   <thead>
                     <tr>
                       <th>SO</th>
-                      <th>State</th>
+                      <th>Sync Status</th>
+                      <th>Odoo State</th>
                       <th>Amount</th>
                       <th>Synced</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {soRows.map((o) => (
-                      <tr key={o.id}>
-                        <td className="mono">{o.name}</td>
-                        <td>{o.state}</td>
-                        <td>{o.amount_total ?? '—'}</td>
-                        <td className="mono">{new Date(o.synced_at).toLocaleString('id-ID')}</td>
-                      </tr>
-                    ))}
+                    {soRows.map((o) => {
+                      const st = soSyncClass(o.state)
+                      return (
+                        <tr key={o.id}>
+                          <td className="mono">{o.name}</td>
+                          <td>
+                            <span className={`status-pill ${st.className}`}>{st.label}</span>
+                          </td>
+                          <td>{o.state}</td>
+                          <td className="mono">{formatCurrency(o.amount_total)}</td>
+                          <td className="mono">{new Date(o.synced_at).toLocaleString('id-ID')}</td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               )}

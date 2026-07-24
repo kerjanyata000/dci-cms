@@ -3,8 +3,11 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { ErrorBanner } from '@/components/ui/ErrorBanner'
 import { TablePagination, paginateSlice } from '@/components/ui/TablePagination'
 import { fetchRenewalAgenda, type RenewalPayload } from '@/lib/renewal/api'
+import { downloadRenewalIcs } from '@/lib/renewal/ics'
 import type { RenewalAgendaItem } from '@/lib/renewal/types'
 
 type Filter = 'all' | 'urgent' | 'soon' | 'later' | 'month'
@@ -112,8 +115,10 @@ const FILTERS: Array<{ id: Filter; label: string; dot?: 'urgent' | 'soon' | 'lat
 ]
 
 export function RenewalCalendarView() {
+  const router = useRouter()
   const [data, setData] = useState<RenewalPayload | null>(null)
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<Filter>('all')
   const [cursor, setCursor] = useState(() => {
     const t = new Date()
@@ -176,11 +181,22 @@ export function RenewalCalendarView() {
     return () => document.removeEventListener('pointerdown', onPointerDown)
   }, [pickerOpen])
 
-  useEffect(() => {
-    fetchRenewalAgenda()
-      .then(setData)
-      .catch((err) => setError(err instanceof Error ? err.message : 'Gagal memuat renewal'))
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError('')
+    try {
+      setData(await fetchRenewalAgenda())
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Gagal memuat renewal')
+      setData(null)
+    } finally {
+      setLoading(false)
+    }
   }, [])
+
+  useEffect(() => {
+    void load()
+  }, [load])
 
   useEffect(() => {
     if (!data?.items.length) return
@@ -427,9 +443,9 @@ export function RenewalCalendarView() {
         </div>
       </div>
 
-      {error && <p className="error-text">{error}</p>}
+      {error && <ErrorBanner message={error} onRetry={() => void load()} />}
 
-      {!data && !error && (
+      {loading && !error && (
         <div className="renewal-loading" aria-busy="true" aria-label="Memuat agenda renewal">
           <div className="summary-strip">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -534,9 +550,18 @@ export function RenewalCalendarView() {
                   <span className="cal-daynum">{cell.date.getDate()}</span>
                   <div className="cal-events">
                     {evts.slice(0, 2).map((e) => (
-                      <span key={e.id} className={`cal-evt ${e.bucket}`}>
+                      <button
+                        key={e.id}
+                        type="button"
+                        className={`cal-evt cal-evt-btn ${e.bucket}`}
+                        title={`${e.partyCode} — buka Party Detail`}
+                        onClick={(ev) => {
+                          ev.stopPropagation()
+                          router.push(`/parties/${e.partyId}`)
+                        }}
+                      >
                         {e.partyCode}
-                      </span>
+                      </button>
                     ))}
                     {evts.length > 2 && <span className="cal-more">+{evts.length - 2}</span>}
                   </div>
@@ -608,6 +633,14 @@ export function RenewalCalendarView() {
                 {label}
               </button>
             ))}
+            <button
+              type="button"
+              className="btn ghost"
+              disabled={filteredTable.length === 0}
+              onClick={() => downloadRenewalIcs(filteredTable)}
+            >
+              Export iCal
+            </button>
           </div>
         </div>
 

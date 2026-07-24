@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import { ErrorBanner } from '@/components/ui/ErrorBanner'
 import { KpiCard } from '@/components/dashboard/KpiCard'
 import { DashboardRolePanels } from '@/components/dashboard/DashboardPanels'
 import { fetchDashboard } from '@/lib/dashboard/api'
@@ -87,10 +88,19 @@ function DashboardInner({ role, userName }: Props) {
   const roleCfg = ROLES[role]
 
   useEffect(() => {
+    setError('')
     fetchDashboard()
       .then(setData)
       .catch((err) => setError(err instanceof Error ? err.message : 'Gagal memuat dashboard'))
   }, [])
+
+  function retryLoad() {
+    setError('')
+    setData(null)
+    fetchDashboard()
+      .then(setData)
+      .catch((err) => setError(err instanceof Error ? err.message : 'Gagal memuat dashboard'))
+  }
 
   const kpis = data ? buildKpisForRole(role, data) : []
   const pending = data ? buildPendingForRole(role, data) : []
@@ -118,7 +128,7 @@ function DashboardInner({ role, userName }: Props) {
         <p>{copy.notice}</p>
       </div>
 
-      {error && <p className="error-text">{error}</p>}
+      {error && <ErrorBanner message={error} onRetry={retryLoad} />}
 
       <ForbiddenBanner />
 

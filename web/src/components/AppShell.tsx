@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
+import { EnvironmentBanner } from '@/components/shell/EnvironmentBanner'
 import { GlobalSearch } from '@/components/shell/GlobalSearch'
 import { IntegrationStatus } from '@/components/shell/IntegrationStatus'
 import { NotificationsBell } from '@/components/shell/NotificationsBell'
@@ -155,7 +156,9 @@ export function AppShell({ user, onLogout, children }: Props) {
           >
             <SidebarToggleIcon collapsed={isMobile ? !drawerOpen : sidebarCollapsed} />
           </button>
-          <GlobalSearch />
+          <Suspense fallback={<div className="global-search global-search-fallback" aria-hidden />}>
+            <GlobalSearch />
+          </Suspense>
           <div className="top-right">
             {sidebarCollapsed && !isMobile && (
               <IntegrationStatus variant="inline" className="topbar-integration" />
@@ -164,7 +167,10 @@ export function AppShell({ user, onLogout, children }: Props) {
             <UserProfileMenu user={user} onLogout={onLogout} onNavigate={() => setDrawerOpen(false)} />
           </div>
         </header>
-        <main className="content">{children}</main>
+        <main className="content">
+          <EnvironmentBanner />
+          {children}
+        </main>
       </div>
     </div>
   )

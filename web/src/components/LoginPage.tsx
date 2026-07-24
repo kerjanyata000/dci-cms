@@ -59,13 +59,13 @@ export function LoginPageSkeleton() {
 }
 
 export function LoginPage({ onLogin }: Props) {
-  const [email, setEmail] = useState('legal.admin@dci.co.id')
+  const isSupabase = AUTH_MODE === 'supabase'
+  const [email, setEmail] = useState(isSupabase ? '' : 'legal.admin@dci.co.id')
   const [password, setPassword] = useState('')
   const [role, setRole] = useState<AppRole>('legal')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const roleList = useMemo(() => Object.entries(ROLES) as Array<[AppRole, (typeof ROLES)[AppRole]]>, [])
-  const isSupabase = AUTH_MODE === 'supabase'
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()

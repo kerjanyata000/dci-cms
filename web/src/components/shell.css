@@ -3787,6 +3787,89 @@ textarea {
 }
 
 /* —— Responsive 375px —— */
+.env-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  background: #fef6e7;
+  border: 1px solid #e6d2af;
+  color: #5c4a2e;
+}
+
+.env-banner-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--amber);
+  flex-shrink: 0;
+}
+
+.empty-state {
+  max-width: 520px;
+  margin: 24px auto;
+  text-align: center;
+  padding: 28px 24px;
+}
+
+.empty-state h2 {
+  margin: 0 0 8px;
+  font-family: var(--serif);
+  font-size: 20px;
+}
+
+.empty-state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border-radius: 10px;
+  background: #fdecea;
+  border: 1px solid #f0c4bc;
+}
+
+.error-banner .error-text {
+  margin: 0;
+}
+
+.cal-evt-btn {
+  border: none;
+  font: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: opacity 0.15s ease;
+}
+
+.cal-evt-btn:hover {
+  opacity: 0.85;
+  text-decoration: underline;
+}
+
+.global-search-fallback {
+  flex: 1;
+  min-height: 40px;
+  border-radius: 10px;
+  background: var(--slate-light);
+}
+
 @media (max-width: 375px) {
   .topbar {
     gap: 8px;
