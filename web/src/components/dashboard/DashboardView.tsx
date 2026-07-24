@@ -20,17 +20,50 @@ type Props = {
   userName: string
 }
 
-const showDevBanner = process.env.NODE_ENV !== 'production'
+function InfoIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="16" x2="12" y2="12" />
+      <line x1="12" y1="8" x2="12.01" y2="8" />
+    </svg>
+  )
+}
+
+function LockIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <rect x="3" y="11" width="18" height="11" rx="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  )
+}
 
 function ForbiddenBanner() {
   const searchParams = useSearchParams()
   const path = searchParams.get('forbidden')
   if (!path) return null
   return (
-    <div className="notice" style={{ borderColor: 'var(--amber)', marginBottom: 12 }}>
+    <div className="notice notice-warn">
+      <InfoIcon />
       <div>
         <b>Akses ditolak (RBAC).</b> Role Anda tidak memiliki akses ke{' '}
         <span className="mono">{path}</span> — BRL-CMS-001.
+      </div>
+    </div>
+  )
+}
+
+function ViewOnlyBanner({ roleLabel, canSync }: { roleLabel: string; canSync: boolean }) {
+  const extra = canSync
+    ? ' Tombol SO Sync tetap tersedia di SO Health.'
+    : ' Anda dapat melihat status & detail party (view-only).'
+  return (
+    <div className="readonly-banner dashboard-readonly">
+      <LockIcon />
+      <div>
+        Login sebagai <b>{roleLabel}</b> — <b>view-only</b> pada create/edit kontrak &amp; party
+        (BRL-CMS-001/002).{extra}
       </div>
     </div>
   )
@@ -51,9 +84,10 @@ function DashboardInner({ role, userName }: Props) {
 
   const kpis = data ? buildKpisForRole(role, data) : []
   const pending = data ? buildPendingForRole(role, data) : []
+  const kpiCount = role === 'legal' ? 5 : 4
 
   return (
-    <div>
+    <div className="dashboard-page">
       <div className="page-head spread-head">
         <div>
           <div className="crumb">{copy.crumb}</div>
@@ -63,24 +97,27 @@ function DashboardInner({ role, userName }: Props) {
           <p>{copy.desc}</p>
         </div>
         {data && (
-          <div className="odoo-mode-chip" title="Mode integrasi">
-            Odoo: {data.integration.odooMode.toUpperCase()} · RAGFlow:{' '}
+          <div
+            className={`odoo-mode-chip ${data.integration.odooMode === 'live' ? 'live' : 'dummy'}`}
+            title="Mode integrasi Odoo / RAGFlow"
+          >
+            Odoo: {data.integration.odooMode.toUpperCase()} · RAG:{' '}
             {data.integration.ragflowMode.toUpperCase()}
           </div>
         )}
       </div>
 
+      {!roleCfg.canEdit && (
+        <ViewOnlyBanner roleLabel={roleCfg.label} canSync={roleCfg.canSync} />
+      )}
+
       <div className="notice">
+        <InfoIcon />
         <div>
           <span className={`role-workspace-chip ${role}`}>{roleCfg.label}</span>
-          <div style={{ marginTop: 6 }}>
+          <div className="notice-body">
             <b>{roleCfg.label}.</b> {copy.notice}
           </div>
-          {showDevBanner && data && (
-            <div className="mono" style={{ marginTop: 8, fontSize: 11 }}>
-              FR-DASH-003 · dev banner
-            </div>
-          )}
         </div>
       </div>
 
@@ -88,19 +125,20 @@ function DashboardInner({ role, userName }: Props) {
 
       <ForbiddenBanner />
 
-      <div className={`kpi-grid kpi-cols-${role === 'legal' ? 5 : 4}`}>
+      <div className={`kpi-grid kpi-cols-${kpiCount}`}>
         {data
           ? kpis.map((k) => <KpiCard key={k.label} {...k} />)
-          : Array.from({ length: role === 'legal' ? 5 : 4 }).map((_, i) => (
-              <div key={i} className="kpi-card kpi-skeleton" />
+          : Array.from({ length: kpiCount }).map((_, i) => (
+              <div key={i} className="kpi-card kpi-skeleton" aria-hidden />
             ))}
       </div>
 
       {data ? (
         <DashboardRolePanels role={role} data={data} pending={pending} />
       ) : (
-        <div className="card muted" style={{ marginTop: 0 }}>
-          Memuat panel dashboard…
+        <div className="card dashboard-loading">
+          <div className="dashboard-loading-bar" />
+          <p className="muted">Memuat panel dashboard…</p>
         </div>
       )}
 
@@ -123,7 +161,17 @@ function DashboardInner({ role, userName }: Props) {
 
 export function DashboardView(props: Props) {
   return (
-    <Suspense fallback={<div className="muted">Memuat dashboard…</div>}>
+    <Suspense
+      fallback={
+        <div className="dashboard-page">
+          <div className="kpi-grid kpi-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="kpi-card kpi-skeleton" />
+            ))}
+          </div>
+        </div>
+      }
+    >
       <DashboardInner {...props} />
     </Suspense>
   )

@@ -3,6 +3,8 @@ export type AppRole = 'legal' | 'business' | 'finance' | 'management' | 'it'
 export type RoleConfig = {
   label: string
   initials: string
+  /** Short description for login role picker */
+  desc: string
   /** Sidebar primary nav */
   nav: Array<'dashboard' | 'parties' | 'renewal' | 'so' | 'search'>
   views: Array<
@@ -23,6 +25,7 @@ export const ROLES: Record<AppRole, RoleConfig> = {
   legal: {
     label: 'Legal / Contract Admin',
     initials: 'LG',
+    desc: 'Akses penuh: create/edit contract, CP change, amendment, termination, party CRUD.',
     nav: ['dashboard', 'parties', 'search', 'renewal'],
     views: ['dashboard', 'parties', 'party-detail', 'renewal', 'so', 'audit', 'notifications', 'search'],
     canEdit: true,
@@ -31,6 +34,7 @@ export const ROLES: Record<AppRole, RoleConfig> = {
   business: {
     label: 'Business User / Requestor',
     initials: 'BU',
+    desc: 'Melihat kontrak & party terkait, mengajukan permintaan ke Legal.',
     nav: ['dashboard', 'parties', 'search'],
     views: ['dashboard', 'parties', 'party-detail', 'notifications', 'search'],
     canEdit: false,
@@ -39,6 +43,7 @@ export const ROLES: Record<AppRole, RoleConfig> = {
   finance: {
     label: 'Finance / Commercial',
     initials: 'FC',
+    desc: 'Referensi kontrak, party, dan SO untuk follow-up operasional/komersial.',
     nav: ['dashboard', 'parties', 'search', 'so'],
     views: ['dashboard', 'parties', 'party-detail', 'so', 'notifications', 'search'],
     canEdit: false,
@@ -47,6 +52,7 @@ export const ROLES: Record<AppRole, RoleConfig> = {
   management: {
     label: 'Management / Directors',
     initials: 'MD',
+    desc: 'Monitoring & pelaporan lintas kontrak, akses view-only (BRD §5).',
     nav: ['dashboard', 'parties', 'search', 'renewal'],
     views: ['dashboard', 'parties', 'party-detail', 'renewal', 'audit', 'notifications', 'search'],
     canEdit: false,
@@ -55,6 +61,7 @@ export const ROLES: Record<AppRole, RoleConfig> = {
   it: {
     label: 'IT / Odoo Support',
     initials: 'IT',
+    desc: 'Dukungan integrasi Odoo, exception monitoring, SO sync (tanpa create kontrak).',
     nav: ['dashboard', 'parties', 'search', 'renewal', 'so'],
     views: ['dashboard', 'parties', 'party-detail', 'renewal', 'so', 'audit', 'notifications', 'search'],
     canEdit: false,

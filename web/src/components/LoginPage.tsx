@@ -12,6 +12,20 @@ type Props = {
   onLogin: (user: SessionUser) => void
 }
 
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  )
+}
+
+const LOGIN_FEATURES = [
+  'Tampilan & menu menyesuaikan role (BRD §5)',
+  'Legal-managed actions tanpa approval internal (BRL-CMS-007/012/015)',
+  'Audit trail lengkap untuk setiap aksi (BRL-CMS-025)',
+]
+
 export function LoginPage({ onLogin }: Props) {
   const [email, setEmail] = useState('legal.admin@dci.co.id')
   const [password, setPassword] = useState('')
@@ -40,6 +54,11 @@ export function LoginPage({ onLogin }: Props) {
         return
       }
 
+      if (!email.includes('@')) {
+        setError('Email tidak valid. Gunakan format email perusahaan.')
+        return
+      }
+
       const name = email
         .split('@')[0]
         .replace(/[.\-]/g, ' ')
@@ -53,59 +72,98 @@ export function LoginPage({ onLogin }: Props) {
   }
 
   return (
-    <div className="login-screen">
-      <form className="login-card" onSubmit={submit}>
-        <h1>Contract MS</h1>
-        <p className="muted">
-          Next.js · Supabase · Odoo · RAGFlow
-          {isSupabase ? ' · Auth: Supabase' : ' · Auth: mock (dev)'}
-        </p>
-        <div className="field">
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            autoComplete="username"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        {isSupabase ? (
+    <div className="login-page">
+      <div className="login-card">
+        <aside className="login-side" aria-label="Tentang CMS">
+          <div className="brand-seal login-brand-seal">CM</div>
+          <h2>Contract Management System</h2>
+          <p>
+            Party-centric contract registry terintegrasi Odoo &amp; RAGFlow — mengikuti BRD v1.3
+            (Contract Management System).
+          </p>
+          <ul className="login-side-list">
+            {LOGIN_FEATURES.map((text) => (
+              <li key={text}>
+                <CheckIcon />
+                {text}
+              </li>
+            ))}
+          </ul>
+          <div className="login-side-foot">
+            DCI · Contract Management System v1.3
+            <br />
+            {isSupabase ? 'Auth: Supabase + profiles.role' : 'Dev: mock role picker'}
+          </div>
+        </aside>
+
+        <form className="login-form" onSubmit={submit}>
+          <h1>Masuk ke akun Anda</h1>
+          <p>
+            {isSupabase
+              ? 'Email/password — role dari tabel profiles (FR-DASH-001–002).'
+              : 'Pilih role untuk mensimulasikan tampilan & akses sesuai BRD §5 Stakeholders.'}
+          </p>
+
+          {error && <div className="login-error show">{error}</div>}
+
           <div className="field">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="email">Email</label>
             <input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              id="email"
+              type="email"
+              autoComplete="username"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
-        ) : (
-          <div className="field">
-            <label htmlFor="role">Role (dev mock)</label>
-            <select id="role" value={role} onChange={(e) => setRole(e.target.value as AppRole)}>
-              {roleList.map(([key, cfg]) => (
-                <option key={key} value={key}>
-                  {cfg.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
-        {error && <p className="error-text">{error}</p>}
-        <button className="btn primary" type="submit" disabled={busy}>
-          {busy ? 'Masuk…' : 'Masuk'}
-        </button>
-        {isSupabase && (
-          <p className="muted" style={{ fontSize: 11, marginTop: 8 }}>
-            Role diambil dari tabel <code>profiles</code>. Buat user di Supabase Auth Dashboard lalu
-            set role via SQL/migration 006.
+
+          {isSupabase ? (
+            <div className="field">
+              <label htmlFor="password">Password</label>
+              <input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+          ) : (
+            <>
+              <div className="field">
+                <span className="field-label-block">Login sebagai (role demo)</span>
+              </div>
+              <div className="role-grid" role="listbox" aria-label="Pilih role">
+                {roleList.map(([key, cfg]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    role="option"
+                    aria-selected={role === key}
+                    className={`role-card${role === key ? ' selected' : ''}`}
+                    onClick={() => setRole(key)}
+                  >
+                    <b>{cfg.label}</b>
+                    <span>{cfg.desc}</span>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          <button className="btn primary login-submit" type="submit" disabled={busy}>
+            {busy ? 'Masuk…' : 'Masuk'}
+          </button>
+
+          <p className="login-footnote">
+            {isSupabase
+              ? 'Role diambil dari profiles. Seed: npm run seed:auth'
+              : 'Prototype internal — kredensial di atas hanya contoh untuk dev mock.'}
           </p>
-        )}
-      </form>
+        </form>
+      </div>
     </div>
   )
 }
