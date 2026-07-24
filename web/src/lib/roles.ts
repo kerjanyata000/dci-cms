@@ -66,3 +66,35 @@ export type SessionUser = {
   name: string
   role: AppRole
 }
+
+/** Middleware / route guard — path must match RBAC nav + views (BRL-CMS-001). */
+export function canAccessRoute(role: AppRole, pathname: string): boolean {
+  const cfg = ROLES[role]
+
+  if (pathname === '/dashboard' || pathname.startsWith('/dashboard/')) {
+    return cfg.views.includes('dashboard')
+  }
+  if (pathname.startsWith('/parties')) {
+    return cfg.views.includes('parties') || cfg.views.includes('party-detail')
+  }
+  if (pathname.startsWith('/renewal')) {
+    return cfg.nav.includes('renewal')
+  }
+  if (pathname.startsWith('/so')) {
+    return cfg.nav.includes('so')
+  }
+  if (pathname.startsWith('/search')) {
+    return cfg.nav.includes('search')
+  }
+  if (pathname.startsWith('/activity')) {
+    return cfg.views.includes('audit')
+  }
+  if (pathname.startsWith('/notifications')) {
+    return cfg.views.includes('notifications')
+  }
+  if (pathname.startsWith('/lab')) {
+    return role === 'legal' || role === 'it'
+  }
+
+  return false
+}

@@ -25,10 +25,10 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | **1. Integrasi backend** | ✅ Selesai | Odoo live, RAGFlow, Supabase schema 001–008, seed demo mockup |
 | **2. Domain core** | ✅ ~95% | Parties, link Odoo, kontrak lifecycle, SO sync, audit |
 | **3. Port UI mockup** | ✅ ~90% | Party list, Renewal, Notifikasi, Dashboard panels (lifecycle/PIC/timeline) |
-| **4. Polish & pre-live** | 🟡 **Sedang** | Supabase Auth seed, dashboard mockup parity, UAT manual |
-| **5. Verify & ship** | ⬜ Belum | Go/No-Go §14, hardening §10 |
+| **4. Polish & pre-live** | ✅ ~95% | Dashboard mockup, Auth seed, RBAC middleware route guard |
+| **5. Verify & ship** | 🟡 **~80%** | Smoke `npm run smoke:uat` lulus (API + route RBAC); UAT manual + Go/No-Go §14 tersisa |
 
-**Posisi saat ini:** akhir **Fase 3** — UI mendekati mockup; lanjut polish visual + auth production + UAT manual.
+**Posisi saat ini:** **Fase 5** — otomatisasi smoke selesai; lanjut UAT manual (isi kolom Hasil) + Supabase Auth prod sebelum go-live.
 
 ---
 
@@ -50,7 +50,7 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | # | Test case | Role | Langkah | Expected | Impl | Hasil |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1.1 | Login berhasil | Semua | Buka `/` → pilih role → login | Redirect ke `/dashboard` | 🟡 | | Mock login localStorage, bukan Supabase Auth |
-| 1.2 | Tanpa login tidak bisa akses app | — | Buka `/parties` langsung | Redirect ke `/` | ✅ | | |
+| 1.2 | Tanpa login tidak bisa akses app | — | Buka `/parties` langsung | Redirect ke `/?next=/parties` | ✅ | | smoke:uat |
 | 1.3 | Logout | Semua | Klik Keluar | Kembali ke login | ✅ | | |
 | 1.4 | Menu sidebar sesuai role | Legal | Login Legal | Dashboard, Parties, Renewal, Extraction Lab | 🟡 | | Extraction Lab belum di mockup |
 | 1.5 | Menu sidebar sesuai role | Business | Login Business | Dashboard, Parties saja | 🟡 | | |
@@ -60,8 +60,9 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | 1.9 | Supabase Auth production | — | Login email/password | Session + `profiles.role` | 🟡 | | Set `NEXT_PUBLIC_AUTH_MODE=supabase` + migration 006 |
 | 1.9a | Mock auth dev | — | Default tanpa env | Role picker + cookie session | 🟡 | | POST `/api/auth/session` |
 | 1.10 | API RBAC write guard | Business POST party | 403 Forbidden | 🟡 | | requireCanEdit on mutating routes |
-| 1.11 | Middleware route guard | Tanpa login → `/` | Redirect | 🟡 | | `middleware.ts` + `cms_session` cookie |
-| 1.12 | Session cookie on login | Legal login | Cookie httpOnly | 🟡 | | credentials: include via cmsFetch |
+| 1.11 | Middleware route guard | Tanpa login → `/` | Redirect | ✅ | | + `next` return URL |
+| 1.12 | Session cookie on login | Legal login | Cookie httpOnly | ✅ | | |
+| 1.13 | RBAC route guard | Business → `/renewal` | Redirect dashboard + forbidden | ✅ | | `canAccessRoute` middleware |
 
 ---
 
@@ -227,6 +228,14 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 
 Jalankan sebelum setiap release candidate:
 
+```bash
+cd web
+npm run dev          # terminal 1
+npm run smoke:uat    # terminal 2 — otomatis §11 di bawah
+```
+
+Manual (jika perlu):
+
 ```text
 GET  http://localhost:3000/api/odoo/health      → ok: true
 GET  http://localhost:3000/api/ragflow/health   → ok: true
@@ -234,17 +243,30 @@ GET  http://localhost:3000/api/parties          → ok: true (dengan session coo
 POST http://localhost:3000/api/odoo/partners/search  body: {"domain":[],"limit":5}
 ```
 
-Manual UI (5 menit):
+**Otomatis (`npm run smoke:uat`):**
 
-1. Login Legal  
-2. `/parties` — list + add + link Odoo  
+| Cek | Expected |
+| --- | --- |
+| Odoo + RAGFlow health | `ok: true` |
+| Legal: parties, dashboard, renewal, notifications, audit | HTTP 200 + `ok: true` |
+| Business: GET parties | 200; POST parties | 403; GET audit | 403 |
+| Business: GET `/renewal` | Redirect `/dashboard?forbidden=/renewal` |
+| Legal: GET `/renewal`, `/activity` | HTTP 200 |
+| Tanpa cookie: GET `/parties` | Redirect `/?next=/parties` |
+
+Manual UI (15–30 menit):
+
+1. Login Legal → `/dashboard` (KPI + lifecycle donut + renewal timeline)  
+2. `/parties` — list + filter + add + link Odoo  
 3. Party Detail → Add Contract **dengan PDF** → cek validation_status  
 4. Amendment + Early Termination (kontrak status Active dulu)  
 5. Upload Supporting Doc  
-6. `/renewal` — kalender  
-7. `/so` — Run Sync  
+6. `/renewal` — kalender + urgency bucket  
+7. `/notifications` — event NOTIF-CMS-017/018  
+8. Login Business → coba `/renewal` (banner forbidden di dashboard)  
+9. `/so` — Run Sync (Finance/IT)  
 
-**DB (sebelum UI di atas):** migration `003` + `004` + `005` + `006` + `007` di Supabase SQL Editor.
+**DB (sebelum UI di atas):** migration `003`–`008` di Supabase; `npm run seed:demo:dates` agar renewal tidak kosong.
 
 ---
 
@@ -293,8 +315,8 @@ Manual UI (5 menit):
 
 | Tanggal | Tester | Build/commit | Environment | Ringkasan |
 | --- | --- | --- | --- | --- |
-| | | | local / staging | |
-| | | | | |
+| 2026-07-24 | Agent (otomatis) | local | local `:3000` | `npm run smoke:uat` — **14/14 PASS** (health, API RBAC, route guard) |
+| | | | local / staging | UAT manual — isi kolom Hasil |
 
 ---
 
@@ -316,9 +338,9 @@ Ini **by design** pada fase saat ini — bukan bug:
 1. ✅ Integrasi backend (Odoo, RAGFlow, Supabase schema + seed)  
 2. ✅ Domain core (Parties + link Odoo + kontrak lifecycle)  
 3. ✅ Port UI mockup ke komponen React  
-4. 🟡 Polish & pre-live — **sedang di sini** (Auth seed, UAT, e-sign backlog)  
-5. ⬜ Verify & ship (Go/No-Go)
+4. ✅ Polish & pre-live — Auth seed, dashboard panels, RBAC middleware  
+5. 🟡 Verify & ship — **sedang di sini** (`smoke:uat` lulus; UAT manual + Go/No-Go)
 
-Jadi localhost **sudah benar** untuk fase integrasi; belum waktunya pixel-perfect dengan mockup sampai fitur domain core stabil.
+UI Next.js sudah mendekati mockup untuk alur utama (Party, Dashboard, Renewal, Notifikasi). Sisa gap: e-sign provider penuh, download dokumen demo (butuh file Storage), dan polish visual minor.
 
-**Agar mirip mockup:** port bertahap dari `CMS_Mockup.html` → komponen React, mulai dari Party Detail + Dashboard KPI (lihat [`DESIGN_GUIDELINES.md`](../DESIGN_GUIDELINES.md)).
+**Post go-live:** e-sign commercial, bulk migration historis, BI prediktif (Out of Scope BRD §4.2).

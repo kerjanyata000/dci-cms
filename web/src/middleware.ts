@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { CMS_SESSION_COOKIE, decodeSessionCookie } from '@/lib/auth/session-cookie'
-import { ROLES } from '@/lib/roles'
+import { ROLES, canAccessRoute, type AppRole } from '@/lib/roles'
 
 const PROTECTED_PREFIXES = [
   '/dashboard',
@@ -10,8 +10,16 @@ const PROTECTED_PREFIXES = [
   '/so',
   '/search',
   '/activity',
+  '/notifications',
   '/lab',
 ]
+
+function sessionRole(raw: string | undefined): AppRole | null {
+  if (!raw) return null
+  const payload = decodeSessionCookie(raw)
+  if (!payload?.role || !(payload.role in ROLES)) return null
+  return payload.role as AppRole
+}
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -28,14 +36,18 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  const raw = request.cookies.get(CMS_SESSION_COOKIE)?.value
-  const payload = raw ? decodeSessionCookie(raw) : null
-  const valid = payload?.role && payload.role in ROLES
+  const role = sessionRole(request.cookies.get(CMS_SESSION_COOKIE)?.value)
 
-  if (!valid) {
+  if (!role) {
     const loginUrl = new URL('/', request.url)
     loginUrl.searchParams.set('next', pathname)
     return NextResponse.redirect(loginUrl)
+  }
+
+  if (!canAccessRoute(role, pathname)) {
+    const denied = new URL('/dashboard', request.url)
+    denied.searchParams.set('forbidden', pathname)
+    return NextResponse.redirect(denied)
   }
 
   return NextResponse.next()
@@ -49,6 +61,7 @@ export const config = {
     '/so/:path*',
     '/search/:path*',
     '/activity/:path*',
+    '/notifications/:path*',
     '/lab/:path*',
   ],
 }

@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { KpiCard } from '@/components/dashboard/KpiCard'
 import { DashboardRolePanels } from '@/components/dashboard/DashboardPanels'
 import { fetchDashboard } from '@/lib/dashboard/api'
@@ -20,7 +21,21 @@ type Props = {
 
 const showDevBanner = process.env.NODE_ENV !== 'production'
 
-export function DashboardView({ role, userName }: Props) {
+function ForbiddenBanner() {
+  const searchParams = useSearchParams()
+  const path = searchParams.get('forbidden')
+  if (!path) return null
+  return (
+    <div className="notice" style={{ borderColor: 'var(--amber)', marginBottom: 12 }}>
+      <div>
+        <b>Akses ditolak (RBAC).</b> Role Anda tidak memiliki akses ke{' '}
+        <span className="mono">{path}</span> — BRL-CMS-001.
+      </div>
+    </div>
+  )
+}
+
+function DashboardInner({ role, userName }: Props) {
   const [data, setData] = useState<DashboardPayload | null>(null)
   const [error, setError] = useState('')
 
@@ -65,6 +80,8 @@ export function DashboardView({ role, userName }: Props) {
 
       {error && <p className="error-text">{error}</p>}
 
+      <ForbiddenBanner />
+
       <div className={`kpi-grid kpi-cols-${role === 'legal' ? 5 : 4}`}>
         {data
           ? kpis.map((k) => <KpiCard key={k.label} {...k} />)
@@ -88,5 +105,13 @@ export function DashboardView({ role, userName }: Props) {
         </p>
       )}
     </div>
+  )
+}
+
+export function DashboardView(props: Props) {
+  return (
+    <Suspense fallback={<div className="muted">Memuat dashboard…</div>}>
+      <DashboardInner {...props} />
+    </Suspense>
   )
 }

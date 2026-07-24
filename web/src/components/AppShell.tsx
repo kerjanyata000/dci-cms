@@ -58,13 +58,24 @@ export function AppShell({ user, onLogout, children }: Props) {
           </Link>
         )
       })}
-      <Link
-        href="/lab/extraction"
-        className={`nav-item${pathname.startsWith('/lab/extraction') ? ' active' : ''}`}
-        onClick={() => setDrawerOpen(false)}
-      >
-        Extraction Lab
-      </Link>
+      {(user.role === 'legal' || user.role === 'it') && (
+        <Link
+          href="/lab/extraction"
+          className={`nav-item${pathname.startsWith('/lab/extraction') ? ' active' : ''}`}
+          onClick={() => setDrawerOpen(false)}
+        >
+          Extraction Lab
+        </Link>
+      )}
+      {role.views.includes('notifications') && (
+        <Link
+          href="/notifications"
+          className={`nav-item${pathname.startsWith('/notifications') ? ' active' : ''}`}
+          onClick={() => setDrawerOpen(false)}
+        >
+          Notifikasi
+        </Link>
+      )}
     </>
   )
 

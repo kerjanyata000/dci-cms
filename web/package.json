@@ -9,7 +9,8 @@
     "lint": "eslint",
     "seed:demo": "node scripts/seed-demo.mjs",
     "seed:demo:dates": "node scripts/seed-demo.mjs -- --refresh-dates",
-    "seed:auth": "node scripts/seed-auth-users.mjs"
+    "seed:auth": "node scripts/seed-auth-users.mjs",
+    "smoke:uat": "node scripts/smoke-uat.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.8",
