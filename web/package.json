@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "seed:demo": "node scripts/seed-demo.mjs",
-    "seed:demo:dates": "node scripts/seed-demo.mjs -- --refresh-dates"
+    "seed:demo:dates": "node scripts/seed-demo.mjs -- --refresh-dates",
+    "seed:auth": "node scripts/seed-auth-users.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.8",

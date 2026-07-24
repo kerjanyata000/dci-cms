@@ -24,10 +24,46 @@ export type DashboardStats = {
   draftContracts: number
   activeContracts: number
   reviewContracts: number
+  autoRenewalContracts: number
+}
+
+export type LifecycleBreakdown = {
+  active: number
+  review: number
+  draft: number
+  other: number
+  total: number
+}
+
+export type PicWorkloadRow = {
+  pic: string
+  count: number
+}
+
+export type RenewalTimelineRow = {
+  party_id: string
+  party_code: string
+  contract_code: string
+  renewal_date: string
+  days_left: number
+  bucket: 'urgent' | 'soon' | 'later'
+}
+
+export type SoHealthSnapshot = {
+  synchronized: number
+  noActiveSo: number
+  inProgress: number
+  syncErrors: number
 }
 
 export type DashboardPayload = {
   stats: DashboardStats
+  lifecycle: LifecycleBreakdown
+  picWorkload: PicWorkloadRow[]
+  renewalTimeline: RenewalTimelineRow[]
+  soHealth: SoHealthSnapshot
+  noActiveSoParties: Array<{ id: string; party_code: string; name: string }>
+  integration: { odooMode: string; ragflowMode: string }
   pendingOdooParties: Array<{ id: string; party_code: string; name: string; odoo_link_status: string }>
   recentContracts: Array<{
     id: string
@@ -108,20 +144,20 @@ export function buildKpisForRole(role: AppRole, data: DashboardPayload): KpiItem
         },
         {
           label: 'Active / Signed',
-          value: String(s.activeContracts),
-          sub: pct(s.activeContracts, s.totalContracts),
+          value: pctContracts(s.activeContracts, s.totalContracts),
+          sub: `${s.activeContracts} dari ${s.totalContracts}`,
           tone: 'green',
         },
         {
-          label: 'Renewal ≤14 hari',
-          value: String(data.renewalSoon.filter((r) => r.days_left <= 14).length),
-          sub: 'NOTIF-CMS-017 path · FR-DASH-004',
+          label: 'Under Review',
+          value: String(s.reviewContracts),
+          sub: 'Perlu tindak lanjut Legal',
           tone: 'amber',
         },
         {
-          label: 'Odoo Linked',
-          value: String(s.linkedParties),
-          sub: `${s.pendingOdooLink} pending · ${s.mismatchOdooLink} mismatch`,
+          label: 'Auto-Renewal',
+          value: pctContracts(s.autoRenewalContracts, s.totalContracts),
+          sub: `${s.autoRenewalContracts} kontrak · metadata`,
           tone: '',
         },
       ]
@@ -152,33 +188,35 @@ export function buildKpisForRole(role: AppRole, data: DashboardPayload): KpiItem
           tone: 'green',
         },
       ]
-    case 'finance':
+    case 'finance': {
+      const so = data.soHealth
       return [
         {
-          label: 'Odoo Linked',
-          value: String(s.linkedParties),
-          sub: `${s.totalParties} parties total`,
+          label: 'SO Synchronized',
+          value: String(so.synchronized),
+          sub: pctContracts(so.synchronized, s.activeContracts),
           tone: 'green',
         },
         {
-          label: 'Pending Odoo Link',
-          value: String(s.pendingOdooLink),
-          sub: 'Perlu follow-up link',
+          label: 'No Active SO',
+          value: String(so.noActiveSo),
+          sub: 'NOTIF-CMS-014',
           tone: 'amber',
         },
         {
-          label: 'Mismatch / Relink',
-          value: String(s.mismatchOdooLink),
-          sub: 'NOTIF-CMS-016 path',
-          tone: 'red',
-        },
-        {
-          label: 'Kontrak aktif',
-          value: String(s.activeContracts),
-          sub: 'Commercial reference',
+          label: 'In Progress',
+          value: String(so.inProgress),
+          sub: 'State sale',
           tone: 'brass',
         },
+        {
+          label: 'Sync Errors (7d)',
+          value: String(so.syncErrors),
+          sub: 'NOTIF-CMS-015',
+          tone: 'red',
+        },
       ]
+    }
     case 'management':
       return [
         {
@@ -206,7 +244,8 @@ export function buildKpisForRole(role: AppRole, data: DashboardPayload): KpiItem
           tone: 'red',
         },
       ]
-    case 'it':
+    case 'it': {
+      const so = data.soHealth
       return [
         {
           label: 'Odoo Linked',
@@ -215,24 +254,25 @@ export function buildKpisForRole(role: AppRole, data: DashboardPayload): KpiItem
           tone: 'green',
         },
         {
-          label: 'Pending / Unlinked',
-          value: String(s.pendingOdooLink),
-          sub: 'NOTIF-CMS-019',
+          label: 'Pending / Mismatch',
+          value: String(s.pendingOdooLink + s.mismatchOdooLink),
+          sub: 'NOTIF-CMS-016/019',
           tone: 'amber',
         },
         {
-          label: 'Mismatch / Relink',
-          value: String(s.mismatchOdooLink),
-          sub: 'NOTIF-CMS-016',
+          label: 'SO Sync Error',
+          value: String(so.syncErrors),
+          sub: '7 hari terakhir',
           tone: 'red',
         },
         {
-          label: 'Contracts',
-          value: String(s.totalContracts),
-          sub: 'CMS records',
+          label: 'Adapter',
+          value: data.integration.odooMode.toUpperCase(),
+          sub: `RAGFlow ${data.integration.ragflowMode}`,
           tone: 'brass',
         },
       ]
+    }
     default:
       return []
   }
@@ -281,7 +321,19 @@ export function buildPendingForRole(role: AppRole, data: DashboardPayload): Pend
     }
   }
 
-  if (role === 'it' || role === 'finance') {
+  if (role === 'finance') {
+    for (const p of data.noActiveSoParties.slice(0, 3)) {
+      items.push({
+        title: p.party_code,
+        sub: 'No Active SO / Renewal Not Found',
+        href: `/parties/${p.id}`,
+        pill: 'No SO',
+        pillClass: 'pending',
+      })
+    }
+  }
+
+  if (role === 'it') {
     items.push({
       title: 'SO Health monitor',
       sub: 'Run Sync & exception list · INT-SO',
@@ -303,4 +355,9 @@ export function buildPendingForRole(role: AppRole, data: DashboardPayload): Pend
 function pct(n: number, total: number): string {
   if (total === 0) return '0%'
   return `${Math.round((n / total) * 100)}% parties`
+}
+
+function pctContracts(n: number, total: number): string {
+  if (total === 0) return '0%'
+  return `${Math.round((n / total) * 100)}%`
 }

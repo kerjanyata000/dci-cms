@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { KpiCard } from '@/components/dashboard/KpiCard'
+import { DashboardRolePanels } from '@/components/dashboard/DashboardPanels'
 import { fetchDashboard } from '@/lib/dashboard/api'
 import {
   buildKpisForRole,
@@ -10,14 +11,14 @@ import {
   getDashboardCopy,
   type DashboardPayload,
 } from '@/lib/dashboard/config'
-import { ODOO_MODE } from '@/lib/odoo/client'
-import { RAGFLOW_MODE } from '@/lib/ragflow/client'
 import type { AppRole } from '@/types/cms'
 
 type Props = {
   role: AppRole
   userName: string
 }
+
+const showDevBanner = process.env.NODE_ENV !== 'production'
 
 export function DashboardView({ role, userName }: Props) {
   const [data, setData] = useState<DashboardPayload | null>(null)
@@ -44,14 +45,23 @@ export function DashboardView({ role, userName }: Props) {
         <p>{copy.desc}</p>
       </div>
 
-      <div className="notice">
-        <div>
-          <b>FR-DASH-003</b> · {copy.notice}
-          <div className="mono" style={{ marginTop: 6 }}>
-            Odoo: {ODOO_MODE.toUpperCase()} · RAGFlow: {RAGFLOW_MODE.toUpperCase()}
+      {showDevBanner && data && (
+        <div className="notice">
+          <div>
+            <b>FR-DASH-003</b> · {copy.notice}
+            <div className="mono" style={{ marginTop: 6 }}>
+              Odoo: {data.integration.odooMode.toUpperCase()} · RAGFlow:{' '}
+              {data.integration.ragflowMode.toUpperCase()}
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {!showDevBanner && (
+        <div className="notice">
+          <div>{copy.notice}</div>
+        </div>
+      )}
 
       {error && <p className="error-text">{error}</p>}
 
@@ -63,57 +73,20 @@ export function DashboardView({ role, userName }: Props) {
             ))}
       </div>
 
-      <div className="grid-2" style={{ marginTop: 16 }}>
-        <div className="card stack">
-          <div className="card-head">
-            <h3>Pending Actions</h3>
-            <span className="ref-tag">FR-DASH-005</span>
-          </div>
-          {pending.length === 0 ? (
-            <p className="muted">Tidak ada pending action dari data saat ini.</p>
-          ) : (
-            <ul className="pending-list">
-              {pending.map((item, i) => (
-                <li key={i} className="pending-item">
-                  <div>
-                    <b>{item.title}</b>
-                    <br />
-                    <span className="muted">{item.sub}</span>
-                  </div>
-                  {item.href ? (
-                    <Link href={item.href} className="btn ghost">
-                      Buka
-                    </Link>
-                  ) : item.pill ? (
-                    <span className={`pill pill-${item.pillClass ?? 'pending'}`}>{item.pill}</span>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
+      {data ? (
+        <DashboardRolePanels role={role} data={data} pending={pending} />
+      ) : (
+        <div className="card muted" style={{ marginTop: 16 }}>
+          Memuat panel dashboard…
         </div>
+      )}
 
-        <div className="card stack">
-          <div className="card-head">
-            <h3>Register snapshot</h3>
-            <span className="ref-tag">BRL-CMS-026</span>
-          </div>
-          {data ? (
-            <ul className="list">
-              <li>Parties: {data.stats.totalParties}</li>
-              <li>Contracts: {data.stats.totalContracts}</li>
-              <li>Odoo linked: {data.stats.linkedParties}</li>
-              <li>Pending link: {data.stats.pendingOdooLink}</li>
-              <li>Mismatch/relink: {data.stats.mismatchOdooLink}</li>
-            </ul>
-          ) : (
-            <p className="muted">Memuat…</p>
-          )}
-          <p className="muted" style={{ marginTop: 8 }}>
-            Renewal agenda lengkap: <Link href="/renewal">Renewal Calendar</Link> (FR-DASH-004).
-          </p>
-        </div>
-      </div>
+      {data && (role === 'legal' || role === 'management') && (
+        <p className="muted" style={{ marginTop: 16 }}>
+          Renewal agenda lengkap: <Link href="/renewal">Renewal Calendar</Link> (FR-DASH-004) ·{' '}
+          <Link href="/notifications">Notifikasi</Link>
+        </p>
+      )}
     </div>
   )
 }

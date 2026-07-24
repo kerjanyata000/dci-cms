@@ -24,8 +24,8 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | --- | --- | --- |
 | **1. Integrasi backend** | ✅ Selesai | Odoo live, RAGFlow, Supabase schema 001–008, seed demo mockup |
 | **2. Domain core** | ✅ ~95% | Parties, link Odoo, kontrak lifecycle, SO sync, audit |
-| **3. Port UI mockup** | 🟡 **Sedang** | Party list kaya, Dashboard KPI+, SO KPI, Notifikasi page, Activity filter |
-| **4. Polish & pre-live** | ⬜ Belum | E-sign, donut/lifecycle chart, Supabase Auth wajib prod, UAT PASS |
+| **3. Port UI mockup** | ✅ ~90% | Party list, Renewal, Notifikasi, Dashboard panels (lifecycle/PIC/timeline) |
+| **4. Polish & pre-live** | 🟡 **Sedang** | Supabase Auth seed, dashboard mockup parity, UAT manual |
 | **5. Verify & ship** | ⬜ Belum | Go/No-Go §14, hardening §10 |
 
 **Posisi saat ini:** akhir **Fase 3** — UI mendekati mockup; lanjut polish visual + auth production + UAT manual.
@@ -69,11 +69,12 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 
 | # | Test case | Role | Langkah | Expected | Impl | Hasil |
 | --- | --- | --- | --- | --- | --- | --- |
-| 2.1 | KPI cards per role | Legal | Buka Dashboard | KPI legal (pending review, renewal, Odoo link) | 🟡 | | Data Supabase real; renewal KPI belum |
-| 2.2 | KPI cards per role | Finance | Buka Dashboard | KPI SO / commercial | 🟡 | | Odoo link stats; SO count belum persist |
-| 2.3 | Pending actions list | Legal | Dashboard | Item tindakan + link ke Party | 🟡 | | Link ke `/parties/[id]` |
-| 2.4 | Renewal agenda ringkas | Legal/Mgmt | Dashboard | Agenda H-14 / expiry | 🟡 | | Link ke `/renewal` dengan data Supabase |
-| 2.5 | Dev status panel | Dev | Dashboard | Status koneksi env | ✅ | | Hapus di production |
+| 2.1 | KPI cards per role | Legal | Buka Dashboard | KPI legal (pending review, renewal, Odoo link) | ✅ | | Lifecycle donut + PIC workload |
+| 2.2 | KPI cards per role | Finance | Buka Dashboard | KPI SO / commercial | ✅ | | SO synchronized / no SO / errors |
+| 2.3 | Pending actions list | Legal | Dashboard | Item tindakan + link ke Party | ✅ | | Renewal H-14 + amendment ready |
+| 2.4 | Renewal agenda ringkas | Legal/Mgmt | Dashboard | Timeline renewal risk | ✅ | | Management panel + /renewal |
+| 2.5 | Dev status panel | Dev | Dashboard | Status koneksi env | 🟡 | | Hanya NODE_ENV development |
+| 2.6 | Supabase Auth UAT users | Dev | `npm run seed:auth` | 5 role users + profiles | 🟡 | | Set AUTH_MODE=supabase |
 
 ---
 
@@ -199,7 +200,7 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | --- | --- | --- | --- | --- | --- |
 | 9.1 | Tema ink + brass | Sidebar gelap, accent brass | ✅ sebagian (shell.css) | 🟡 | | |
 | 9.2 | Font Serif/Sans/Mono | Source Serif 4, IBM Plex | ✅ loaded | ✅ | | |
-| 9.3 | KPI cards dashboard | Per role | Placeholder teks | 🟡 | | FR-DASH-003 per role dari Supabase |
+| 9.3 | KPI cards dashboard | Per role | Mockup parity | ✅ | | Donut + PIC + timeline |
 | 9.4 | Tabel parties kaya | Kolom dokumen, agreement date, durasi | Kolom mockup parity | 🟡 | | |
 | 9.5 | Party Detail tabs | Contracts, SO, audit, … | 7 tabs | ✅ | | |
 | 9.6 | Modal pola mockup | Footer ghost/primary konsisten | Modal parties + Add Contract | 🟡 | | |
@@ -314,8 +315,8 @@ Ini **by design** pada fase saat ini — bukan bug:
 
 1. ✅ Integrasi backend (Odoo, RAGFlow, Supabase schema + seed)  
 2. ✅ Domain core (Parties + link Odoo + kontrak lifecycle)  
-3. 🟡 Port UI mockup ke komponen React — **sedang di sini**  
-4. ⬜ E-sign + polish visual + UAT pre-live  
+3. ✅ Port UI mockup ke komponen React  
+4. 🟡 Polish & pre-live — **sedang di sini** (Auth seed, UAT, e-sign backlog)  
 5. ⬜ Verify & ship (Go/No-Go)
 
 Jadi localhost **sudah benar** untuk fase integrasi; belum waktunya pixel-perfect dengan mockup sampai fitur domain core stabil.
