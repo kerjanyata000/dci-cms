@@ -3,7 +3,7 @@
 import { Suspense, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/components/AuthProvider'
-import { LoginPage } from '@/components/LoginPage'
+import { LoginPage, LoginPageSkeleton } from '@/components/LoginPage'
 
 function safeNextPath(raw: string | null): string {
   if (!raw || !raw.startsWith('/') || raw.startsWith('//')) return '/dashboard'
@@ -20,7 +20,7 @@ function HomeInner() {
     if (ready && user) router.replace(nextPath)
   }, [ready, user, router, nextPath])
 
-  if (!ready) return null
+  if (!ready) return <LoginPageSkeleton />
   if (user) return null
 
   return (
@@ -35,7 +35,7 @@ function HomeInner() {
 
 export default function HomePage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<LoginPageSkeleton />}>
       <HomeInner />
     </Suspense>
   )

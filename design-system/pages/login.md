@@ -1,18 +1,32 @@
-# Page override: Login
+# Page override: Login (Enterprise Gateway)
 
-Extends [`MASTER.md`](../MASTER.md).
+Extends [`MASTER.md`](../MASTER.md).  
+Skill pattern: **Enterprise Gateway** + **Trust & Authority** (UI UX Pro Max), overridden to ink/brass.
 
 ## Layout
 
-- Full viewport `--ink` background
-- Two-column card: **login-side** (brand + features) + **login-form**
-- Mobile (&lt;560px): hide side panel, single column
+- Full viewport `--ink` + dot/grid subtle pattern
+- Card max ~960px, **brass top accent** 3px, entrance animation
+- Two columns: **login-side** (trust + features) + **login-form**
+- Mobile (&lt;720px): hide side, show **login-mobile-brand** header
 
-## Mock auth
+## Trust signals (left panel)
 
-- Role grid cards (2 columns) — not dropdown
-- Email validation before submit
+- Feature checklist (BRD refs)
+- Trust chips: Party-centric · Odoo+RAGFlow · Audit trail
 
-## Supabase auth
+## Form (right panel)
 
-- Password field; role from `profiles` (no role grid)
+- Eyebrow: "Enterprise gateway"
+- Role grid 2×2 with **left accent per role** (not dropdown)
+- CTA: "Masuk ke workspace" + arrow icon
+- Input focus ring brass
+
+## Auth modes
+
+- **Mock:** email + role grid
+- **Supabase:** email + password; role from profiles
+
+## Loading
+
+- `LoginPageSkeleton` — no blank screen on `/`
