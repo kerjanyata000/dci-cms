@@ -4,10 +4,9 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { GlobalSearch } from '@/components/shell/GlobalSearch'
+import { IntegrationStatus } from '@/components/shell/IntegrationStatus'
 import { NotificationsBell } from '@/components/shell/NotificationsBell'
 import { ROLES, type SessionUser } from '@/lib/roles'
-import { ODOO_MODE } from '@/lib/odoo/client'
-import { RAGFLOW_MODE } from '@/lib/ragflow/client'
 import './shell.css'
 
 const LABELS: Record<string, string> = {
@@ -100,9 +99,12 @@ export function AppShell({ user, onLogout, children }: Props) {
         </div>
         <nav className="nav-group">{navLinks}</nav>
         <div className="sidebar-foot">
-          {user.name}
-          <br />
-          <span className="role-badge">{role.label}</span>
+          <IntegrationStatus variant="sidebar" />
+          <div className="sidebar-foot-user">
+            {user.name}
+            <br />
+            <span className="role-badge">{role.label}</span>
+          </div>
           {role.views.includes('audit') && (
             <>
               <br />
@@ -126,9 +128,6 @@ export function AppShell({ user, onLogout, children }: Props) {
             ☰
           </button>
           <GlobalSearch />
-          <div className="topbar-modes">
-            Odoo: {ODOO_MODE.toUpperCase()} · RAGFlow: {RAGFLOW_MODE.toUpperCase()}
-          </div>
           <div className="top-right">
             {role.views.includes('notifications') && <NotificationsBell />}
             <span className="user-chip">

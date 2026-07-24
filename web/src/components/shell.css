@@ -135,6 +135,95 @@ a {
   color: #7c8aa3;
 }
 
+.sidebar-foot-user {
+  margin-top: 10px;
+}
+
+.sys-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sys-status-sidebar {
+  margin-bottom: 2px;
+}
+
+.integration-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-family: var(--mono);
+  letter-spacing: 0.02em;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  line-height: 1.2;
+}
+
+.integration-badge-sidebar {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #b8c4d6;
+}
+
+.integration-badge-inline {
+  background: var(--paper);
+  border-color: var(--line);
+  color: var(--muted);
+}
+
+.integration-badge-name {
+  font-weight: 600;
+}
+
+.integration-badge-state {
+  opacity: 0.85;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.integration-badge.live .status-dot {
+  background: #3ecf8e;
+  box-shadow: 0 0 0 2px rgba(62, 207, 142, 0.25);
+}
+
+.integration-badge.dummy .status-dot {
+  background: var(--amber);
+  box-shadow: 0 0 0 2px rgba(192, 138, 46, 0.2);
+}
+
+.integration-badge.offline .status-dot {
+  background: var(--red);
+  box-shadow: 0 0 0 2px rgba(184, 74, 58, 0.25);
+}
+
+.integration-badge.live.integration-badge-inline {
+  background: var(--green-light);
+  border-color: #b7dcc8;
+  color: var(--green);
+}
+
+.integration-badge.dummy.integration-badge-inline {
+  background: var(--amber-light);
+  border-color: #e6d2af;
+  color: #6b4e23;
+}
+
+.integration-badge.offline.integration-badge-inline {
+  background: #fdecea;
+  border-color: #f0c4bc;
+  color: var(--red);
+}
+
 .role-badge {
   display: inline-block;
   margin-top: 6px;
@@ -155,7 +244,6 @@ a {
 .topbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 16px;
   padding: 14px 28px;
   background: var(--paper-2);
@@ -166,16 +254,18 @@ a {
   flex-shrink: 0;
 }
 
-.topbar-modes {
-  font-size: 12px;
-  color: var(--muted);
-  font-family: var(--mono);
+.global-search {
+  flex: 1;
+  max-width: 520px;
+  min-width: 0;
 }
 
 .top-right {
   display: flex;
   align-items: center;
   gap: 12px;
+  margin-left: auto;
+  flex: none;
 }
 
 .user-chip {
@@ -1657,14 +1747,20 @@ textarea {
 
 .cal-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
   gap: 16px;
   align-items: start;
+  margin-bottom: 24px;
 }
 
 @media (max-width: 1100px) {
   .cal-layout {
     grid-template-columns: 1fr;
+  }
+
+  .cal-side {
+    position: static;
+    max-height: none;
   }
 }
 
@@ -1701,6 +1797,7 @@ textarea {
 
 .cal-picker-wrap {
   position: relative;
+  z-index: 2;
 }
 
 .cal-month-btn {
@@ -1962,29 +2059,121 @@ textarea {
   background: var(--paper-2);
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 16px;
-  min-height: 280px;
+  padding: 0;
+  min-height: 320px;
+  position: sticky;
+  top: 78px;
+  max-height: calc(100vh - 96px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cal-side-head {
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--paper);
+  flex: none;
 }
 
 .cal-side h3 {
   font-family: var(--serif);
+  font-size: 16px;
   margin: 0 0 4px;
 }
 
 .cal-side-sub {
   font-size: 12px;
   color: var(--muted);
-  margin: 0 0 14px;
+  margin: 0;
+}
+
+.cal-side-list {
+  padding: 12px 16px 16px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .cal-side-empty {
   font-size: 13px;
   color: var(--muted);
+  line-height: 1.55;
+  padding: 8px 0;
 }
 
 .cal-side-item {
-  padding: 10px 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+}
+
+.cal-side-item .row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.cal-side-item b {
+  font-size: 13px;
+}
+
+.cal-side-item .meta {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.cal-side-item .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.renewal-list-panel {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.renewal-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
   border-bottom: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.renewal-list-head h2 {
+  font-family: var(--serif);
+  font-size: 15px;
+  margin: 0;
+  font-weight: 600;
+}
+
+.renewal-list-head .table-toolbar {
+  margin: 0;
+  justify-content: flex-end;
+}
+
+.renewal-list-panel .table-wrap {
+  border: none;
+  border-radius: 0;
+}
+
+.renewal-list-panel .pagination {
+  padding: 12px 16px;
+  border-top: 1px solid var(--line);
+  background: var(--paper);
+  margin: 0;
 }
 
 .cal-side-item:last-child {
@@ -2143,12 +2332,6 @@ textarea {
     padding: 12px 16px;
   }
 
-  .topbar-modes {
-    order: 4;
-    width: 100%;
-    font-size: 11px;
-  }
-
   .global-search {
     order: 2;
     max-width: none;
@@ -2157,7 +2340,6 @@ textarea {
 
   .top-right {
     order: 3;
-    margin-left: auto;
   }
 
   .content {

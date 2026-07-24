@@ -22,10 +22,15 @@ Filter chip pakai **filter-dot** (bukan emoji). Pill & cal-evt warna konsisten b
 
 ## Interaksi
 
-- Klik sel kalender → side panel agenda
+- Klik sel kalender → side panel agenda (sticky, scroll terpisah)
 - Month/year picker dropdown
+- **Filter** di header panel "Daftar agenda" (bukan floating di antara kalender & tabel)
 - Link **Party Detail** per baris agenda
 - Empty state: hint agreement date + duration
+
+## Shell
+
+- Status integrasi Odoo/RAGFlow: badge dot di **sidebar footer** (hijau live, amber dummy, merah offline) — bukan teks plain di topbar
 
 ## RBAC
 

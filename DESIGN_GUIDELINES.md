@@ -120,6 +120,7 @@ Rule: satu H1 per view; ID & angka referensi pakai mono.
 - **Content max**: ~1360px, padding ~26–28px.
 - **Radius**: ~8–10px kontrol; dossier seal bulat.
 - **Tables**: header uppercase muted; row hover untuk navigasi Party.
+- **Integrasi status**: badge dot Odoo/RAGFlow di sidebar footer (live/dummy/offline) — jangan teks plain di topbar.
 - **Modals**: overlay + card putih; aksi di footer (ghost kiri, primary/danger kanan).
 
 Spacing base ~4px; pakai kelipatan 8/12/16/24.

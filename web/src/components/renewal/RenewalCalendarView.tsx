@@ -465,47 +465,57 @@ export function RenewalCalendarView() {
           </div>
         </div>
 
-        <div className="cal-side">
-          <h3>{formatIdDate(selectedKey)}</h3>
-          <p className="cal-side-sub">
-            {sideEvents.length ? `${sideEvents.length} agenda` : 'Tidak ada agenda di tanggal ini'}
-          </p>
-          {sideEvents.length === 0 ? (
-            <p className="cal-side-empty">Pilih tanggal lain di kalender atau tambah kontrak dengan agreement date.</p>
-          ) : (
-            sideEvents.map((e) => (
-              <div key={e.id} className="cal-side-item">
-                <div className="row-top">
-                  <b>{KIND_LABEL[e.kind]}</b>
-                  <span className={`pill pill-${e.bucket}`}>{e.bucket}</span>
-                </div>
-                <div className="meta">
-                  {e.partyCode} · {e.contractCode ?? '—'}
-                </div>
-                <Link href={`/parties/${e.partyId}`} className="btn ghost">
-                  Party Detail
-                </Link>
-              </div>
-            ))
-          )}
+        <aside className="cal-side" aria-label="Agenda tanggal terpilih">
+          <div className="cal-side-head">
+            <h3>{formatIdDate(selectedKey)}</h3>
+            <p className="cal-side-sub">
+              {sideEvents.length ? `${sideEvents.length} agenda` : 'Tidak ada agenda di tanggal ini'}
+            </p>
+          </div>
+          <div className="cal-side-list">
+            {sideEvents.length === 0 ? (
+              <p className="cal-side-empty">
+                Pilih tanggal lain di kalender atau tambah kontrak dengan agreement date.
+              </p>
+            ) : (
+              sideEvents.map((e) => (
+                <article key={e.id} className="cal-side-item">
+                  <div className="row-top">
+                    <b>{KIND_LABEL[e.kind]}</b>
+                    <span className={`pill pill-${e.bucket}`}>{e.bucket}</span>
+                  </div>
+                  <div className="meta">
+                    {e.partyCode} · {e.contractCode ?? '—'}
+                  </div>
+                  <Link href={`/parties/${e.partyId}`} className="btn ghost">
+                    Party Detail
+                  </Link>
+                </article>
+              ))
+            )}
+          </div>
+        </aside>
+      </div>
+
+      <section className="renewal-list-panel" aria-labelledby="renewal-list-title">
+        <div className="renewal-list-head">
+          <h2 id="renewal-list-title">Daftar agenda</h2>
+          <div className="table-toolbar">
+            {FILTERS.map(({ id, label, dot }) => (
+              <button
+                key={id}
+                type="button"
+                className={`filter-chip clickable${filter === id ? ' active' : ''}`}
+                onClick={() => setFilter(id)}
+              >
+                {dot && <FilterDot kind={dot} />}
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
 
-      <div className="table-toolbar">
-        {FILTERS.map(({ id, label, dot }) => (
-          <button
-            key={id}
-            type="button"
-            className={`filter-chip clickable${filter === id ? ' active' : ''}`}
-            onClick={() => setFilter(id)}
-          >
-            {dot && <FilterDot kind={dot} />}
-            {label}
-          </button>
-        ))}
-      </div>
-
-      <div className="table-wrap">
+        <div className="table-wrap">
         <table className="data-table">
           <thead>
             <tr>
@@ -547,15 +557,16 @@ export function RenewalCalendarView() {
             ))}
           </tbody>
         </table>
-      </div>
+        </div>
 
-      <TablePagination
-        page={tablePage}
-        pageSize={TABLE_PAGE_SIZE}
-        total={filteredTable.length}
-        onPageChange={setTablePage}
-        itemLabel="Agenda"
-      />
+        <TablePagination
+          page={tablePage}
+          pageSize={TABLE_PAGE_SIZE}
+          total={filteredTable.length}
+          onPageChange={setTablePage}
+          itemLabel="Agenda"
+        />
+      </section>
         </>
       )}
     </div>
