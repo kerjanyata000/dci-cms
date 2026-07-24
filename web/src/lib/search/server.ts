@@ -5,6 +5,7 @@ import { mapPartyRow, type PartyRow } from '@/lib/parties/types'
 import { retrieveRagflowChunks } from '@/lib/ragflow/server'
 import type { RagflowSearchHit } from '@/lib/ragflow/types'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
+import { PARTY_ON_CONTRACT } from '@/lib/supabase/embeds'
 import type { Contract, Party } from '@/types/cms'
 
 export type SearchScope = 'all' | 'parties' | 'contracts' | 'content'
@@ -73,7 +74,7 @@ export async function runSmartSearch(params: {
   if (scope === 'all' || scope === 'contracts') {
     let contractQuery = db
       .from('contracts')
-      .select('*, parties(name, party_code)')
+      .select(`*, ${PARTY_ON_CONTRACT}(name, party_code)`)
       .or(
         [
           `contract_code.ilike.${pattern}`,

@@ -1,6 +1,7 @@
 import 'server-only'
 
 import { getSupabaseAdmin } from '@/lib/supabase/server'
+import { PARTY_ON_AMENDMENT, PARTY_ON_CONTRACT } from '@/lib/supabase/embeds'
 import type { DashboardPayload } from '@/lib/dashboard/config'
 
 function daysUntil(isoDate: string): number {
@@ -18,12 +19,12 @@ export async function loadDashboardPayload(): Promise<DashboardPayload> {
     db.from('contracts').select('id, party_id, contract_code, status, status_text, renewal_date'),
     db
       .from('contracts')
-      .select('party_id, contract_code, renewal_date, parties(party_code)')
+      .select(`party_id, contract_code, renewal_date, ${PARTY_ON_CONTRACT}(party_code)`)
       .not('renewal_date', 'is', null)
       .in('status', ['active', 'fully_signed', 'signed', 'under_review']),
     db
       .from('contract_amendments')
-      .select('id, party_id, amendment_code, title, parties(party_code)')
+      .select(`id, party_id, amendment_code, title, ${PARTY_ON_AMENDMENT}(party_code)`)
       .eq('status', 'ready_for_sign')
       .order('created_at', { ascending: false })
       .limit(6),

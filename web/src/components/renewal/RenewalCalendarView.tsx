@@ -72,6 +72,27 @@ export function RenewalCalendarView() {
   }, [])
 
   useEffect(() => {
+    if (!data?.items.length) return
+    const today = startOfDay(new Date())
+    const upcoming =
+      data.items
+        .filter((i) => {
+          const d = startOfDay(new Date(`${i.eventDate}T00:00:00`))
+          return d >= today || i.daysLeft >= -7
+        })
+        .sort((a, b) => a.eventDate.localeCompare(b.eventDate))[0] ?? data.items[0]
+    if (!upcoming) return
+    const d = new Date(`${upcoming.eventDate}T00:00:00`)
+    setCursor(new Date(d.getFullYear(), d.getMonth(), 1))
+    setSelectedKey(ymdKey(upcoming.eventDate))
+    setDecadeStart(d.getFullYear() - (d.getFullYear() % 9))
+  }, [data])
+
+  function startOfDay(d: Date) {
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate())
+  }
+
+  useEffect(() => {
     if (!monthPickerOpen && !yearPickerOpen) return
     const onDoc = () => {
       setMonthPickerOpen(false)

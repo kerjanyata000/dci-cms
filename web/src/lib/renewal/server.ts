@@ -1,6 +1,7 @@
 import 'server-only'
 
 import { getSupabaseAdmin } from '@/lib/supabase/server'
+import { PARTY_ON_CONTRACT, PARTY_ON_TERMINATION } from '@/lib/supabase/embeds'
 import type { RenewalAgendaItem, RenewalKind } from '@/lib/renewal/types'
 
 export type { RenewalAgendaItem, RenewalKind } from '@/lib/renewal/types'
@@ -25,6 +26,7 @@ function daysBetween(from: Date, to: Date) {
 }
 
 export function urgencyBucket(daysLeft: number): 'urgent' | 'soon' | 'later' {
+  if (daysLeft < 0) return 'later'
   if (daysLeft <= 30) return 'urgent'
   if (daysLeft <= 180) return 'soon'
   return 'later'
@@ -43,13 +45,13 @@ export async function loadRenewalAgenda(): Promise<RenewalAgendaItem[]> {
     db
       .from('contracts')
       .select(
-        'id, party_id, contract_code, contract_title, status, duration_months, renewal_date, expiry_date, parties(party_code, name, pic)',
+        `id, party_id, contract_code, contract_title, status, duration_months, renewal_date, expiry_date, ${PARTY_ON_CONTRACT}(party_code, name, pic)`,
       )
       .not('status', 'eq', 'terminated'),
     db
       .from('contract_terminations')
       .select(
-        'id, contract_id, party_id, effective_date, status, contracts(contract_code, contract_title), parties(party_code, name, pic)',
+        `id, contract_id, party_id, effective_date, status, contracts(contract_code, contract_title), ${PARTY_ON_TERMINATION}(party_code, name, pic)`,
       ),
   ])
 

@@ -2,6 +2,7 @@
  * Seed demo data from CMS_Mockup.html into Supabase.
  * Usage (from web/): npm run seed:demo
  * Force replace all CMS rows: npm run seed:demo -- --force
+ * Refresh renewal/expiry dates relative to today: npm run seed:demo -- --refresh-dates
  */
 import { readFileSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
@@ -54,6 +55,51 @@ const PARTIES = [
 ]
 
 const force = process.argv.includes('--force')
+const refreshDatesOnly = process.argv.includes('--refresh-dates')
+
+function addDays(n) {
+  const d = new Date()
+  d.setHours(0, 0, 0, 0)
+  d.setDate(d.getDate() + n)
+  return d.toISOString().slice(0, 10)
+}
+
+/** Align demo renewal/expiry/termination to today so calendar + NOTIF show urgent/soon. */
+async function refreshDemoRenewalDates() {
+  const updates = [
+    { code: 'CMS-2018-00001', renewal_date: addDays(5), expiry_date: addDays(95) },
+    { code: 'CMS-2019-00006', renewal_date: addDays(12), expiry_date: addDays(4) },
+    { code: 'CMS-2021-00079', renewal_date: addDays(20), expiry_date: addDays(20) },
+    { code: 'CMS-2025-00228', renewal_date: addDays(11), expiry_date: addDays(38) },
+    { code: 'CMS-2021-00023', renewal_date: addDays(90), expiry_date: addDays(120) },
+    { code: 'CMS-2017-00098', renewal_date: addDays(150), expiry_date: addDays(150) },
+  ]
+
+  for (const row of updates) {
+    const { error } = await db
+      .from('contracts')
+      .update({ renewal_date: row.renewal_date, expiry_date: row.expiry_date })
+      .eq('contract_code', row.code)
+    if (error) {
+      console.error(`Refresh dates failed for ${row.code}:`, error.message)
+      process.exit(1)
+    }
+  }
+
+  const { error: termErr } = await db
+    .from('contract_terminations')
+    .update({ effective_date: addDays(7) })
+    .eq('id', 'd0000001-0001-4001-8001-000000000001')
+
+  if (termErr) {
+    console.error('Refresh termination date failed:', termErr.message)
+    process.exit(1)
+  }
+
+  console.log('✓ Demo renewal/expiry dates refreshed relative to today')
+  console.log('  Urgent (~≤30d): PTY-00006 expiry, PTY-00228 renewal, PTY-00001 renewal')
+  console.log('  Termination: PTY-00073 in 7 days')
+}
 
 async function wipeDemoTables() {
   const order = [
@@ -77,6 +123,11 @@ async function wipeDemoTables() {
 }
 
 async function main() {
+  if (refreshDatesOnly) {
+    await refreshDemoRenewalDates()
+    return
+  }
+
   const { data: existing } = await db.from('parties').select('id').eq('party_code', 'PTY-00001').maybeSingle()
   if (existing && !force) {
     const { count } = await db.from('parties').select('*', { count: 'exact', head: true })
@@ -150,7 +201,8 @@ async function main() {
     console.log(`✓ ${table}: ${rows.length} rows`)
   }
 
-  console.log('\nDemo seed complete — open /parties and /renewal')
+  await refreshDemoRenewalDates()
+  console.log('\nDemo seed complete — open /renewal and /notifications')
 }
 
 main().catch((e) => {

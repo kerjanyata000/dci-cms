@@ -2,6 +2,7 @@ import 'server-only'
 
 import { searchOdooOrders, searchOdooPartners } from '@/lib/odoo/server'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
+import { PARTY_ON_SALE_ORDER } from '@/lib/supabase/embeds'
 
 export type SoSyncError = {
   partyId: string
@@ -145,7 +146,7 @@ export async function listSyncedSaleOrders(partyId?: string) {
   const db = getSupabaseAdmin()
   let query = db
     .from('sale_orders')
-    .select('*, parties(party_code, name)')
+    .select(`*, ${PARTY_ON_SALE_ORDER}(party_code, name)`)
     .order('synced_at', { ascending: false })
     .limit(100)
 
