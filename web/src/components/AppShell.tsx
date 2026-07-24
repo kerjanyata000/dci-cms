@@ -9,12 +9,34 @@ import { NotificationsBell } from '@/components/shell/NotificationsBell'
 import { ROLES, type SessionUser } from '@/lib/roles'
 import './shell.css'
 
+const SIDEBAR_KEY = 'cms-sidebar-collapsed'
+
 const LABELS: Record<string, string> = {
   dashboard: 'Dashboard',
   parties: 'Parties',
   search: 'Smart Search',
   renewal: 'Renewal Calendar',
   so: 'SO Health',
+}
+
+function SidebarToggleIcon({ collapsed }: { collapsed: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      {collapsed ? (
+        <>
+          <rect x="3" y="4" width="18" height="16" rx="2" />
+          <path d="M9 4v16" />
+          <path d="m14 12 3-3-3-3" />
+        </>
+      ) : (
+        <>
+          <rect x="3" y="4" width="18" height="16" rx="2" />
+          <path d="M9 4v16" />
+          <path d="m16 9-3 3 3 3" />
+        </>
+      )}
+    </svg>
+  )
 }
 
 type Props = {
@@ -27,6 +49,24 @@ export function AppShell({ user, onLogout, children }: Props) {
   const pathname = usePathname()
   const role = ROLES[user.role]
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    try {
+      setSidebarCollapsed(localStorage.getItem(SIDEBAR_KEY) === '1')
+    } catch {
+      /* ignore */
+    }
+  }, [])
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 1100px)')
+    const sync = () => setIsMobile(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
 
   useEffect(() => {
     setDrawerOpen(false)
@@ -40,6 +80,22 @@ export function AppShell({ user, onLogout, children }: Props) {
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [drawerOpen])
+
+  function toggleSidebar() {
+    if (isMobile) {
+      setDrawerOpen((v) => !v)
+      return
+    }
+    setSidebarCollapsed((v) => {
+      const next = !v
+      try {
+        localStorage.setItem(SIDEBAR_KEY, next ? '1' : '0')
+      } catch {
+        /* ignore */
+      }
+      return next
+    })
+  }
 
   const navLinks = (
     <>
@@ -79,7 +135,9 @@ export function AppShell({ user, onLogout, children }: Props) {
   )
 
   return (
-    <div className={`shell${drawerOpen ? ' drawer-open' : ''}`}>
+    <div
+      className={`shell${drawerOpen ? ' drawer-open' : ''}${sidebarCollapsed && !isMobile ? ' sidebar-collapsed' : ''}`}
+    >
       {drawerOpen && (
         <button
           type="button"
@@ -120,12 +178,12 @@ export function AppShell({ user, onLogout, children }: Props) {
         <header className="topbar">
           <button
             type="button"
-            className="btn ghost menu-toggle"
-            aria-label="Buka menu navigasi"
-            aria-expanded={drawerOpen}
-            onClick={() => setDrawerOpen((v) => !v)}
+            className="btn ghost sidebar-toggle"
+            aria-label={sidebarCollapsed && !isMobile ? 'Tampilkan sidebar' : 'Sembunyikan sidebar'}
+            aria-expanded={isMobile ? drawerOpen : !sidebarCollapsed}
+            onClick={toggleSidebar}
           >
-            ☰
+            <SidebarToggleIcon collapsed={isMobile ? !drawerOpen : sidebarCollapsed} />
           </button>
           <GlobalSearch />
           <div className="top-right">

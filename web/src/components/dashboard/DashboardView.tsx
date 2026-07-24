@@ -88,37 +88,21 @@ function DashboardInner({ role, userName }: Props) {
 
   return (
     <div className="dashboard-page">
-      <div className="page-head spread-head">
-        <div>
-          <div className="crumb">{copy.crumb}</div>
-          <h1>
-            {copy.titlePrefix} — {userName}
-          </h1>
-          <p>{copy.desc}</p>
-        </div>
-        {data && (
-          <div
-            className={`odoo-mode-chip ${data.integration.odooMode === 'live' ? 'live' : 'dummy'}`}
-            title="Mode integrasi Odoo / RAGFlow"
-          >
-            Odoo: {data.integration.odooMode.toUpperCase()} · RAG:{' '}
-            {data.integration.ragflowMode.toUpperCase()}
-          </div>
-        )}
+      <div className="page-head">
+        <div className="crumb">{copy.crumb}</div>
+        <h1>
+          {copy.titlePrefix} — {userName}
+        </h1>
+        <p className="page-desc">{copy.desc}</p>
       </div>
 
       {!roleCfg.canEdit && (
         <ViewOnlyBanner roleLabel={roleCfg.label} canSync={roleCfg.canSync} />
       )}
 
-      <div className="notice">
-        <InfoIcon />
-        <div>
-          <span className={`role-workspace-chip ${role}`}>{roleCfg.label}</span>
-          <div className="notice-body">
-            <b>{roleCfg.label}.</b> {copy.notice}
-          </div>
-        </div>
+      <div className="workspace-banner">
+        <span className={`role-workspace-chip ${role}`}>{roleCfg.label}</span>
+        <p>{copy.notice}</p>
       </div>
 
       {error && <p className="error-text">{error}</p>}
