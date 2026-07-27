@@ -81,6 +81,21 @@ export async function createAmendment(contractId: string, input: CreateAmendment
   return data.amendment
 }
 
+export async function transitionAmendmentStatus(
+  contractId: string,
+  amendmentId: string,
+  statusAction: string,
+) {
+  const data = await parseJson<{ amendment: ContractAmendment }>(
+    await cmsFetch(`/api/contracts/${contractId}/amendments`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'status', amendmentId, statusAction }),
+    }),
+  )
+  return data.amendment
+}
+
 export type CreateTerminationInput = {
   termination_type?: string
   effective_date: string

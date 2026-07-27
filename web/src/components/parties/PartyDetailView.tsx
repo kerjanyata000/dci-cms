@@ -7,6 +7,7 @@ import { EditContractModal } from '@/components/contracts/EditContractModal'
 import { DocumentDownloadButton } from '@/components/documents/DocumentDownloadButton'
 import { AddContractModal } from '@/components/contracts/AddContractModal'
 import { AmendmentModal } from '@/components/contracts/AmendmentModal'
+import { AmendmentReviewModal } from '@/components/contracts/AmendmentReviewModal'
 import { ChangeCounterpartyModal } from '@/components/contracts/ChangeCounterpartyModal'
 import { ContractReviewModal } from '@/components/contracts/ContractReviewModal'
 import { TerminationModal } from '@/components/contracts/TerminationModal'
@@ -21,7 +22,7 @@ import { formatCurrency } from '@/lib/format/currency'
 import { fetchSyncedOrders, runSoSync, type SyncedOrderRow } from '@/lib/so/api'
 import { fetchPartyDetail, voidPartyDocument, type PartyDetailPayload } from '@/lib/parties/api'
 import { ODOO_LINK_HINTS, ODOO_LINK_LABELS, formatOdooLinkSummary } from '@/lib/parties/types'
-import type { Contract, ContractMetadata, DocumentRow } from '@/types/cms'
+import type { Contract, ContractAmendment, ContractMetadata, DocumentRow } from '@/types/cms'
 import { ACTIVE_FOR_TERM } from '@/lib/contracts/constants'
 import { ROLES } from '@/lib/roles'
 import type { AppRole } from '@/types/cms'
@@ -51,6 +52,7 @@ function statusPillClass(status: string | undefined): string {
   if (!status) return 'draft'
   if (status === 'under_review' || status === 'revision_required') return 'under_review'
   if (status === 'expired') return 'soon'
+  if (status === 'cancelled') return 'terminated'
   return status
 }
 
@@ -147,6 +149,7 @@ export function PartyDetailView({ partyId, role }: Props) {
   const [linkOpen, setLinkOpen] = useState(false)
   const [addContractOpen, setAddContractOpen] = useState(false)
   const [amendmentContract, setAmendmentContract] = useState<Contract | null>(null)
+  const [reviewAmendment, setReviewAmendment] = useState<ContractAmendment | null>(null)
   const [terminationContract, setTerminationContract] = useState<Contract | null>(null)
   const [reviewContract, setReviewContract] = useState<Contract | null>(null)
   const [cpChangeContract, setCpChangeContract] = useState<Contract | null>(null)
@@ -427,12 +430,19 @@ export function PartyDetailView({ partyId, role }: Props) {
               Field terkontrol — ubah lewat aksi Legal (Change Counterparty, Amendment), bukan edit
               langsung.
             </p>
-            <div className="info-grid info-grid-3">
+            <div className="info-grid">
               <InfoField label="Counterparty" locked hint="Change via Change Counterparty (FR-CNT-CP)">
                 <b>{party.name}</b>
               </InfoField>
               <InfoField label="Contract Value" locked hint="Change via Amendment">
                 <b>{meta.contractValue || '—'}</b>
+              </InfoField>
+              <InfoField
+                label="Current Summary"
+                locked
+                hint="Updated when Amendment Fully Signed (FR-CNT-AMD-007)"
+              >
+                <b>{meta.currentSummary || meta.lastAmendmentSummary || '—'}</b>
               </InfoField>
               <InfoField label="Signed Document" locked hint="Not editable directly">
                 <b className="mono">{primary ? `${primary.contract_code}-Signed.pdf` : '—'}</b>
@@ -483,6 +493,7 @@ export function PartyDetailView({ partyId, role }: Props) {
                     <th>Category</th>
                     <th>Effective</th>
                     <th>Status</th>
+                    {canEdit && <th>Aksi</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -496,7 +507,22 @@ export function PartyDetailView({ partyId, role }: Props) {
                           ? new Date(a.effective_date).toLocaleDateString('id-ID')
                           : '—'}
                       </td>
-                      <td>{a.status_text}</td>
+                      <td>
+                        <span className={`status-pill ${statusPillClass(a.status)}`}>
+                          {a.status_text}
+                        </span>
+                      </td>
+                      {canEdit && (
+                        <td>
+                          <button
+                            type="button"
+                            className="btn ghost small"
+                            onClick={() => setReviewAmendment(a)}
+                          >
+                            Review
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -857,6 +883,29 @@ export function PartyDetailView({ partyId, role }: Props) {
           onCreated={() => {
             setAmendmentContract(null)
             void load()
+          }}
+        />
+      )}
+
+      {reviewAmendment && (
+        <AmendmentReviewModal
+          amendment={reviewAmendment}
+          parentContract={
+            contracts.find((c) => c.id === reviewAmendment.parent_contract_id) ?? null
+          }
+          open={Boolean(reviewAmendment)}
+          onClose={() => setReviewAmendment(null)}
+          onUpdated={(updated) => {
+            setReviewAmendment(updated)
+            setData((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    amendments: prev.amendments.map((a) => (a.id === updated.id ? updated : a)),
+                  }
+                : prev,
+            )
+            if (updated.status === 'fully_signed') void load()
           }}
         />
       )}

@@ -201,6 +201,9 @@ function mapAuditNotification(row: {
     return { code: 'NOTIF-CMS-009', title, sub, urgent: true }
   }
   if (/amendment|amd-/i.test(action) || type === 'amendment') {
+    if (/fully signed/i.test(action)) {
+      return { code: 'NOTIF-CMS-009', title, sub, urgent: false }
+    }
     return { code: 'NOTIF-CMS-004', title, sub, urgent: false }
   }
   if (/revision required/i.test(action) || type === 'revision_required') {

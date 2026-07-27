@@ -16,7 +16,7 @@ Prioritas dari gap coverage BRD (scope → notifikasi). E-sign commercial setup 
 | ID | Item | BRD | Status |
 | --- | --- | --- | --- |
 | S1 | Event notifikasi lebih lengkap dari aksi kontrak (create, CP, term, upload) | NOTIF-CMS-001…013 | Done (mapping audit → kode NOTIF) |
-| S2 | Amendment status Ready / Fully Signed sederhana | FR-CNT-AMD-005/007 | Pending |
+| S2 | Amendment status Ready / Fully Signed sederhana | FR-CNT-AMD-005/007 | Done |
 | S3 | Prompt SO sync setelah Fully Signed | FR-CNT-SO-001 (manual path) | Pending |
 | S4 | Auth Supabase default + seed role | FR-DASH-001 | Pending |
 
@@ -36,6 +36,10 @@ Prioritas dari gap coverage BRD (scope → notifikasi). E-sign commercial setup 
 - Given kontrak Sent/Under Review, When Revision Required, Then status `revision_required`.
 - Given supporting doc, When Void, Then doc bertanda void, lifecycle kontrak tidak berubah.
 - Given termination scheduled dengan effective_date ≤ hari ini (atau expiry lewat), When Party dibuka, Then status kontrak ter-update.
+
+## Acceptance singkat (Should S2)
+
+- Given amendment Draft, When Ready for Signature → Mark Fully Signed, Then status `fully_signed` dan Current Summary parent ter-update tanpa overwrite dokumen asli.
 
 ## Deploy note
 

@@ -283,6 +283,147 @@ export async function createAmendment(
   return amendment
 }
 
+/** BRD §9.3 — simplified amendment lifecycle (no e-sign / no internal approval). */
+const AMENDMENT_STATUS_ACTIONS: Record<
+  string,
+  { status: string; status_text: string; allowedFrom: string[] }
+> = {
+  submit_review: {
+    status: 'under_review',
+    status_text: 'Under Review',
+    allowedFrom: ['draft'],
+  },
+  ready_for_sign: {
+    status: 'ready_for_sign',
+    status_text: 'Ready for Signature',
+    allowedFrom: ['draft', 'under_review'],
+  },
+  mark_fully_signed: {
+    status: 'fully_signed',
+    status_text: 'Fully Signed',
+    allowedFrom: ['ready_for_sign'],
+  },
+  back_to_draft: {
+    status: 'draft',
+    status_text: 'Draft',
+    allowedFrom: ['under_review', 'ready_for_sign'],
+  },
+  cancel: {
+    status: 'cancelled',
+    status_text: 'Cancelled',
+    allowedFrom: ['draft', 'under_review', 'ready_for_sign'],
+  },
+}
+
+/**
+ * Transition amendment status. When Fully Signed, update parent current summary
+ * (confirmed_metadata) while retaining original contract document (FR-CNT-AMD-007).
+ */
+export async function transitionAmendmentStatus(amendmentId: string, statusAction: string) {
+  const def = AMENDMENT_STATUS_ACTIONS[statusAction]
+  if (!def) throw new Error(`Unknown amendment status action: ${statusAction}`)
+
+  const db = getSupabaseAdmin()
+  const { data: row, error: findError } = await db
+    .from('contract_amendments')
+    .select('*')
+    .eq('id', amendmentId)
+    .single()
+
+  if (findError || !row) throw new Error('Amendment not found')
+
+  const current = row as AmendmentRow
+  if (!def.allowedFrom.includes(current.status)) {
+    throw new Error(
+      `Tidak bisa ${statusAction} dari status ${current.status_text} (${current.status})`,
+    )
+  }
+
+  const { data, error } = await db
+    .from('contract_amendments')
+    .update({
+      status: def.status,
+      status_text: def.status_text,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', amendmentId)
+    .select('*')
+    .single()
+
+  if (error) throw new Error(error.message)
+
+  const amendment = mapAmendmentRow(data as AmendmentRow)
+
+  if (def.status === 'fully_signed') {
+    await applyAmendmentToParentSummary(amendment)
+  }
+
+  await db.from('audit_logs').insert({
+    action: `Amendment ${def.status_text} — ${amendment.amendment_code}`,
+    action_type: 'amendment',
+    party_id: amendment.party_id,
+    contract_id: amendment.parent_contract_id,
+    actor_name: 'CMS',
+    payload: {
+      amendment_id: amendment.id,
+      amendment_code: amendment.amendment_code,
+      from: current.status,
+      to: def.status,
+      statusAction,
+    },
+  })
+
+  return amendment
+}
+
+/** FR-CNT-AMD-007 — refresh current contract summary; do not overwrite original signed doc. */
+async function applyAmendmentToParentSummary(amendment: ReturnType<typeof mapAmendmentRow>) {
+  const db = getSupabaseAdmin()
+  const { data: parent, error } = await db
+    .from('contracts')
+    .select('id, remarks, confirmed_metadata, contract_code')
+    .eq('id', amendment.parent_contract_id)
+    .single()
+
+  if (error || !parent) throw new Error('Parent contract not found for amendment summary')
+
+  const prevMeta = (parent.confirmed_metadata ?? {}) as ContractMetadata
+  const summaryLine = [
+    amendment.amendment_code,
+    amendment.title,
+    amendment.change_category,
+    amendment.effective_date ? `eff ${amendment.effective_date}` : null,
+    amendment.summary,
+  ]
+    .filter(Boolean)
+    .join(' · ')
+
+  const confirmed_metadata: ContractMetadata = {
+    ...prevMeta,
+    currentSummary: summaryLine,
+    lastAmendmentCode: amendment.amendment_code,
+    lastAmendmentTitle: amendment.title,
+    lastAmendmentEffectiveDate: amendment.effective_date ?? undefined,
+    lastAmendmentSummary: amendment.summary ?? undefined,
+    lastAmendmentCategory: amendment.change_category ?? undefined,
+  }
+
+  const stamp = `[AMD Fully Signed ${amendment.amendment_code}] ${amendment.summary || amendment.title}`
+  const prevRemarks = (parent.remarks as string | null)?.trim()
+  const remarks = prevRemarks ? `${prevRemarks}\n${stamp}` : stamp
+
+  const { error: updateError } = await db
+    .from('contracts')
+    .update({
+      confirmed_metadata,
+      remarks,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', amendment.parent_contract_id)
+
+  if (updateError) throw new Error(updateError.message)
+}
+
 export type TerminationRow = {
   id: string
   contract_id: string
