@@ -6,7 +6,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { runSearch } from '@/lib/search/api'
 import type { SearchScope } from '@/lib/search/server'
 import type { SmartSearchResult } from '@/lib/search/server'
-import { RAGFLOW_MODE } from '@/lib/ragflow/client'
 
 const SCOPES: Array<{ id: SearchScope; label: string }> = [
   { id: 'all', label: 'Semua' },
@@ -36,10 +35,10 @@ function readScope(raw: string | null): SearchScope {
 }
 
 type Props = {
-  canEdit: boolean
+  canEdit?: boolean
 }
 
-export function SmartSearchView({ canEdit }: Props) {
+export function SmartSearchView(_props: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [q, setQ] = useState(() => searchParams.get('q') ?? '')
@@ -110,9 +109,6 @@ export function SmartSearchView({ canEdit }: Props) {
       <div className="page-head">
         <div className="crumb">Registry</div>
         <h1>Smart Search</h1>
-        <p>
-          FR-CNT-SV-003 · BRL-CMS-003 — metadata Party/Kontrak + isi dokumen terindeks (RAGFlow).
-        </p>
       </div>
 
       <form className="card stack search-form" onSubmit={submit}>
@@ -121,7 +117,7 @@ export function SmartSearchView({ canEdit }: Props) {
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Cari nama party, PIC, agreement no, contract code, owner, isi kontrak…"
+            placeholder="Cari party, kontrak, atau isi dokumen…"
             aria-label="Kata kunci pencarian"
             autoFocus
           />
@@ -170,24 +166,15 @@ export function SmartSearchView({ canEdit }: Props) {
             </div>
           </div>
         )}
-
-        <p className="muted" style={{ fontSize: 12 }}>
-          Mode RAGFlow: {RAGFLOW_MODE.toUpperCase()}
-          {canEdit ? '' : ' · Role view-only — hasil mengikuti akses baca (RBAC penuh setelah Auth)'}
-        </p>
       </form>
 
       {error && <p className="error-text">{error}</p>}
 
       {!q.trim() && !busy && !result && (
         <div className="search-empty-state card stack">
-          <h2>Cari di registry kontrak</h2>
-          <p className="muted">
-            Gunakan kata kunci party, PIC, nomor agreement, kode kontrak, atau isi dokumen yang
-            terindeks RAGFlow.
-          </p>
+          <h2>Cari di registry</h2>
           <div className="search-empty-examples">
-            <span className="muted">Contoh pencarian:</span>
+            <span className="muted">Contoh:</span>
             {EXAMPLE_QUERIES.map((sample) => (
               <button
                 key={sample}

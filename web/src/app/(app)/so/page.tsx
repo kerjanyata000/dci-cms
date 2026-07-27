@@ -7,7 +7,6 @@ import { TablePagination, paginateSlice } from '@/components/ui/TablePagination'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { formatCurrency } from '@/lib/format/currency'
 import { fetchSyncedOrders, runSoSync, type SoHealthSummary, type SyncedOrderRow } from '@/lib/so/api'
-import { ODOO_MODE } from '@/lib/odoo/client'
 import { useAuth } from '@/components/AuthProvider'
 import { ROLES } from '@/lib/roles'
 
@@ -86,12 +85,6 @@ export default function SoHealthPage() {
       <div className="page-head">
         <div className="crumb">Registry</div>
         <h1>SO Health</h1>
-        <p>
-          INT-SO · consume-only Odoo ({ODOO_MODE === 'live' ? 'live' : 'dummy'}). Quotation (
-          <code>draft</code>/<code>sent</code>) ikut tersinkron sebagai referensi, tetapi{' '}
-          <b>bukan</b> Active SO — dan CMS tidak mem-posting ke modul Finance/Accounting Odoo
-          (BR-CMS-020).
-        </p>
       </div>
 
       {loading && (
@@ -116,14 +109,14 @@ export default function SoHealthPage() {
               <span className="kpi-label">No Active SO</span>
             </div>
             <div className="kpi-value">{summary.noActiveSo}</div>
-            <div className="kpi-sub warn">Quotation saja = belum aktif</div>
+            <div className="kpi-sub warn">NOTIF-CMS-014</div>
           </div>
           <div className="kpi-card kpi-brass">
             <div className="kpi-top">
               <span className="kpi-label">Quotations</span>
             </div>
             <div className="kpi-value">{summary.quotations}</div>
-            <div className="kpi-sub">State draft/sent di Sales</div>
+            <div className="kpi-sub">draft / sent</div>
           </div>
           <div className="kpi-card kpi-red">
             <div className="kpi-top">

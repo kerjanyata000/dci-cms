@@ -1,7 +1,6 @@
 'use client'
 
 import { Suspense, useEffect, useState } from 'react'
-import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { ErrorBanner } from '@/components/ui/ErrorBanner'
 import { KpiCard } from '@/components/dashboard/KpiCard'
@@ -14,7 +13,6 @@ import {
   type DashboardPayload,
 } from '@/lib/dashboard/config'
 import { ODOO_MODE } from '@/lib/odoo/client'
-import { ROLES } from '@/lib/roles'
 import type { AppRole } from '@/types/cms'
 
 function OdooModeChip({ mode }: { mode: string }) {
@@ -41,15 +39,6 @@ function InfoIcon() {
   )
 }
 
-function LockIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <rect x="3" y="11" width="18" height="11" rx="2" />
-      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-    </svg>
-  )
-}
-
 function ForbiddenBanner() {
   const searchParams = useSearchParams()
   const path = searchParams.get('forbidden')
@@ -58,23 +47,7 @@ function ForbiddenBanner() {
     <div className="notice notice-warn">
       <InfoIcon />
       <div>
-        <b>Akses ditolak (RBAC).</b> Role Anda tidak memiliki akses ke{' '}
-        <span className="mono">{path}</span> — BRL-CMS-001.
-      </div>
-    </div>
-  )
-}
-
-function ViewOnlyBanner({ roleLabel, canSync }: { roleLabel: string; canSync: boolean }) {
-  const extra = canSync
-    ? ' Tombol SO Sync tetap tersedia di SO Health.'
-    : ' Anda dapat melihat status & detail party (view-only).'
-  return (
-    <div className="readonly-banner dashboard-readonly">
-      <LockIcon />
-      <div>
-        Login sebagai <b>{roleLabel}</b> — <b>view-only</b> pada create/edit kontrak &amp; party
-        (BRL-CMS-001/002).{extra}
+        Akses ditolak ke <span className="mono">{path}</span>.
       </div>
     </div>
   )
@@ -85,7 +58,6 @@ function DashboardInner({ role, userName }: Props) {
   const [error, setError] = useState('')
 
   const copy = getDashboardCopy(role)
-  const roleCfg = ROLES[role]
 
   useEffect(() => {
     setError('')
@@ -114,18 +86,8 @@ function DashboardInner({ role, userName }: Props) {
           <h1>
             {copy.titlePrefix} — {userName}
           </h1>
-          <p className="page-desc">{copy.desc}</p>
         </div>
         <OdooModeChip mode={data?.integration.odooMode ?? ODOO_MODE} />
-      </div>
-
-      {!roleCfg.canEdit && (
-        <ViewOnlyBanner roleLabel={roleCfg.label} canSync={roleCfg.canSync} />
-      )}
-
-      <div className="workspace-banner">
-        <span className={`role-workspace-chip ${role}`}>{roleCfg.label}</span>
-        <p>{copy.notice}</p>
       </div>
 
       {error && <ErrorBanner message={error} onRetry={retryLoad} />}
@@ -145,22 +107,8 @@ function DashboardInner({ role, userName }: Props) {
       ) : (
         <div className="card dashboard-loading">
           <div className="dashboard-loading-bar" />
-          <p className="muted">Memuat panel dashboard…</p>
+          <p className="muted">Memuat…</p>
         </div>
-      )}
-
-      {data && (
-        <p className="footer-note">
-          Dashboard monitoring (tanpa CTA create) · Odoo adapter {data.integration.odooMode.toUpperCase()}{' '}
-          · BRD FR-DASH-003
-          {(role === 'legal' || role === 'management') && (
-            <>
-              {' '}
-              · <Link href="/renewal">Renewal Calendar</Link> ·{' '}
-              <Link href="/notifications">Notifikasi</Link>
-            </>
-          )}
-        </p>
       )}
     </div>
   )

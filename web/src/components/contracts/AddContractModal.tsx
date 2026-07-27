@@ -72,13 +72,13 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
           <div>
             <h2>Add Contract</h2>
             <p className="muted">
-              FR-CNT-ADD-001/003/004 · {party.party_code} — {party.name}
+              {party.party_code} — {party.name}
             </p>
           </div>
           <ModalCloseButton onClick={onClose} />
         </div>
 
-        <p className="ref-tag">Counterparty locked · {party.name} (BRL-CMS-006)</p>
+        <p className="ref-tag">Counterparty locked · {party.name}</p>
 
         <div className="grid-2">
           <div className="field">
@@ -152,17 +152,13 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
         </div>
 
         <div className="field">
-          <label htmlFor="ac-file">Contract Document (PDF/DOCX) — FR-CNT-ADD-003</label>
+          <label htmlFor="ac-file">Contract Document (PDF/DOCX)</label>
           <input
             id="ac-file"
             type="file"
             accept=".pdf,.doc,.docx,application/pdf"
             onChange={(e) => setFile(e.target.files?.[0] ?? null)}
           />
-          <p className="muted" style={{ marginTop: 4, fontSize: 12 }}>
-            PDF/DOCX disimpan ke <b>Supabase Storage</b> (bucket <code>contracts</code>) dan diindeks ke{' '}
-            <b>RAGFlow</b> untuk ekstraksi metadata + smart search kontrak CMS.
-          </p>
         </div>
 
         <div className="field">

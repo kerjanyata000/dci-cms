@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
-import { accessModeLabel, ROLES, type SessionUser } from '@/lib/roles'
+import { ROLES, type SessionUser } from '@/lib/roles'
 
 type Props = {
   user: SessionUser
@@ -14,7 +14,6 @@ export function UserProfileMenu({ user, onLogout, onNavigate }: Props) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const role = ROLES[user.role]
-  const mode = accessModeLabel(user.role)
 
   useEffect(() => {
     if (!open) return
@@ -50,8 +49,6 @@ export function UserProfileMenu({ user, onLogout, onNavigate }: Props) {
           <div className="profile-panel-head">
             <b>{user.name}</b>
             <span className={`role-badge role-badge-${user.role}`}>{role.label}</span>
-            <span className="profile-access-mode">{mode}</span>
-            <p className="profile-focus">{role.focus}</p>
           </div>
           <nav className="profile-panel-nav">
             {role.nav.includes('so') && (

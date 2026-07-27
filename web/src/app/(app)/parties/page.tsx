@@ -207,10 +207,7 @@ export default function PartiesPage() {
 
       {user && !canEdit && (
         <div className="readonly-banner" style={{ marginBottom: 14 }}>
-          <div>
-            Login sebagai <b>{ROLES[user.role].label}</b> — view-only. Tombol Add Party / Link Odoo /
-            create kontrak disembunyikan (BRL-CMS-001/002).
-          </div>
+          <div>View-only · {ROLES[user.role].label}</div>
         </div>
       )}
 
