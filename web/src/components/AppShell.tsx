@@ -167,7 +167,7 @@ export function AppShell({ user, onLogout, children }: Props) {
             <UserProfileMenu user={user} onLogout={onLogout} onNavigate={() => setDrawerOpen(false)} />
           </div>
         </header>
-        <main className="content">
+        <main className="content" key={pathname}>
           <EnvironmentBanner />
           {children}
         </main>
