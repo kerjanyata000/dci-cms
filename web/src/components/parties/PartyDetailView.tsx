@@ -203,10 +203,27 @@ export function PartyDetailView({ partyId, role }: Props) {
       }
       await loadSo()
       void load()
+      return result
     } catch (err) {
       setSoSyncError(err instanceof Error ? err.message : 'Sync gagal')
+      throw err
     } finally {
       setSoBusy(false)
+    }
+  }
+
+  async function handleSoSyncFromReview() {
+    setTab('so')
+    const result = await handleRunSync()
+    if (!result) {
+      throw new Error('Party belum linked ke Odoo — tidak bisa sync SO')
+    }
+    return {
+      ordersUpserted: result.ordersUpserted,
+      syncedAt: result.syncedAt,
+      errorMessage: result.errors.length
+        ? result.errors.map((e) => e.message).join(' · ')
+        : undefined,
     }
   }
 
@@ -239,6 +256,13 @@ export function PartyDetailView({ partyId, role }: Props) {
   if (!data) return <PartyDetailSkeleton />
 
   const { party, contracts, documents, amendments, terminations, counterpartyChanges, auditLogs, soHealth } = data
+  const hasFullySigned = contracts.some((c) => c.status === 'fully_signed')
+  const promptSoSyncBanner =
+    canSync &&
+    showSoTab &&
+    Boolean(party.odoo_partner_id) &&
+    hasFullySigned &&
+    soHealth.noActiveSo
   const supportingDocs = documents.filter(
     (d) => d.document_category === 'supporting' && !d.voided_at,
   )
@@ -362,6 +386,26 @@ export function PartyDetailView({ partyId, role }: Props) {
         </div>
       </header>
       </div>
+
+      {promptSoSyncBanner && (
+        <div className="notice" style={{ alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <b>SO Sync recommended</b> — ada kontrak Fully Signed tanpa active SO. Jalankan sync
+            (FR-CNT-SO-001).
+          </div>
+          <button
+            type="button"
+            className="btn brass small"
+            disabled={soBusy}
+            onClick={() => {
+              setTab('so')
+              void handleRunSync()
+            }}
+          >
+            {soBusy ? 'Sync…' : 'Run SO Sync'}
+          </button>
+        </div>
+      )}
 
       <div className="tabs-wrap">
         <div className="tabs" role="tablist" aria-label="Party detail sections">
@@ -766,6 +810,7 @@ export function PartyDetailView({ partyId, role }: Props) {
               <div>
                 <b>No Active SO / Renewal Not Found</b> — kontrak aktif tanpa SO sale/done di mirror
                 (FR-CNT-SO-007 / NOTIF-CMS-014).
+                {hasFullySigned && ' Setelah Fully Signed, sync SO direkomendasikan (FR-CNT-SO-001).'}
               </div>
             </div>
           )}
@@ -927,6 +972,8 @@ export function PartyDetailView({ partyId, role }: Props) {
           contract={reviewContract}
           open={Boolean(reviewContract)}
           onClose={() => setReviewContract(null)}
+          soSyncAvailable={Boolean(party.odoo_partner_id) && canSync && showSoTab}
+          onRequestSoSync={handleSoSyncFromReview}
           onUpdated={(updated) => {
             setReviewContract(updated)
             setData((prev) =>

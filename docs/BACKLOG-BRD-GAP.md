@@ -17,7 +17,7 @@ Prioritas dari gap coverage BRD (scope → notifikasi). E-sign commercial setup 
 | --- | --- | --- | --- |
 | S1 | Event notifikasi lebih lengkap dari aksi kontrak (create, CP, term, upload) | NOTIF-CMS-001…013 | Done (mapping audit → kode NOTIF) |
 | S2 | Amendment status Ready / Fully Signed sederhana | FR-CNT-AMD-005/007 | Done |
-| S3 | Prompt SO sync setelah Fully Signed | FR-CNT-SO-001 (manual path) | Pending |
+| S3 | Prompt SO sync setelah Fully Signed | FR-CNT-SO-001 (manual path) | Done |
 | S4 | Auth Supabase default + seed role | FR-DASH-001 | Pending |
 
 ## Could (kemudian)
@@ -40,6 +40,11 @@ Prioritas dari gap coverage BRD (scope → notifikasi). E-sign commercial setup 
 ## Acceptance singkat (Should S2)
 
 - Given amendment Draft, When Ready for Signature → Mark Fully Signed, Then status `fully_signed` dan Current Summary parent ter-update tanpa overwrite dokumen asli.
+
+## Acceptance singkat (Should S3)
+
+- Given kontrak Ready/Sent + Party linked Odoo, When Mark Fully Signed (atau upload signed), Then prompt “Jalankan SO Sync?”; Yes → sync consume-only; No → bisa sync nanti dari tab SO.
+- Given Fully Signed tanpa active SO, When Party Detail dibuka (role yang boleh sync), Then banner SO Sync recommended.
 
 ## Deploy note
 

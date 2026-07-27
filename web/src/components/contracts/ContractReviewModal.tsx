@@ -30,27 +30,81 @@ const STATUS_ACTIONS: Array<{
   { action: 'back_to_draft', label: 'Back to Draft', showWhen: ['under_review', 'sent', 'revision_required'] },
 ]
 
+export type SoSyncPromptResult = {
+  ordersUpserted: number
+  syncedAt: string
+  errorMessage?: string
+}
+
 type Props = {
   contract: Contract
   open: boolean
   onClose: () => void
   onUpdated: (contract: Contract) => void
+  /** Party linked to Odoo + role may sync — FR-CNT-SO-001 manual path */
+  soSyncAvailable?: boolean
+  onRequestSoSync?: () => Promise<SoSyncPromptResult>
 }
 
-export function ContractReviewModal({ contract, open, onClose, onUpdated }: Props) {
+export function ContractReviewModal({
+  contract,
+  open,
+  onClose,
+  onUpdated,
+  soSyncAvailable = false,
+  onRequestSoSync,
+}: Props) {
   const [confirmed, setConfirmed] = useState<ContractMetadata>(contract.confirmed_metadata ?? {})
   const [signedFile, setSignedFile] = useState<File | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [soPromptMsg, setSoPromptMsg] = useState('')
 
   useEffect(() => {
     if (open) {
       setConfirmed(contract.confirmed_metadata ?? {})
       setError('')
+      setSoPromptMsg('')
     }
   }, [open, contract])
 
   if (!open) return null
+
+  async function offerSoSync(updated: Contract) {
+    if (updated.status !== 'fully_signed') return
+    if (!soSyncAvailable || !onRequestSoSync) {
+      if (!soSyncAvailable) {
+        setSoPromptMsg(
+          'Fully Signed. Link Party ke Odoo Partner dulu untuk menjalankan SO Sync (FR-CNT-SO-001).',
+        )
+      }
+      return
+    }
+
+    const run = window.confirm(
+      `${updated.contract_code} Fully Signed.\n\nJalankan SO Sync sekarang?\n(FR-CNT-SO-001 · consume-only dari Odoo; tidak mengubah dokumen kontrak)`,
+    )
+    if (!run) {
+      setSoPromptMsg('Fully Signed. SO Sync bisa dijalankan nanti dari tab Sales Orders.')
+      return
+    }
+
+    setBusy(true)
+    try {
+      const result = await onRequestSoSync()
+      if (result.errorMessage) {
+        setSoPromptMsg(`SO Sync selesai dengan error: ${result.errorMessage}`)
+      } else {
+        setSoPromptMsg(
+          `SO Sync OK — ${result.ordersUpserted} order(s) · ${new Date(result.syncedAt).toLocaleString('id-ID')}`,
+        )
+      }
+    } catch (err) {
+      setSoPromptMsg(err instanceof Error ? err.message : 'SO Sync gagal')
+    } finally {
+      setBusy(false)
+    }
+  }
 
   async function saveMetadata() {
     setBusy(true)
@@ -67,28 +121,36 @@ export function ContractReviewModal({ contract, open, onClose, onUpdated }: Prop
   async function runStatus(action: string) {
     setBusy(true)
     setError('')
+    setSoPromptMsg('')
+    let updated: Contract | null = null
     try {
-      onUpdated(await transitionContractStatus(contract.id, action))
+      updated = await transitionContractStatus(contract.id, action)
+      onUpdated(updated)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Status gagal')
     } finally {
       setBusy(false)
     }
+    if (updated) await offerSoSync(updated)
   }
 
   async function uploadSigned() {
     if (!signedFile) return
     setBusy(true)
     setError('')
+    setSoPromptMsg('')
+    let updated: Contract | null = null
     try {
       const result = await uploadSignedContractDocument(contract.id, signedFile, true)
-      onUpdated(result.contract as Contract)
+      updated = result.contract as Contract
+      onUpdated(updated)
       setSignedFile(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload signed doc gagal')
     } finally {
       setBusy(false)
     }
+    if (updated) await offerSoSync(updated)
   }
 
   const extracted = contract.extracted_metadata ?? {}
@@ -188,6 +250,12 @@ export function ContractReviewModal({ contract, open, onClose, onUpdated }: Prop
               Upload &amp; Mark Fully Signed
             </button>
           </div>
+        )}
+
+        {soPromptMsg && (
+          <p className="muted" style={{ fontSize: 13, marginTop: 10 }}>
+            {soPromptMsg}
+          </p>
         )}
 
         {error && <p className="error-text">{error}</p>}
