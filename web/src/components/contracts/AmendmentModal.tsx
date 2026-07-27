@@ -58,7 +58,7 @@ export function AmendmentModal({ contract, open, onClose, onCreated }: Props) {
           <div>
             <h2>Amendment / Addendum</h2>
             <p className="muted">
-              FR-CNT-AMD-001 · Parent {contract.contract_code} — tidak overwrite dokumen asli
+              Parent {contract.contract_code}
             </p>
           </div>
           <ModalCloseButton onClick={onClose} />

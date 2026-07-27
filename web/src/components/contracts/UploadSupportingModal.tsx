@@ -51,7 +51,7 @@ export function UploadSupportingModal({ partyId, contracts, open, onClose, onUpl
         <div className="modal-head">
           <div>
             <h2>Upload Supporting Document</h2>
-            <p className="muted">FR-CNT-SUP-001/004 — tidak mengubah lifecycle kontrak</p>
+            
           </div>
           <ModalCloseButton onClick={onClose} />
         </div>

@@ -78,8 +78,6 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
           <ModalCloseButton onClick={onClose} />
         </div>
 
-        <p className="ref-tag">Counterparty locked · {party.name}</p>
-
         <div className="grid-2">
           <div className="field">
             <label htmlFor="ac-title">Contract Title *</label>

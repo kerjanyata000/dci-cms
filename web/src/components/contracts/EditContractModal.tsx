@@ -60,7 +60,7 @@ export function EditContractModal({ contract, open, onClose, onUpdated }: Props)
           <div>
             <h2>Edit Contract Details</h2>
             <p className="muted">
-              FR-CNT-EDIT-001 · BRL-CMS-006 — metadata administratif saja
+              Metadata administratif
             </p>
           </div>
           <ModalCloseButton onClick={onClose} />
@@ -107,9 +107,6 @@ export function EditContractModal({ contract, open, onClose, onUpdated }: Props)
         </div>
 
         <div className="locked-fields card stack" style={{ padding: 12, background: 'var(--paper)' }}>
-          <p className="ref-tag" style={{ margin: 0 }}>
-            Field terkunci — gunakan aksi terkontrol (FR-CNT-EDIT-003)
-          </p>
           <div className="info-grid">
             <div className="info-item locked">
               <span>Counterparty</span>

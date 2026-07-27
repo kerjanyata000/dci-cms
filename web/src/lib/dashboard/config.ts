@@ -107,7 +107,7 @@ const DASHBOARD_COPY: Record<
   legal: {
     crumb: 'Home · Legal Workspace',
     titlePrefix: 'Contract Registry',
-    desc: 'Dashboard monitoring & pending Legal actions · FR-DASH-003 / FR-DASH-005.',
+    desc: 'Dashboard monitoring & pending Legal actions.',
     notice:
       'Alur utama: Dashboard → Parties → Renewal. SO Health & Activity Log lewat menu profil / sidebar.',
   },
@@ -116,12 +116,12 @@ const DASHBOARD_COPY: Record<
     titlePrefix: 'Commercial Reference',
     desc: 'SO Health & referensi komersial — quotation Odoo ≠ Active SO / invoice.',
     notice:
-      'Menu utama: SO Health. Quotation (draft/sent) terlihat sebagai referensi; Active SO = sale/done. CMS tidak posting ke Accounting (BR-CMS-020).',
+      'Menu utama: SO Health. Quotation (draft/sent) terlihat sebagai referensi; Active SO = sale/done. CMS tidak posting ke Accounting.',
   },
   management: {
     crumb: 'Home · Executive Monitor',
     titlePrefix: 'Executive Overview',
-    desc: 'Monitoring portfolio & renewal — view-only (BRD §5).',
+    desc: 'Monitoring portfolio & renewal — view-only.',
     notice:
       'Menu utama: Renewal Calendar + Activity Log. Tidak ada create/edit kontrak.',
   },
@@ -221,13 +221,13 @@ export function buildKpisForRole(role: AppRole, data: DashboardPayload): KpiItem
         {
           label: 'No Active SO',
           value: String(so.noActiveSo),
-          sub: 'NOTIF-CMS-014',
+          sub: 'Perlu tindak lanjut',
           tone: 'amber',
         },
         {
           label: 'Sync Errors (7d)',
           value: String(so.syncErrors),
-          sub: 'NOTIF-CMS-015',
+          sub: 'Error sync',
           tone: 'red',
         },
       ]
@@ -274,7 +274,7 @@ export function buildKpisForRole(role: AppRole, data: DashboardPayload): KpiItem
         {
           label: 'Pending / Mismatch',
           value: String(s.pendingOdooLink + s.mismatchOdooLink),
-          sub: 'NOTIF-CMS-016/019',
+          sub: 'Perlu review link',
           tone: 'amber',
         },
         {
@@ -354,7 +354,7 @@ export function buildPendingForRole(role: AppRole, data: DashboardPayload): Pend
   if (role === 'it') {
     items.push({
       title: 'SO Health monitor',
-      sub: 'Run Sync & exception list · INT-SO',
+      sub: 'Run Sync & exception list',
       href: '/so',
     })
   }
@@ -362,7 +362,7 @@ export function buildPendingForRole(role: AppRole, data: DashboardPayload): Pend
   if (role === 'management') {
     items.push({
       title: 'Renewal Calendar',
-      sub: 'FR-DASH-004 · agenda renewal/expiry',
+      sub: 'Agenda renewal / expiry',
       href: '/renewal',
     })
   }

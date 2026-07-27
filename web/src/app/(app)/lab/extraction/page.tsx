@@ -93,7 +93,7 @@ export default function ExtractionLabPage() {
         <div>
           <div className="crumb">Internal</div>
           <h1>Extraction Lab</h1>
-          <p>Upload → parse → extract → validate · uji RAGFlow ({RAGFLOW_MODE}).</p>
+          
         </div>
         <span className="lab-internal-badge">INTERNAL ONLY</span>
       </div>

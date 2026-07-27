@@ -193,10 +193,6 @@ export default function PartiesPage() {
         <div>
           <div className="crumb">Parties</div>
           <h1>Parties — Search &amp; View</h1>
-          <p>
-            Inquiry party-centric per BRD §6.11 — register, kontrak primer, link Odoo, dan Party
-            Detail.
-          </p>
         </div>
         {canEdit && (
           <button type="button" className="btn primary" onClick={() => setAddOpen(true)}>

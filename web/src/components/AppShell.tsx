@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
-import { EnvironmentBanner } from '@/components/shell/EnvironmentBanner'
 import { GlobalSearch } from '@/components/shell/GlobalSearch'
 import { IntegrationStatus } from '@/components/shell/IntegrationStatus'
 import { NotificationsBell } from '@/components/shell/NotificationsBell'
@@ -168,7 +167,6 @@ export function AppShell({ user, onLogout, children }: Props) {
           </div>
         </header>
         <main className="content" key={pathname}>
-          <EnvironmentBanner />
           {children}
         </main>
       </div>

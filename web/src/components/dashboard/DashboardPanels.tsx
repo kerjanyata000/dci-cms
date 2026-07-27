@@ -211,7 +211,6 @@ export function DashboardRolePanels({
           <div className="card stack" style={{ marginTop: 0 }}>
             <div className="card-head">
               <h3>Antrian Legal (Pending Actions)</h3>
-              <span className="ref-tag">FR-DASH-005</span>
             </div>
             <PendingList items={pending} />
           </div>
@@ -274,7 +273,6 @@ export function DashboardRolePanels({
         <div className="card stack" style={{ marginTop: 0 }}>
           <div className="card-head">
             <h3>Commercial snapshot</h3>
-            <span className="ref-tag">INT-SO</span>
           </div>
           <CommercialBars bars={data.commercialBars} />
         </div>

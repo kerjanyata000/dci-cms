@@ -90,7 +90,7 @@ export function AmendmentReviewModal({
           <div>
             <h2>Review Amendment</h2>
             <p className="muted">
-              FR-CNT-AMD-005 · {current.amendment_code}
+              {current.amendment_code}
               {parentContract ? ` · parent ${parentContract.contract_code}` : ''}
             </p>
           </div>
@@ -138,7 +138,7 @@ export function AmendmentReviewModal({
 
         {actions.length > 0 && (
           <div className="field">
-            <label>Status actions (Legal-managed · no approval workflow)</label>
+            <label>Status</label>
             <div className="row-actions" style={{ flexWrap: 'wrap', gap: 8 }}>
               {actions.map((a) => (
                 <button
@@ -157,8 +157,7 @@ export function AmendmentReviewModal({
 
         {current.status === 'fully_signed' && (
           <p className="muted" style={{ fontSize: 12 }}>
-            Fully Signed — current summary parent sudah di-update; dokumen kontrak asli tidak
-            di-overwrite.
+            Fully Signed — ringkasan kontrak induk sudah di-update.
           </p>
         )}
 

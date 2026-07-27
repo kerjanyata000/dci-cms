@@ -81,7 +81,7 @@ export function ChangeCounterpartyModal({
           <div>
             <h2>Change Counterparty</h2>
             <p className="muted">
-              FR-CNT-CP-001 · {contract.contract_code} · tanpa approval internal (BRL-CMS-007)
+              {contract.contract_code}
             </p>
           </div>
           <ModalCloseButton onClick={onClose} />
@@ -95,8 +95,7 @@ export function ChangeCounterpartyModal({
         {blocked && (
           <div className="notice">
             <div>
-              Kontrak berstatus <b>{contract.status_text}</b> — batalkan proses tanda tangan dulu
-              (BRL-CMS-009).
+              Kontrak berstatus <b>{contract.status_text}</b> — batalkan proses tanda tangan dulu.
             </div>
           </div>
         )}
@@ -162,7 +161,7 @@ export function ChangeCounterpartyModal({
         </div>
 
         {changeType === 'Correction' && !['draft', 'under_review'].includes(contract.status) && (
-          <p className="error-text">Correction hanya untuk Draft / Under Review (BRL-CMS-008).</p>
+          <p className="error-text">Correction hanya untuk Draft / Under Review.</p>
         )}
 
         {error && <p className="error-text">{error}</p>}

@@ -75,14 +75,14 @@ export function ContractReviewModal({
     if (!soSyncAvailable || !onRequestSoSync) {
       if (!soSyncAvailable) {
         setSoPromptMsg(
-          'Fully Signed. Link Party ke Odoo Partner dulu untuk menjalankan SO Sync (FR-CNT-SO-001).',
+          'Fully Signed. Link Party ke Odoo Partner dulu untuk menjalankan SO Sync.',
         )
       }
       return
     }
 
     const run = window.confirm(
-      `${updated.contract_code} Fully Signed.\n\nJalankan SO Sync sekarang?\n(FR-CNT-SO-001 · consume-only dari Odoo; tidak mengubah dokumen kontrak)`,
+      `${updated.contract_code} Fully Signed.\n\nJalankan SO Sync sekarang?`,
     )
     if (!run) {
       setSoPromptMsg('Fully Signed. SO Sync bisa dijalankan nanti dari tab Sales Orders.')
@@ -163,24 +163,17 @@ export function ContractReviewModal({
           <div>
             <h2>Review Contract</h2>
             <p className="muted">
-              FR-CNT-ADD-004/005 · {contract.contract_code} · {contract.status_text}
+              {contract.contract_code} · {contract.status_text}
             </p>
           </div>
           <ModalCloseButton onClick={onClose} />
         </div>
 
-        <p className="ref-tag">
-          Dual metadata · validation: {contract.validation_status}
-          {contract.original_party_id && contract.original_party_id !== contract.party_id && (
-            <span> · original party #{contract.original_party_id.slice(0, 8)}…</span>
-          )}
-        </p>
-
         <table className="data-table meta-compare-table">
           <thead>
             <tr>
               <th>Field</th>
-              <th>Extracted (RAGFlow)</th>
+              <th>Extracted</th>
               <th>Confirmed (user)</th>
             </tr>
           </thead>
@@ -229,9 +222,6 @@ export function ContractReviewModal({
 
         {canUploadSigned && (
           <div className="card stack" style={{ marginTop: 12, padding: 12, background: 'var(--paper)' }}>
-            <p className="ref-tag" style={{ margin: 0 }}>
-              BRL-CMS-018 · Upload signed PDF → Supabase Storage (tidak re-index RAGFlow)
-            </p>
             <div className="field" style={{ marginBottom: 0 }}>
               <label htmlFor="signed-file">Signed document</label>
               <input

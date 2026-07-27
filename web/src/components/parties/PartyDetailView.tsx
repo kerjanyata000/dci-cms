@@ -121,13 +121,13 @@ function PartyDetailSkeleton() {
 }
 
 const TABS = [
-  { id: 'overview', label: 'Overview', brd: 'FR-PTY-SV-003' },
-  { id: 'contracts', label: 'Contracts & Amendments', brd: 'FR-CNT-SV-006' },
-  { id: 'novation', label: 'Novation / CP Change', brd: 'FR-CNT-CP-011' },
-  { id: 'termination', label: 'Early Termination', brd: 'FR-CNT-TERM-009' },
-  { id: 'supporting', label: 'Supporting Docs', brd: 'FR-CNT-SUP-001' },
-  { id: 'so', label: 'SO Synchronization', brd: 'INT-SO / FR-PTY-SV-003' },
-  { id: 'audit', label: 'Audit Trail', brd: 'BRL-CMS-025' },
+  { id: 'overview', label: 'Overview' },
+  { id: 'contracts', label: 'Contracts & Amendments' },
+  { id: 'novation', label: 'Novation / CP Change' },
+  { id: 'termination', label: 'Early Termination' },
+  { id: 'supporting', label: 'Supporting Docs' },
+  { id: 'so', label: 'SO Synchronization' },
+  { id: 'audit', label: 'Audit Trail' },
 ] as const
 
 type TabId = (typeof TABS)[number]['id']
@@ -390,8 +390,7 @@ export function PartyDetailView({ partyId, role }: Props) {
       {promptSoSyncBanner && (
         <div className="notice" style={{ alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <b>SO Sync recommended</b> — ada kontrak Fully Signed tanpa active SO. Jalankan sync
-            (FR-CNT-SO-001).
+            <b>SO Sync recommended</b> — ada kontrak Fully Signed tanpa SO aktif.
           </div>
           <button
             type="button"
@@ -426,7 +425,6 @@ export function PartyDetailView({ partyId, role }: Props) {
 
       {tab === 'overview' && (
         <div className="tab-panel active party-overview" role="tabpanel">
-          <p className="ref-tag">FR-PTY-SV-003 · BRL-CMS-026 — konteks utama kontrak &amp; integrasi</p>
 
           <section className="overview-section">
             <h2 className="section-title">Contract snapshot</h2>
@@ -461,7 +459,7 @@ export function PartyDetailView({ partyId, role }: Props) {
                 )}
               </InfoField>
               {soHealth.noActiveSo && (
-                <InfoField label="SO Health" hint="NOTIF-CMS-014 · FR-CNT-SO-007">
+                <InfoField label="SO Health" hint="Tidak ada SO aktif">
                   <span className="status-pill no_so">No Active SO</span>
                 </InfoField>
               )}
@@ -470,12 +468,9 @@ export function PartyDetailView({ partyId, role }: Props) {
 
           <section className="overview-section">
             <h2 className="section-title">Sensitive fields</h2>
-            <p className="section-desc">
-              Field terkontrol — ubah lewat aksi Legal (Change Counterparty, Amendment), bukan edit
-              langsung.
-            </p>
+            
             <div className="info-grid">
-              <InfoField label="Counterparty" locked hint="Change via Change Counterparty (FR-CNT-CP)">
+              <InfoField label="Counterparty" locked hint="Ubah lewat Change Counterparty">
                 <b>{party.name}</b>
               </InfoField>
               <InfoField label="Contract Value" locked hint="Change via Amendment">
@@ -484,7 +479,7 @@ export function PartyDetailView({ partyId, role }: Props) {
               <InfoField
                 label="Current Summary"
                 locked
-                hint="Updated when Amendment Fully Signed (FR-CNT-AMD-007)"
+                hint="Ter-update saat amendment Fully Signed"
               >
                 <b>{meta.currentSummary || meta.lastAmendmentSummary || '—'}</b>
               </InfoField>
@@ -512,7 +507,7 @@ export function PartyDetailView({ partyId, role }: Props) {
           {!canEdit && (
             <div className="readonly-banner party-readonly">
               <LockIcon />
-              <div>Role Anda memiliki akses view-only pada Party Detail (FR-CNT-SV-004).</div>
+              <div>Akses view-only.</div>
             </div>
           )}
         </div>
@@ -520,12 +515,6 @@ export function PartyDetailView({ partyId, role }: Props) {
 
       {tab === 'contracts' && (
         <div className="tab-panel active card stack">
-          <p className="ref-tag">FR-CNT-SV-006 · FR-CNT-AMD-008</p>
-          {canEdit && contracts.length > 0 && (
-            <p className="muted" style={{ fontSize: 12 }}>
-              Pilih aksi per baris kontrak di tabel bawah.
-            </p>
-          )}
           {amendments.length > 0 && (
             <>
               <h3 style={{ margin: '8px 0 0', fontSize: 14 }}>Amendments / Addendum</h3>
@@ -574,7 +563,7 @@ export function PartyDetailView({ partyId, role }: Props) {
             </>
           )}
           {contracts.length === 0 ? (
-            <p className="muted">Belum ada kontrak untuk party ini. FR-CNT-ADD-009.</p>
+            <p className="muted">Belum ada kontrak untuk party ini.</p>
           ) : (
             <table className="data-table">
               <thead>
@@ -625,7 +614,6 @@ export function PartyDetailView({ partyId, role }: Props) {
 
       {tab === 'novation' && (
         <div className="tab-panel active card stack">
-          <p className="ref-tag">FR-CNT-CP-011 · FR-CNT-SV-007</p>
           {counterpartyChanges.length === 0 ? (
             <p className="muted">Belum ada riwayat Change Counterparty / novation untuk party ini.</p>
           ) : (
@@ -664,7 +652,6 @@ export function PartyDetailView({ partyId, role }: Props) {
 
       {tab === 'termination' && (
         <div className="tab-panel active card stack">
-          <p className="ref-tag">FR-CNT-TERM-009 · BRL-CMS-013</p>
           {terminations.length === 0 ? (
             <p className="muted">Belum ada early termination record untuk party ini.</p>
           ) : (
@@ -699,7 +686,6 @@ export function PartyDetailView({ partyId, role }: Props) {
 
       {tab === 'supporting' && (
         <div className="tab-panel active card stack">
-          <p className="ref-tag">FR-CNT-SUP-001</p>
           {canEdit && (
             <button type="button" className="btn ghost" onClick={() => setUploadSupportingOpen(true)}>
               + Upload Supporting Doc
@@ -804,13 +790,12 @@ export function PartyDetailView({ partyId, role }: Props) {
 
       {tab === 'so' && showSoTab && (
         <div className="tab-panel active card stack">
-          <p className="ref-tag">INT-SO · consume-only · BR-CMS-020</p>
           {soHealth.noActiveSo && (
             <div className="notice">
               <div>
                 <b>No Active SO / Renewal Not Found</b> — kontrak aktif tanpa SO sale/done di mirror
-                (FR-CNT-SO-007 / NOTIF-CMS-014).
-                {hasFullySigned && ' Setelah Fully Signed, sync SO direkomendasikan (FR-CNT-SO-001).'}
+                .
+                
               </div>
             </div>
           )}
@@ -837,7 +822,7 @@ export function PartyDetailView({ partyId, role }: Props) {
               {soSyncError && <p className="error-text">{soSyncError}</p>}
               {soRows.length === 0 ? (
                 <p className="muted">
-                  Belum ada SO tersimpan. Jalankan Run Sync untuk pull dari Odoo (consume-only).
+                  Belum ada SO tersimpan. Jalankan Run Sync untuk mengambil data dari Odoo.
                 </p>
               ) : (
                 <table className="data-table">
@@ -875,7 +860,6 @@ export function PartyDetailView({ partyId, role }: Props) {
 
       {tab === 'audit' && (
         <div className="tab-panel active card stack">
-          <p className="ref-tag">BRL-CMS-025 · Activity Log konteks Party</p>
           {auditLogs.length === 0 ? (
             <p className="muted">Belum ada audit log untuk party ini.</p>
           ) : (

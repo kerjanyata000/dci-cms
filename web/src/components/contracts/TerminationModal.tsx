@@ -53,7 +53,7 @@ export function TerminationModal({ contract, open, onClose, onCreated }: Props) 
           <div>
             <h2>Early Termination</h2>
             <p className="muted">
-              FR-CNT-TERM-001 · BRL-CMS-013 · Hanya kontrak Active · tanpa approval internal
+              Hanya kontrak Active
             </p>
           </div>
           <ModalCloseButton onClick={onClose} />

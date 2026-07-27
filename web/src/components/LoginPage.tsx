@@ -4,13 +4,16 @@ import { useMemo, useState } from 'react'
 import { signInWithSupabase } from '@/lib/auth/client'
 import { persistSupabaseSession } from '@/lib/auth/client-session'
 import { DEMO_AUTH_ACCOUNTS } from '@/lib/auth/demo-accounts'
+import type { AuthMode } from '@/lib/auth/mode-types'
 import { AUTH_MODE } from '@/lib/auth/mode'
 import { getSupabaseBrowser } from '@/lib/supabase/client'
 import type { AppRole, SessionUser } from '@/lib/roles'
 import { ROLES } from '@/lib/roles'
 
 type Props = {
-  onLogin: (user: SessionUser) => void
+  onLogin: (user: SessionUser) => void | Promise<void>
+  authMode?: AuthMode
+  errorHint?: string
 }
 
 function ArrowIcon() {
@@ -52,8 +55,8 @@ export function LoginPageSkeleton() {
   )
 }
 
-export function LoginPage({ onLogin }: Props) {
-  const isSupabase = AUTH_MODE === 'supabase'
+export function LoginPage({ onLogin, authMode = AUTH_MODE, errorHint }: Props) {
+  const isSupabase = authMode === 'supabase'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [role, setRole] = useState<AppRole>('legal')
@@ -82,11 +85,11 @@ export function LoginPage({ onLogin }: Props) {
         if (sessionData.session?.access_token) {
           await persistSupabaseSession(sessionData.session.access_token)
         }
-        onLogin(user)
+        await onLogin(user)
         return
       }
 
-      onLogin({ name: ROLES[role].defaultName, role })
+      await onLogin({ name: ROLES[role].defaultName, role })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login gagal')
     } finally {
@@ -115,14 +118,11 @@ export function LoginPage({ onLogin }: Props) {
 
           <div className="login-form-head">
             <h1>{isSupabase ? 'Masuk' : 'Pilih role'}</h1>
-            {isSupabase && (
-              <p className="muted" style={{ fontSize: 13, margin: '6px 0 0' }}>
-                Login divalidasi Supabase Auth · role dari profiles (FR-DASH-001)
-              </p>
-            )}
           </div>
 
-          {error && <div className="login-error show">{error}</div>}
+          {(error || errorHint) && (
+            <div className="login-error show">{error || errorHint}</div>
+          )}
 
           {isSupabase ? (
             <>
@@ -166,9 +166,6 @@ export function LoginPage({ onLogin }: Props) {
                       </button>
                     ))}
                   </div>
-                  <p className="muted" style={{ fontSize: 11, marginTop: 6 }}>
-                    Seed dulu: <code>npm run seed:auth</code> · password demo terisi otomatis (non-prod)
-                  </p>
                 </div>
               )}
             </>

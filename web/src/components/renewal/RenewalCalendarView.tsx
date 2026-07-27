@@ -59,16 +59,6 @@ const PICKER_WIDTH = 280
 
 type PickerPos = { top: number; left: number }
 
-function InfoIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-      <circle cx="12" cy="12" r="10" />
-      <line x1="12" y1="16" x2="12" y2="12" />
-      <line x1="12" y1="8" x2="12.01" y2="8" />
-    </svg>
-  )
-}
-
 function FilterDot({ kind }: { kind: 'urgent' | 'soon' | 'later' }) {
   return <span className={`filter-dot ${kind}`} aria-hidden />
 }
@@ -431,15 +421,6 @@ export function RenewalCalendarView() {
         <div>
           <div className="crumb">Registry</div>
           <h1>Renewal &amp; Expiry Calendar</h1>
-          <p>FR-DASH-004 · BRL-CMS-023 — agenda renewal, expiry, termination effective date.</p>
-        </div>
-      </div>
-
-      <div className="notice renewal-notice">
-        <InfoIcon />
-        <div>
-          <b>Metodologi.</b> Estimasi jatuh tempo dari Agreement Date + Duration. Renewal date =
-          expiry − 90 hari. Klik tanggal untuk detail agenda; gunakan panah atau picker bulan/tahun.
         </div>
       </div>
 

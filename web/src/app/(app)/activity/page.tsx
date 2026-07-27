@@ -92,7 +92,6 @@ export default function ActivityPage() {
         <div>
           <div className="crumb">Registry</div>
           <h1>Activity Log</h1>
-          <p>BRL-CMS-025 · audit trail global (80 entri terbaru).</p>
         </div>
         <button type="button" className="btn ghost" onClick={exportCsv} disabled={visible.length === 0}>
           Export CSV

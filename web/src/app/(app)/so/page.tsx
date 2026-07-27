@@ -109,7 +109,7 @@ export default function SoHealthPage() {
               <span className="kpi-label">No Active SO</span>
             </div>
             <div className="kpi-value">{summary.noActiveSo}</div>
-            <div className="kpi-sub warn">NOTIF-CMS-014</div>
+            <div className="kpi-sub warn">Perlu tindak lanjut</div>
           </div>
           <div className="kpi-card kpi-brass">
             <div className="kpi-top">
@@ -123,7 +123,7 @@ export default function SoHealthPage() {
               <span className="kpi-label">Sync Errors (7d)</span>
             </div>
             <div className="kpi-value">{summary.syncErrors}</div>
-            <div className="kpi-sub warn">NOTIF-CMS-015</div>
+            <div className="kpi-sub warn">Error sync</div>
           </div>
         </div>
       )}

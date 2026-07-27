@@ -68,7 +68,6 @@ export default function NotificationsPage() {
         <div>
           <div className="crumb">Registry</div>
           <h1>Notifikasi</h1>
-          <p>NOTIF-CMS-* · event Odoo link, SO sync, renewal, audit.</p>
         </div>
         <div className="row-actions">
           {unreadCount > 0 && (
