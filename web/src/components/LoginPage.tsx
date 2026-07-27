@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import { signInWithSupabase } from '@/lib/auth/client'
 import { persistSupabaseSession } from '@/lib/auth/client-session'
+import { DEMO_AUTH_ACCOUNTS } from '@/lib/auth/demo-accounts'
 import { AUTH_MODE } from '@/lib/auth/mode'
 import { getSupabaseBrowser } from '@/lib/supabase/client'
 import type { AppRole, SessionUser } from '@/lib/roles'
@@ -20,6 +21,20 @@ function ArrowIcon() {
     </svg>
   )
 }
+
+/** Demo passwords — only bundled/used outside production builds */
+const DEMO_PASSWORDS: Record<string, string> =
+  process.env.NODE_ENV === 'production'
+    ? {}
+    : {
+        'legal.admin@dci.co.id': 'DemoLegal123!',
+        'business.user@dci.co.id': 'DemoBusiness123!',
+        'finance.user@dci.co.id': 'DemoFinance123!',
+        'mgmt.user@dci.co.id': 'DemoMgmt123!',
+        'it.ops@dci.co.id': 'DemoIt123!',
+      }
+
+const showDemoFill = process.env.NODE_ENV !== 'production'
 
 export function LoginPageSkeleton() {
   return (
@@ -45,6 +60,12 @@ export function LoginPage({ onLogin }: Props) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const roleList = useMemo(() => Object.entries(ROLES) as Array<[AppRole, (typeof ROLES)[AppRole]]>, [])
+
+  function fillDemo(accountEmail: string) {
+    setEmail(accountEmail)
+    setPassword(DEMO_PASSWORDS[accountEmail] ?? '')
+    setError('')
+  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -94,6 +115,11 @@ export function LoginPage({ onLogin }: Props) {
 
           <div className="login-form-head">
             <h1>{isSupabase ? 'Masuk' : 'Pilih role'}</h1>
+            {isSupabase && (
+              <p className="muted" style={{ fontSize: 13, margin: '6px 0 0' }}>
+                Login divalidasi Supabase Auth · role dari profiles (FR-DASH-001)
+              </p>
+            )}
           </div>
 
           {error && <div className="login-error show">{error}</div>}
@@ -124,6 +150,27 @@ export function LoginPage({ onLogin }: Props) {
                   required
                 />
               </div>
+
+              {showDemoFill && (
+                <div className="field">
+                  <label>Akun demo UAT</label>
+                  <div className="row-actions" style={{ flexWrap: 'wrap', gap: 6 }}>
+                    {DEMO_AUTH_ACCOUNTS.map((a) => (
+                      <button
+                        key={a.email}
+                        type="button"
+                        className="btn ghost small"
+                        onClick={() => fillDemo(a.email)}
+                      >
+                        {ROLES[a.role].label}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="muted" style={{ fontSize: 11, marginTop: 6 }}>
+                    Seed dulu: <code>npm run seed:auth</code> · password demo terisi otomatis (non-prod)
+                  </p>
+                </div>
+              )}
             </>
           ) : (
             <div className="role-grid" role="listbox" aria-label="Pilih role">

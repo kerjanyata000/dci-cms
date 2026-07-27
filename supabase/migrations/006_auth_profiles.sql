@@ -1,5 +1,6 @@
--- Auth: auto-create CMS profile when Supabase user registers (FR-DASH / pre-live §1.9)
+-- Auth: auto-create CMS profile when Supabase user registers (FR-DASH-001 / S4)
 -- Apply after 001_initial.sql. Set role via raw_user_meta_data.role on invite or UPDATE profiles.
+-- UAT seed: from web/ run `npm run seed:auth` (service role) → 5 demo users + profiles.
 
 create or replace function public.handle_new_user()
 returns trigger

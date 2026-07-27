@@ -13,11 +13,11 @@ export function EnvironmentBanner() {
       <span className="env-banner-dot" aria-hidden />
       {isMock ? (
         <>
-          <b>Prototype dev</b> — role picker mock · bukan production
+          <b>Prototype mock</b> — role picker · set Supabase keys + hapus AUTH_MODE=mock untuk Auth nyata
         </>
       ) : (
         <>
-          <b>{APP_ENV.toUpperCase()}</b> environment
+          <b>{APP_ENV.toUpperCase()}</b> · Supabase Auth · profiles.role
         </>
       )}
     </div>

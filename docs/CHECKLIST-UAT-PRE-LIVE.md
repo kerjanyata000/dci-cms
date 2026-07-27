@@ -57,8 +57,8 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | 1.6 | Menu sidebar sesuai role | Finance | Login Finance | + SO Health | 🟡 | | |
 | 1.7 | Menu sidebar sesuai role | IT | Login IT | + SO Health, Renewal | 🟡 | | |
 | 1.8 | Aksi edit disembunyikan jika view-only | Business | Buka Parties | Tidak ada Add Party / Link Odoo | 🟡 | | |
-| 1.9 | Supabase Auth production | — | Login email/password | Session + `profiles.role` | 🟡 | | Set `NEXT_PUBLIC_AUTH_MODE=supabase` + migration 006 |
-| 1.9a | Mock auth dev | — | Default tanpa env | Role picker + cookie session | 🟡 | | POST `/api/auth/session` |
+| 1.9 | Supabase Auth production | — | Login email/password | Session + `profiles.role` | ✅ | | Default supabase when keys set (S4); opt-out `AUTH_MODE=mock` |
+| 1.9a | Mock auth dev | — | `AUTH_MODE=mock` | Role picker + cookie session | ✅ | | POST `/api/auth/session` |
 | 1.10 | API RBAC write guard | Business POST party | 403 Forbidden | 🟡 | | requireCanEdit on mutating routes |
 | 1.11 | Middleware route guard | Tanpa login → `/` | Redirect | ✅ | | + `next` return URL |
 | 1.12 | Session cookie on login | Legal login | Cookie httpOnly | ✅ | | |
@@ -75,7 +75,7 @@ Centang setiap item setelah diuji; catat hasil di kolom **Hasil** (`PASS` / `FAI
 | 2.3 | Pending actions list | Legal | Dashboard | Item tindakan + link ke Party | ✅ | | Renewal H-14 + amendment ready |
 | 2.4 | Renewal agenda ringkas | Legal/Mgmt | Dashboard | Timeline renewal risk | ✅ | | Management panel + /renewal |
 | 2.5 | Dev status panel | Dev | Dashboard | Status koneksi env | 🟡 | | Hanya NODE_ENV development |
-| 2.6 | Supabase Auth UAT users | Dev | `npm run seed:auth` | 5 role users + profiles | 🟡 | | Set AUTH_MODE=supabase |
+| 2.6 | Supabase Auth UAT users | Dev | `npm run seed:auth` | 5 role users + profiles | ✅ | | Demo fill di login (non-prod) |
 
 ---
 
