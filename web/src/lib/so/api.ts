@@ -26,6 +26,7 @@ export type SoHealthSummary = {
   synchronized: number
   noActiveSo: number
   inProgress: number
+  quotations: number
   syncErrors: number
 }
 

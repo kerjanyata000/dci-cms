@@ -8,7 +8,7 @@ import { GlobalSearch } from '@/components/shell/GlobalSearch'
 import { IntegrationStatus } from '@/components/shell/IntegrationStatus'
 import { NotificationsBell } from '@/components/shell/NotificationsBell'
 import { UserProfileMenu } from '@/components/shell/UserProfileMenu'
-import { ROLES, type SessionUser } from '@/lib/roles'
+import { accessModeLabel, ROLES, type SessionUser } from '@/lib/roles'
 import './shell.css'
 
 const SIDEBAR_KEY = 'cms-sidebar-collapsed'
@@ -140,6 +140,11 @@ export function AppShell({ user, onLogout, children }: Props) {
           </div>
         </div>
         <nav className="nav-group">{navLinks}</nav>
+        <div className="sidebar-role-chip" aria-label="Role aktif">
+          <span className={`role-badge role-badge-${user.role}`}>{role.label}</span>
+          <span className="sidebar-role-focus">{role.focus}</span>
+          <span className="sidebar-role-mode muted">{accessModeLabel(user.role)}</span>
+        </div>
         <div className="sidebar-foot">
           <IntegrationStatus variant="sidebar" />
         </div>

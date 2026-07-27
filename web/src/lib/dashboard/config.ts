@@ -53,6 +53,7 @@ export type SoHealthSnapshot = {
   synchronized: number
   noActiveSo: number
   inProgress: number
+  quotations: number
   syncErrors: number
 }
 
@@ -110,26 +111,26 @@ const DASHBOARD_COPY: Record<
     notice:
       'Alur utama: Dashboard → Parties → Renewal. SO Health & Activity Log lewat menu profil / sidebar.',
   },
-  business: {
-    crumb: 'Home · Business Requestor',
-    titlePrefix: 'Portal Requestor',
-    desc: 'Melihat kontrak & party terkait, mengajukan permintaan ke Legal (view-only).',
-    notice:
-      'Fokus status permintaan. Detail party dari daftar Parties; notifikasi dari lonceng. Tidak ada CTA create di dashboard.',
-  },
   finance: {
     crumb: 'Home · Finance / Commercial',
     titlePrefix: 'Commercial Reference',
-    desc: 'Referensi kontrak, party, dan SO untuk follow-up operasional/komersial.',
+    desc: 'SO Health & referensi komersial — quotation Odoo ≠ Active SO / invoice.',
     notice:
-      'SO Health di sidebar (inti kerja Anda). Run Sync hanya untuk role sync/Legal.',
+      'Menu utama: SO Health. Quotation (draft/sent) terlihat sebagai referensi; Active SO = sale/done. CMS tidak posting ke Accounting (BR-CMS-020).',
   },
   management: {
     crumb: 'Home · Executive Monitor',
     titlePrefix: 'Executive Overview',
-    desc: 'Monitoring & pelaporan lintas kontrak, akses view-only (BRD §5).',
+    desc: 'Monitoring portfolio & renewal — view-only (BRD §5).',
     notice:
-      'Monitoring portofolio & renewal. Activity Log tersedia di menu profil / sidebar.',
+      'Menu utama: Renewal Calendar + Activity Log. Tidak ada create/edit kontrak.',
+  },
+  business: {
+    crumb: 'Home · Business Requestor',
+    titlePrefix: 'Portal Requestor',
+    desc: 'Status permintaan & visibility party/kontrak (view-only).',
+    notice:
+      'Tanpa menu SO/Renewal admin. Create/edit hanya Legal. Ajukan kebutuhan ke Legal di luar CMS bila perlu.',
   },
   it: {
     crumb: 'Home · IT / Integration',
@@ -208,20 +209,20 @@ export function buildKpisForRole(role: AppRole, data: DashboardPayload): KpiItem
         {
           label: 'SO Synchronized',
           value: String(so.synchronized),
-          sub: pctContracts(so.synchronized, s.activeContracts),
+          sub: 'Party aktif + sale/done',
           tone: 'green',
+        },
+        {
+          label: 'Quotations',
+          value: String(so.quotations ?? 0),
+          sub: 'draft/sent · belum Active SO',
+          tone: 'brass',
         },
         {
           label: 'No Active SO',
           value: String(so.noActiveSo),
           sub: 'NOTIF-CMS-014',
           tone: 'amber',
-        },
-        {
-          label: 'In Progress',
-          value: String(so.inProgress),
-          sub: 'State sale',
-          tone: 'brass',
         },
         {
           label: 'Sync Errors (7d)',

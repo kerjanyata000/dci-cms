@@ -53,7 +53,9 @@ function statusPillClass(status: string | undefined): string {
 
 function soSyncClass(state: string): { label: string; className: string } {
   if (state === 'done') return { label: 'Synchronized', className: 'linked' }
-  if (state === 'sale') return { label: 'In Progress', className: 'pending' }
+  if (state === 'sale') return { label: 'Confirmed SO', className: 'pending' }
+  if (state === 'draft' || state === 'sent') return { label: 'Quotation', className: 'draft' }
+  if (state === 'cancel') return { label: 'Cancelled', className: 'draft' }
   return { label: state, className: 'draft' }
 }
 

@@ -255,6 +255,122 @@ a {
   border-radius: 999px;
   background: rgba(168, 120, 60, 0.2);
   color: #f1e4d0;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.role-badge-legal {
+  background: rgba(168, 120, 60, 0.28);
+}
+.role-badge-business {
+  background: rgba(90, 140, 180, 0.35);
+}
+.role-badge-finance {
+  background: rgba(70, 140, 100, 0.35);
+}
+.role-badge-management {
+  background: rgba(120, 90, 160, 0.35);
+}
+.role-badge-it {
+  background: rgba(100, 110, 130, 0.4);
+}
+
+.user-avatar-legal {
+  background: var(--brass-light);
+  color: var(--brass);
+}
+.user-avatar-business {
+  background: #d8e8f2;
+  color: #2a5a7a;
+}
+.user-avatar-finance {
+  background: #d6ebe0;
+  color: #1f5c40;
+}
+.user-avatar-management {
+  background: #e6dff0;
+  color: #4a3570;
+}
+.user-avatar-it {
+  background: #e2e5ea;
+  color: #3a4454;
+}
+
+.sidebar-role-chip {
+  margin: 8px 14px 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-role-chip .role-badge {
+  margin-top: 0;
+  align-self: flex-start;
+}
+
+.sidebar-role-focus {
+  font-size: 11px;
+  line-height: 1.35;
+  color: rgba(241, 228, 208, 0.85);
+}
+
+.sidebar-role-mode {
+  font-size: 10px !important;
+  color: rgba(241, 228, 208, 0.55) !important;
+}
+
+.shell.sidebar-collapsed .sidebar-role-chip {
+  display: none;
+}
+
+.profile-access-mode {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.profile-focus {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.profile-panel-head .role-badge {
+  color: var(--ink);
+  background: var(--slate-light);
+  border: 1px solid var(--line);
+}
+
+.profile-panel-head .role-badge-legal {
+  background: var(--brass-light);
+  border-color: #e6d2af;
+}
+.profile-panel-head .role-badge-business {
+  background: #d8e8f2;
+  border-color: #b7d0e2;
+}
+.profile-panel-head .role-badge-finance {
+  background: #d6ebe0;
+  border-color: #b5d9c6;
+}
+.profile-panel-head .role-badge-management {
+  background: #e6dff0;
+  border-color: #cec2e0;
+}
+.profile-panel-head .role-badge-it {
+  background: #e2e5ea;
+  border-color: #c8ced6;
+}
+
+.login-role-hint {
+  margin: -4px 0 12px;
+  font-size: 12.5px;
 }
 
 .topbar {
@@ -3643,7 +3759,7 @@ textarea {
   position: absolute;
   right: 0;
   top: calc(100% + 8px);
-  width: 240px;
+  width: 270px;
   background: var(--paper-2);
   border: 1px solid var(--line);
   border-radius: 12px;

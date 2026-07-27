@@ -277,6 +277,10 @@ export function DashboardRolePanels({
             <span className="ref-tag">INT-SO</span>
           </div>
           <CommercialBars bars={data.commercialBars} />
+          <p className="muted" style={{ marginTop: 12, marginBottom: 0, fontSize: 12 }}>
+            Quotation Odoo tetap di Sales sampai Confirm → SO. CMS tidak mengirim quotation ke
+            modul Finance/Accounting.
+          </p>
         </div>
         <div className="card stack" style={{ marginTop: 0 }}>
           <div className="card-head">

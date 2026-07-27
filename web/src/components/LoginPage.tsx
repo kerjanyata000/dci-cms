@@ -21,9 +21,9 @@ function CheckIcon() {
 }
 
 const LOGIN_FEATURES = [
-  'Tampilan & menu menyesuaikan role (BRD §5)',
-  'Legal-managed actions tanpa approval internal (BRL-CMS-007/012/015)',
-  'Audit trail lengkap untuk setiap aksi (BRL-CMS-025)',
+  'Menu & aksi menyesuaikan role (BRD §5 · FR-DASH-003)',
+  'Hanya Legal yang create/edit kontrak (Legal-managed)',
+  'Finance fokus SO Health · Management fokus renewal',
 ]
 
 const LOGIN_TRUST = [
@@ -60,7 +60,7 @@ export function LoginPageSkeleton() {
 
 export function LoginPage({ onLogin }: Props) {
   const isSupabase = AUTH_MODE === 'supabase'
-  const [email, setEmail] = useState(isSupabase ? '' : 'legal.admin@dci.co.id')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [role, setRole] = useState<AppRole>('legal')
   const [busy, setBusy] = useState(false)
@@ -73,8 +73,8 @@ export function LoginPage({ onLogin }: Props) {
     setBusy(true)
     try {
       if (isSupabase) {
-        if (!password.trim()) {
-          setError('Password wajib diisi')
+        if (!email.trim() || !password.trim()) {
+          setError('Email dan password wajib diisi')
           return
         }
         const user = await signInWithSupabase(email, password)
@@ -86,16 +86,8 @@ export function LoginPage({ onLogin }: Props) {
         return
       }
 
-      if (!email.includes('@')) {
-        setError('Email tidak valid. Gunakan format email perusahaan.')
-        return
-      }
-
-      const name = email
-        .split('@')[0]
-        .replace(/[.\-]/g, ' ')
-        .replace(/\b\w/g, (c) => c.toUpperCase())
-      onLogin({ name, role })
+      // Mock / demo: pilih role saja — tanpa email (FR-DASH-001 POC)
+      onLogin({ name: ROLES[role].defaultName, role })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login gagal')
     } finally {
@@ -133,7 +125,7 @@ export function LoginPage({ onLogin }: Props) {
             ))}
           </div>
           <div className="login-side-foot">
-            {isSupabase ? 'Auth: Supabase + profiles.role' : 'Dev: mock role picker · FR-DASH-001'}
+            {isSupabase ? 'Auth: Supabase + profiles.role' : 'Dev: pilih role · FR-DASH-001'}
           </div>
         </aside>
 
@@ -148,46 +140,47 @@ export function LoginPage({ onLogin }: Props) {
 
           <div className="login-form-head">
             <p className="login-form-eyebrow">Enterprise gateway</p>
-            <h1>Masuk ke akun Anda</h1>
+            <h1>{isSupabase ? 'Masuk ke akun Anda' : 'Pilih role workspace'}</h1>
             <p className="login-form-lead">
               {isSupabase
                 ? 'Email & password — role dari tabel profiles (FR-DASH-001–002).'
-                : 'Pilih role demo untuk mensimulasikan workspace & menu sesuai BRD §5.'}
+                : 'Langsung pilih role demo. Menu, dashboard, dan aksi akan menyesuaikan (BRD §5).'}
             </p>
           </div>
 
           {error && <div className="login-error show">{error}</div>}
 
-          <div className="field">
-            <label htmlFor="email">Email perusahaan</label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="username"
-              placeholder="nama@dci.co.id"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-
           {isSupabase ? (
-            <div className="field">
-              <label htmlFor="password">Password</label>
-              <input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
+            <>
+              <div className="field">
+                <label htmlFor="email">Email perusahaan</label>
+                <input
+                  id="email"
+                  type="email"
+                  autoComplete="username"
+                  placeholder="nama@dci.co.id"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="password">Password</label>
+                <input
+                  id="password"
+                  type="password"
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+            </>
           ) : (
             <>
               <div className="field">
-                <span className="field-label-block">Login sebagai (role demo)</span>
+                <span className="field-label-block">Masuk sebagai</span>
               </div>
               <div className="role-grid" role="listbox" aria-label="Pilih role">
                 {roleList.map(([key, cfg]) => (
@@ -204,18 +197,21 @@ export function LoginPage({ onLogin }: Props) {
                   </button>
                 ))}
               </div>
+              <p className="muted login-role-hint">
+                Dipilih: <b>{ROLES[role].label}</b> · {ROLES[role].focus}
+              </p>
             </>
           )}
 
           <button className="btn primary login-submit" type="submit" disabled={busy}>
-            {busy ? 'Masuk…' : 'Masuk ke workspace'}
+            {busy ? 'Masuk…' : isSupabase ? 'Masuk ke workspace' : `Masuk sebagai ${ROLES[role].initials}`}
             {!busy && <ArrowIcon />}
           </button>
 
           <p className="login-footnote">
             {isSupabase
               ? 'Role diambil dari profiles. Seed: npm run seed:auth'
-              : 'Prototype internal — email di atas hanya contoh dev mock.'}
+              : 'Prototype — tanpa email. Hanya Legal yang bisa create/edit kontrak.'}
           </p>
         </form>
       </div>

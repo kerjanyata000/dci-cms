@@ -13,7 +13,9 @@ import { ROLES } from '@/lib/roles'
 
 function syncStatusLabel(state: string): { label: string; className: string } {
   if (state === 'done') return { label: 'Synchronized', className: 'linked' }
-  if (state === 'sale') return { label: 'In Progress', className: 'pending' }
+  if (state === 'sale') return { label: 'Confirmed SO', className: 'pending' }
+  if (state === 'draft' || state === 'sent') return { label: 'Quotation', className: 'draft' }
+  if (state === 'cancel') return { label: 'Cancelled', className: 'draft' }
   return { label: state, className: 'draft' }
 }
 
@@ -85,8 +87,10 @@ export default function SoHealthPage() {
         <div className="crumb">Registry</div>
         <h1>SO Health</h1>
         <p>
-          INT-SO · consume-only Odoo ({ODOO_MODE === 'live' ? 'live' : 'dummy'}). Run Sync menarik
-          SO ke Supabase mirror — tidak write-back ke Odoo (BR-CMS-020).
+          INT-SO · consume-only Odoo ({ODOO_MODE === 'live' ? 'live' : 'dummy'}). Quotation (
+          <code>draft</code>/<code>sent</code>) ikut tersinkron sebagai referensi, tetapi{' '}
+          <b>bukan</b> Active SO — dan CMS tidak mem-posting ke modul Finance/Accounting Odoo
+          (BR-CMS-020).
         </p>
       </div>
 
@@ -112,14 +116,14 @@ export default function SoHealthPage() {
               <span className="kpi-label">No Active SO</span>
             </div>
             <div className="kpi-value">{summary.noActiveSo}</div>
-            <div className="kpi-sub warn">NOTIF-CMS-014</div>
+            <div className="kpi-sub warn">Quotation saja = belum aktif</div>
           </div>
           <div className="kpi-card kpi-brass">
             <div className="kpi-top">
-              <span className="kpi-label">In Progress</span>
+              <span className="kpi-label">Quotations</span>
             </div>
-            <div className="kpi-value">{summary.inProgress}</div>
-            <div className="kpi-sub">State sale (belum done)</div>
+            <div className="kpi-value">{summary.quotations}</div>
+            <div className="kpi-sub">State draft/sent di Sales</div>
           </div>
           <div className="kpi-card kpi-red">
             <div className="kpi-top">

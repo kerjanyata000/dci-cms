@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
-import { ROLES, type SessionUser } from '@/lib/roles'
+import { accessModeLabel, ROLES, type SessionUser } from '@/lib/roles'
 
 type Props = {
   user: SessionUser
@@ -14,6 +14,7 @@ export function UserProfileMenu({ user, onLogout, onNavigate }: Props) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const role = ROLES[user.role]
+  const mode = accessModeLabel(user.role)
 
   useEffect(() => {
     if (!open) return
@@ -38,7 +39,7 @@ export function UserProfileMenu({ user, onLogout, onNavigate }: Props) {
         aria-haspopup="menu"
         onClick={() => setOpen((v) => !v)}
       >
-        <span className="user-avatar">{role.initials}</span>
+        <span className={`user-avatar user-avatar-${user.role}`}>{role.initials}</span>
         <span className="profile-trigger-text">
           <b>{user.name}</b>
           <span className="muted">{role.label}</span>
@@ -48,12 +49,19 @@ export function UserProfileMenu({ user, onLogout, onNavigate }: Props) {
         <div className="profile-panel" role="menu">
           <div className="profile-panel-head">
             <b>{user.name}</b>
-            <span className="role-badge">{role.label}</span>
+            <span className={`role-badge role-badge-${user.role}`}>{role.label}</span>
+            <span className="profile-access-mode">{mode}</span>
+            <p className="profile-focus">{role.focus}</p>
           </div>
           <nav className="profile-panel-nav">
             {role.nav.includes('so') && (
               <Link href="/so" role="menuitem" onClick={closeAndNavigate}>
                 SO Health
+              </Link>
+            )}
+            {role.nav.includes('renewal') && (
+              <Link href="/renewal" role="menuitem" onClick={closeAndNavigate}>
+                Renewal Calendar
               </Link>
             )}
             {role.views.includes('audit') && (

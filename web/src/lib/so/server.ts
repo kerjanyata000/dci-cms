@@ -174,6 +174,7 @@ export type SoHealthSummary = {
   synchronized: number
   noActiveSo: number
   inProgress: number
+  quotations: number
   syncErrors: number
 }
 
@@ -201,10 +202,14 @@ export async function loadSoHealthSummary(): Promise<SoHealthSummary> {
 
   const activeContractParties = new Set((contractsRes.data ?? []).map((c) => c.party_id))
   const ordersByParty = new Map<string, string[]>()
+  let quotations = 0
+
   for (const o of ordersRes.data ?? []) {
+    const state = String(o.state)
+    if (state === 'draft' || state === 'sent') quotations += 1
     if (!o.party_id) continue
     const list = ordersByParty.get(o.party_id) ?? []
-    list.push(String(o.state))
+    list.push(state)
     ordersByParty.set(o.party_id, list)
   }
 
@@ -216,6 +221,7 @@ export async function loadSoHealthSummary(): Promise<SoHealthSummary> {
     const states = ordersByParty.get(partyId) ?? []
     const hasDone = states.some((s) => s === 'done')
     const hasSale = states.some((s) => s === 'sale')
+    // Quotation (draft/sent) saja belum dihitung Active SO — BRD §9.6 / INT-SO
     if (hasDone || hasSale) synchronized += 1
     else noActiveSo += 1
     if (hasSale && !hasDone) inProgress += 1
@@ -225,6 +231,8 @@ export async function loadSoHealthSummary(): Promise<SoHealthSummary> {
     synchronized,
     noActiveSo,
     inProgress,
+    quotations,
     syncErrors: (errorsRes.data ?? []).length,
   }
 }
+
