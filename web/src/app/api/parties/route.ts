@@ -1,5 +1,6 @@
 import { authErrorResponse, requireActor, requireCanEdit } from '@/lib/auth/guard'
 import { enrichPartiesWithContracts } from '@/lib/parties/list'
+import { assertNoDuplicateParty } from '@/lib/parties/server'
 import { jsonError, jsonOk } from '@/lib/server/api-route'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 import { mapPartyRow, nextPartyCode, type PartyRow } from '@/lib/parties/types'
@@ -15,20 +16,42 @@ export async function GET(request: Request) {
     const linkStatus = searchParams.get('linkStatus') as OdooLinkStatus | 'all' | null
     const pic = searchParams.get('pic')?.trim() ?? ''
     const contractStatus = searchParams.get('contractStatus')?.trim() ?? ''
+    const partyStatus = searchParams.get('partyStatus')?.trim() ?? ''
+    const odooPartnerIdRaw = searchParams.get('odooPartnerId')?.trim() ?? ''
 
     const db = getSupabaseAdmin()
     let query = db.from('parties').select('*').order('party_code', { ascending: true })
 
-    if (q) query = query.ilike('name', `%${q}%`)
     if (pic) query = query.ilike('pic', `%${pic}%`)
     if (linkStatus && linkStatus !== 'all') {
       query = query.eq('odoo_link_status', linkStatus)
+    }
+    if (partyStatus && partyStatus !== 'all') {
+      query = query.eq('party_status', partyStatus)
+    }
+    if (odooPartnerIdRaw) {
+      const oid = Number.parseInt(odooPartnerIdRaw, 10)
+      if (!Number.isNaN(oid)) query = query.eq('odoo_partner_id', oid)
     }
 
     const { data, error } = await query
     if (error) throw new Error(error.message)
 
-    const parties = (data as PartyRow[]).map(mapPartyRow)
+    let parties = (data as PartyRow[]).map(mapPartyRow)
+
+    if (q) {
+      const needle = q.toLowerCase()
+      const digits = q.replace(/\D/g, '')
+      parties = parties.filter((p) => {
+        if (p.name.toLowerCase().includes(needle)) return true
+        if (p.party_code.toLowerCase().includes(needle)) return true
+        if (p.npwp?.toLowerCase().includes(needle)) return true
+        if (digits && p.npwp?.replace(/\D/g, '').includes(digits)) return true
+        if (p.odoo_partner_id != null && String(p.odoo_partner_id).includes(q)) return true
+        return false
+      })
+    }
+
     const partyIds = parties.map((p) => p.id)
 
     let contractsQuery = db
@@ -73,6 +96,8 @@ export async function POST(request: Request) {
     const name = body.name?.trim()
     if (!name) return jsonError('name is required', 400)
 
+    await assertNoDuplicateParty({ name, npwp: body.npwp })
+
     const db = getSupabaseAdmin()
     const party_code = await nextPartyCode(db)
 
@@ -109,6 +134,6 @@ export async function POST(request: Request) {
   } catch (err) {
     const auth = authErrorResponse(err)
     if (auth) return auth
-    return jsonError(err instanceof Error ? err.message : 'Failed to create party', 500)
+    return jsonError(err instanceof Error ? err.message : 'Failed to create party', 400)
   }
 }

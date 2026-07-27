@@ -509,6 +509,10 @@ tbody tr.clickable{transition:background .12s;}
 
 </head>
 <body>
+<div style="background:#12203A;color:#EDEFF4;padding:10px 20px;font-size:12.5px;line-height:1.45;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;">
+  <div><b style="color:#F1E4D0;">Mockup ↔ App</b> — Tombol utama mengikuti aplikasi Next.js: Add/Edit Party, Link Odoo, Review (Revision Required), Amendment Ready/FS, Void supporting, SO Sync setelah Fully Signed, filter nama/kode/NPWP.</div>
+  <span style="opacity:.75;">Sumber: <code style="color:#F1E4D0;">web/</code></span>
+</div>
 
 <div id="login-screen" class="login-page">
   <div class="login-card">
@@ -647,17 +651,21 @@ tbody tr.clickable{transition:background .12s;}
           <div>
             <div class="crumb">Parties</div>
             <h1>Parties — Search &amp; View</h1>
-            <p>Inquiry utama per BRD §6.11 / §8.11 / BRL-CMS-026 — 17 party demo interaktif; Party detail menampilkan contracts, amendment, novation/CP change, early termination, supporting docs, SO, dan audit.</p>
+            <h1>Parties — Search &amp; View</h1>
           </div>
           <div class="btn-row">
-            <button class="btn ghost" onclick="showToast('Data diekspor ke CSV (mockup).')">Export</button>
             <button class="btn primary" id="btn-parties-add-party" onclick="openAddPartyModal()">+ Add New Party</button>
           </div>
         </div>
 
         <div class="table-toolbar">
+          <select class="status-select" id="filter-party-status" onchange="renderPartiesTable()">
+            <option value="all">Party: Semua</option>
+            <option value="Active">Party Active</option>
+            <option value="Inactive">Party Inactive</option>
+          </select>
           <select class="status-select" id="filter-status" onchange="renderPartiesTable()">
-            <option value="all">Semua Status</option>
+            <option value="all">Kontrak: Semua</option>
             <option value="draft">Draft</option>
             <option value="under_review">Under Review</option>
             <option value="ready_sign">Ready for Signature</option>
@@ -1632,12 +1640,15 @@ function filteredParties(){
   const statusF = document.getElementById('filter-status').value;
   const linkF = document.getElementById('filter-link').value;
   const picF = document.getElementById('filter-pic').value;
+  const partyStatusEl = document.getElementById('filter-party-status');
+  const partyStatusF = partyStatusEl ? partyStatusEl.value : 'all';
   return state.parties.filter(p=>{
+    if(partyStatusF!=='all' && (p.partyStatus||'Active')!==partyStatusF) return false;
     if(statusF!=='all' && p.status!==statusF) return false;
     if(linkF!=='all' && p.odooLink!==linkF) return false;
     if(picF!=='all' && p.pic!==picF) return false;
     if(searchQuery){
-      const hay = (p.id+' '+p.pic+' '+p.doc+' '+p.agreementNo+' '+p.name+' '+(p.statusText||'')+' '+(p.status||'')+' '+(p.contractId||'')+' '+(p.format||'')).toLowerCase();
+      const hay = (p.id+' '+p.pic+' '+p.doc+' '+p.agreementNo+' '+p.name+' '+(p.statusText||'')+' '+(p.status||'')+' '+(p.contractId||'')+' '+(p.format||'')+' '+(p.npwp||'')+' '+(p.odooPartnerId||'')).toLowerCase();
       if(!hay.includes(searchQuery)) return false;
     }
     return true;
@@ -1706,11 +1717,10 @@ function renderPartyDetail(id){
   const daEl = document.getElementById('dossier-actions');
   if(isEditor()){
     daEl.innerHTML = '<button class="btn brass small" onclick="openAddContractFor(state.currentPartyId)">+ Add Contract</button>'
-      + '<button class="btn ghost small" style="background:#fff" onclick="openModal(\'modal-change-cp\')">Change Counterparty</button>'
       + '<button class="btn ghost small" style="background:#fff" onclick="openEditPartyFor(\''+p.id+'\')">Edit Party</button>'
-      + '<button class="btn danger small" style="background:#fff" onclick="openDeactivatePartyFor(\''+p.id+'\')">'+(p.partyStatus==='Inactive'?'Reaktifkan Party':'Delete / Deactivate')+'</button>';
+      + '<button class="btn ghost small" style="background:#fff" onclick="openModal(\'modal-link-odoo\')">'+((p.odooLink==='linked'||p.odooPartnerId)?'Kelola Link Odoo':'Link Odoo')+'</button>';
   } else {
-    daEl.innerHTML = '<span class="role-badge">Akses view-only</span>';
+    daEl.innerHTML = '<span class="role-badge">View-only</span>';
   }
 
   // Overview

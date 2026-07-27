@@ -29,6 +29,9 @@ Prioritas dari gap coverage BRD (scope → notifikasi). E-sign commercial setup 
 | C3 | Batch scheduler SO + expiry cron | INT-SO-002 |
 | C4 | Sync Odoo Documents → vault (keputusan produk) | di luar default BRD |
 
+**Juga selesai (siap digarap):** cek duplikat Party, hard delete unused, filter Parties (NPWP/kode/Odoo/Active).  
+Spek kecil + keputusan tertunda: [`docs/SPEK-KEPUTUSAN-GAP.md`](SPEK-KEPUTUSAN-GAP.md).
+
 ## Acceptance singkat (Must)
 
 - Given Legal di Party Detail, When Edit Party, Then name/PIC/NPWP/address tersimpan + audit.

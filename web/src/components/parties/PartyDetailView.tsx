@@ -1034,10 +1034,14 @@ export function PartyDetailView({ partyId, role }: Props) {
       <EditPartyModal
         party={party}
         open={editPartyOpen}
+        canHardDelete={Boolean(data.usage?.canHardDelete)}
         onClose={() => setEditPartyOpen(false)}
         onUpdated={(updated) => {
           setData((prev) => (prev ? { ...prev, party: updated } : prev))
           setEditPartyOpen(false)
+        }}
+        onDeleted={() => {
+          router.push('/parties')
         }}
       />
     </div>

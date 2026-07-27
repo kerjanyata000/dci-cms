@@ -18,6 +18,8 @@ export type ListPartiesParams = {
   linkStatus?: OdooLinkStatus | 'all'
   pic?: string
   contractStatus?: string
+  partyStatus?: string
+  odooPartnerId?: string
 }
 
 async function parseJson<T>(res: Response): Promise<T> {
@@ -38,6 +40,10 @@ export async function fetchParties(params: ListPartiesParams = {}): Promise<Part
   if (params.linkStatus && params.linkStatus !== 'all') {
     search.set('linkStatus', params.linkStatus)
   }
+  if (params.partyStatus && params.partyStatus !== 'all') {
+    search.set('partyStatus', params.partyStatus)
+  }
+  if (params.odooPartnerId) search.set('odooPartnerId', params.odooPartnerId)
   const qs = search.toString()
   const data = await parseJson<{ parties: PartyListItem[] }>(
     await cmsFetch(`/api/parties${qs ? `?${qs}` : ''}`),
@@ -61,6 +67,15 @@ export type PartyDetailPayload = {
     payload: Record<string, unknown>
   }>
   soHealth: SoHealth
+  usage?: {
+    contracts: number
+    amendments: number
+    terminations: number
+    documents: number
+    saleOrders: number
+    counterpartyChanges: number
+    canHardDelete: boolean
+  }
 }
 
 export async function fetchPartyDetail(id: string): Promise<PartyDetailPayload> {
@@ -117,6 +132,12 @@ export async function setPartyActive(partyId: string, active: boolean): Promise<
     }),
   )
   return data.party
+}
+
+export async function deleteParty(partyId: string): Promise<void> {
+  await parseJson<{ deleted: boolean }>(
+    await cmsFetch(`/api/parties/${partyId}`, { method: 'DELETE' }),
+  )
 }
 
 export async function voidPartyDocument(

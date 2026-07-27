@@ -10,7 +10,7 @@ import {
 } from '@/lib/contracts/server'
 import { applyDueLifecycleUpdates } from '@/lib/contracts/lifecycle'
 import { mapContractRow, type ContractRow } from '@/lib/contracts/types'
-import { updateParty } from '@/lib/parties/server'
+import { updateParty, deletePartyIfUnused, getPartyUsage } from '@/lib/parties/server'
 import { mapPartyRow, type PartyRow } from '@/lib/parties/types'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 
@@ -124,6 +124,7 @@ export async function GET(
 
     // Re-fetch party after lifecycle (status fields on contracts already refreshed above)
     const { data: partyFresh } = await db.from('parties').select('*').eq('id', id).single()
+    const usage = await getPartyUsage(id)
 
     return jsonOk({
       party: mapPartyRow((partyFresh ?? party) as PartyRow),
@@ -138,6 +139,7 @@ export async function GET(
         hasActiveSo,
         noActiveSo: hasActiveContract && !hasActiveSo,
       },
+      usage,
     })
   } catch (err) {
     return handleRouteError(err, 'Failed to load party')
@@ -181,5 +183,19 @@ export async function PATCH(
     return jsonOk({ party })
   } catch (err) {
     return handleRouteError(err, 'Failed to update party')
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  context: { params: Promise<{ id: string }> },
+) {
+  try {
+    await requireCanEdit(request)
+    const { id } = await context.params
+    const result = await deletePartyIfUnused(id)
+    return jsonOk(result)
+  } catch (err) {
+    return handleRouteError(err, 'Failed to delete party')
   }
 }

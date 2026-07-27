@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { ModalCloseButton } from '@/components/ui/icons'
-import { updateParty, setPartyActive } from '@/lib/parties/api'
+import { updateParty, setPartyActive, deleteParty } from '@/lib/parties/api'
 import type { Party } from '@/types/cms'
 
 type Props = {
@@ -10,11 +10,20 @@ type Props = {
   open: boolean
   onClose: () => void
   onUpdated: (party: Party) => void
+  canHardDelete?: boolean
+  onDeleted?: () => void
 }
 
 const PARTY_TYPES = ['Customer', 'Vendor', 'Partner', 'Other']
 
-export function EditPartyModal({ party, open, onClose, onUpdated }: Props) {
+export function EditPartyModal({
+  party,
+  open,
+  onClose,
+  onUpdated,
+  canHardDelete = false,
+  onDeleted,
+}: Props) {
   const [name, setName] = useState(party.name)
   const [pic, setPic] = useState(party.pic ?? '')
   const [npwp, setNpwp] = useState(party.npwp ?? '')
@@ -79,6 +88,27 @@ export function EditPartyModal({ party, open, onClose, onUpdated }: Props) {
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Gagal ubah status party')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function handleDelete() {
+    if (
+      !window.confirm(
+        `Hapus permanen ${party.party_code} — ${party.name}? Hanya boleh jika belum pernah dipakai.`,
+      )
+    ) {
+      return
+    }
+    setBusy(true)
+    setError('')
+    try {
+      await deleteParty(party.id)
+      onDeleted?.()
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Gagal menghapus party')
     } finally {
       setBusy(false)
     }
@@ -152,10 +182,17 @@ export function EditPartyModal({ party, open, onClose, onUpdated }: Props) {
 
         {error && <p className="error-text">{error}</p>}
 
-        <div className="modal-foot" style={{ justifyContent: 'space-between' }}>
-          <button type="button" className="btn ghost" disabled={busy} onClick={() => void toggleActive()}>
-            {party.party_status === 'Inactive' ? 'Aktifkan Party' : 'Nonaktifkan Party'}
-          </button>
+        <div className="modal-foot" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
+          <div className="row-actions">
+            <button type="button" className="btn ghost" disabled={busy} onClick={() => void toggleActive()}>
+              {party.party_status === 'Inactive' ? 'Aktifkan Party' : 'Nonaktifkan Party'}
+            </button>
+            {canHardDelete && (
+              <button type="button" className="btn ghost" disabled={busy} onClick={() => void handleDelete()}>
+                Hapus Party
+              </button>
+            )}
+          </div>
           <div className="row-actions">
             <button type="button" className="btn ghost" onClick={onClose}>
               Batal

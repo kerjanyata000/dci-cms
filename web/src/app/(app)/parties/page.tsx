@@ -27,13 +27,19 @@ const LINK_FILTERS: Array<{ value: OdooLinkStatus | 'all'; label: string }> = [
 ]
 
 const STATUS_FILTERS: Array<{ value: string; label: string }> = [
-  { value: 'all', label: 'Semua Status' },
+  { value: 'all', label: 'Kontrak: Semua' },
   { value: 'active', label: 'Active' },
   { value: 'fully_signed', label: 'Fully Signed' },
   { value: 'under_review', label: 'Under Review' },
   { value: 'draft', label: 'Draft' },
   { value: 'ready_for_sign', label: 'Ready for Sign' },
   { value: 'terminated', label: 'Terminated' },
+]
+
+const PARTY_STATUS_FILTERS: Array<{ value: string; label: string }> = [
+  { value: 'all', label: 'Party: Semua' },
+  { value: 'Active', label: 'Party Active' },
+  { value: 'Inactive', label: 'Party Inactive' },
 ]
 
 type SortKey = 'party_code' | 'agreement_date' | 'status'
@@ -102,6 +108,9 @@ export default function PartiesPage() {
     readLinkFilter(searchParams.get('link')),
   )
   const [statusFilter, setStatusFilter] = useState(() => searchParams.get('status') ?? 'all')
+  const [partyStatusFilter, setPartyStatusFilter] = useState(
+    () => searchParams.get('partyStatus') ?? 'all',
+  )
   const [sortKey, setSortKey] = useState<SortKey>(
     () => (searchParams.get('sort') as SortKey) || 'party_code',
   )
@@ -134,6 +143,7 @@ export default function PartiesPage() {
           pic: picFilter !== 'all' ? picFilter : undefined,
           linkStatus: linkFilter,
           contractStatus: statusFilter,
+          partyStatus: partyStatusFilter,
         }),
       )
       setPage(1)
@@ -143,7 +153,7 @@ export default function PartiesPage() {
     } finally {
       setBusy(false)
     }
-  }, [q, linkFilter, picFilter, statusFilter])
+  }, [q, linkFilter, picFilter, statusFilter, partyStatusFilter])
 
   useEffect(() => {
     void load()
@@ -209,6 +219,18 @@ export default function PartiesPage() {
 
       <div className="table-toolbar">
         <select
+          id="party-status-filter"
+          className="status-select"
+          value={partyStatusFilter}
+          onChange={(e) => setPartyStatusFilter(e.target.value)}
+        >
+          {PARTY_STATUS_FILTERS.map((f) => (
+            <option key={f.value} value={f.value}>
+              {f.label}
+            </option>
+          ))}
+        </select>
+        <select
           id="status-filter"
           className="status-select"
           value={statusFilter}
@@ -251,7 +273,7 @@ export default function PartiesPage() {
           style={{ flex: '1 1 180px', minWidth: 160 }}
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Cari nama party…"
+          placeholder="Cari nama / kode / NPWP / Odoo ID…"
           aria-label="Cari party"
         />
         <button type="button" className="btn ghost" disabled={busy} onClick={() => void load()}>
