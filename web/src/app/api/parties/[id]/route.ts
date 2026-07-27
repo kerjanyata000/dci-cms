@@ -1,4 +1,4 @@
-import { requireActor, handleRouteError } from '@/lib/auth/route-helpers'
+import { requireActor, requireCanEdit, handleRouteError } from '@/lib/auth/route-helpers'
 import { jsonError, jsonOk } from '@/lib/server/api-route'
 import {
   mapAmendmentRow,
@@ -8,7 +8,9 @@ import {
   type CounterpartyChangeRow,
   type TerminationRow,
 } from '@/lib/contracts/server'
+import { applyDueLifecycleUpdates } from '@/lib/contracts/lifecycle'
 import { mapContractRow, type ContractRow } from '@/lib/contracts/types'
+import { updateParty } from '@/lib/parties/server'
 import { mapPartyRow, type PartyRow } from '@/lib/parties/types'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 
@@ -35,6 +37,8 @@ export async function GET(
     if (partyError || !party) {
       return jsonError('Party not found', 404)
     }
+
+    await applyDueLifecycleUpdates(id)
 
     const [contractsRes, documentsRes, auditRes, amendmentsRes, terminationsRes, soRes, cpChangesRes] =
       await Promise.all([
@@ -118,8 +122,11 @@ export async function GET(
     const hasActiveContract = contracts.some((c) => ACTIVE_CONTRACT.includes(c.status))
     const hasActiveSo = (soRes.data ?? []).some((o) => ACTIVE_SO.includes(String(o.state)))
 
+    // Re-fetch party after lifecycle (status fields on contracts already refreshed above)
+    const { data: partyFresh } = await db.from('parties').select('*').eq('id', id).single()
+
     return jsonOk({
-      party: mapPartyRow(party as PartyRow),
+      party: mapPartyRow((partyFresh ?? party) as PartyRow),
       contracts,
       documents: documentsRes.data ?? [],
       amendments: (amendmentsRes.data ?? []).map((a) => mapAmendmentRow(a as AmendmentRow)),
@@ -134,5 +141,45 @@ export async function GET(
     })
   } catch (err) {
     return handleRouteError(err, 'Failed to load party')
+  }
+}
+
+export async function PATCH(
+  request: Request,
+  context: { params: Promise<{ id: string }> },
+) {
+  try {
+    await requireCanEdit(request)
+    const { id } = await context.params
+    const body = (await request.json()) as {
+      action?: 'update' | 'deactivate' | 'activate'
+      name?: string
+      pic?: string | null
+      npwp?: string | null
+      address?: string | null
+      party_type?: string | null
+      contact_email?: string | null
+      contact_phone?: string | null
+    }
+
+    if (body.action === 'deactivate') {
+      return jsonOk({ party: await updateParty(id, { party_status: 'Inactive' }) })
+    }
+    if (body.action === 'activate') {
+      return jsonOk({ party: await updateParty(id, { party_status: 'Active' }) })
+    }
+
+    const party = await updateParty(id, {
+      name: body.name,
+      pic: body.pic,
+      npwp: body.npwp,
+      address: body.address,
+      party_type: body.party_type,
+      contact_email: body.contact_email,
+      contact_phone: body.contact_phone,
+    })
+    return jsonOk({ party })
+  } catch (err) {
+    return handleRouteError(err, 'Failed to update party')
   }
 }

@@ -22,11 +22,12 @@ const STATUS_ACTIONS: Array<{
   showWhen: string[]
 }> = [
   { action: 'submit_review', label: 'Submit Review', showWhen: ['draft'] },
-  { action: 'send_to_cp', label: 'Sent to CP', showWhen: ['under_review'] },
+  { action: 'send_to_cp', label: 'Sent to CP', showWhen: ['under_review', 'revision_required'] },
+  { action: 'revision_required', label: 'Revision Required', showWhen: ['under_review', 'sent'] },
   { action: 'ready_for_sign', label: 'Ready for Sign', showWhen: ['sent'] },
   { action: 'mark_fully_signed', label: 'Mark Fully Signed', showWhen: ['ready_for_sign', 'sent'] },
   { action: 'mark_active', label: 'Mark Active', showWhen: ['ready_for_sign', 'sent', 'fully_signed'] },
-  { action: 'back_to_draft', label: 'Back to Draft', showWhen: ['under_review', 'sent'] },
+  { action: 'back_to_draft', label: 'Back to Draft', showWhen: ['under_review', 'sent', 'revision_required'] },
 ]
 
 type Props = {

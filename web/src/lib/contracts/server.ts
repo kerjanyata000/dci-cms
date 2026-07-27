@@ -410,7 +410,12 @@ const STATUS_ACTIONS: Record<
   send_to_cp: {
     status: 'sent',
     status_text: 'Sent to Counterparty',
-    allowedFrom: ['under_review'],
+    allowedFrom: ['under_review', 'revision_required'],
+  },
+  revision_required: {
+    status: 'revision_required',
+    status_text: 'Revision Required',
+    allowedFrom: ['under_review', 'sent'],
   },
   ready_for_sign: {
     status: 'ready_for_sign',
@@ -430,7 +435,7 @@ const STATUS_ACTIONS: Record<
   back_to_draft: {
     status: 'draft',
     status_text: 'Draft',
-    allowedFrom: ['under_review', 'sent'],
+    allowedFrom: ['under_review', 'sent', 'revision_required'],
   },
 }
 

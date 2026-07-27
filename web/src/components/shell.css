@@ -1588,6 +1588,7 @@ a {
   background: var(--amber);
 }
 
+.status-pill.revision_required,
 .status-pill.under_review,
 .status-pill.ready_for_sign,
 .status-pill.relink {
@@ -1609,9 +1610,15 @@ a {
 }
 
 .status-pill.no_so,
-.status-pill.soon {
+.status-pill.soon,
+.status-pill.expired {
   background: var(--amber-light);
   color: var(--amber);
+}
+
+.status-pill.terminated {
+  background: #f3ecec;
+  color: #6b3f3f;
 }
 
 .status-pill.later {

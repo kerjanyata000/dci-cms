@@ -61,7 +61,15 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const actor = await requireCanEdit(request)
-    const body = (await request.json()) as { name?: string; pic?: string }
+    const body = (await request.json()) as {
+      name?: string
+      pic?: string
+      npwp?: string
+      address?: string
+      party_type?: string
+      contact_email?: string
+      contact_phone?: string
+    }
     const name = body.name?.trim()
     if (!name) return jsonError('name is required', 400)
 
@@ -74,6 +82,11 @@ export async function POST(request: Request) {
         party_code,
         name,
         pic: body.pic?.trim() || null,
+        npwp: body.npwp?.trim() || null,
+        address: body.address?.trim() || null,
+        party_type: body.party_type?.trim() || null,
+        contact_email: body.contact_email?.trim() || null,
+        contact_phone: body.contact_phone?.trim() || null,
         odoo_link_status: 'pending',
         party_status: 'Active',
       })

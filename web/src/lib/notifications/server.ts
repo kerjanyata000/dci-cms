@@ -120,12 +120,13 @@ export async function loadNotifications(): Promise<NotificationItem[]> {
 
   for (const row of auditRes.data ?? []) {
     if (row.action_type === 'sync_error') continue
+    const mapped = mapAuditNotification(row)
     items.push({
       id: `audit-${row.id}`,
-      code: 'NOTIF-CMS-AUDIT',
-      title: String(row.action).slice(0, 80),
-      sub: `${row.action_type ?? 'event'} · ${row.actor_name ?? 'CMS'}`,
-      urgent: row.action_type === 'termination',
+      code: mapped.code,
+      title: mapped.title,
+      sub: mapped.sub,
+      urgent: mapped.urgent,
       href: row.party_id ? `/parties/${row.party_id}` : undefined,
       created_at: row.created_at,
     })
@@ -180,6 +181,51 @@ function unwrapParty(raw: unknown): { party_code: string; name: string } | null 
   const p = row as { party_code?: string; name?: string }
   if (!p.party_code) return null
   return { party_code: p.party_code, name: p.name ?? p.party_code }
+}
+
+function mapAuditNotification(row: {
+  action: string
+  action_type: string | null
+  actor_name: string | null
+}): { code: string; title: string; sub: string; urgent: boolean } {
+  const action = String(row.action)
+  const type = row.action_type ?? ''
+  const actor = row.actor_name ?? 'CMS'
+  const title = action.slice(0, 80)
+  const sub = `${type || 'event'} · ${actor}`
+
+  if (type === 'termination' || /terminat/i.test(action)) {
+    return { code: 'NOTIF-CMS-011', title, sub, urgent: true }
+  }
+  if (/counterparty|change cp|novation/i.test(action) || type === 'counterparty') {
+    return { code: 'NOTIF-CMS-009', title, sub, urgent: true }
+  }
+  if (/amendment|amd-/i.test(action) || type === 'amendment') {
+    return { code: 'NOTIF-CMS-004', title, sub, urgent: false }
+  }
+  if (/revision required/i.test(action) || type === 'revision_required') {
+    return { code: 'NOTIF-CMS-003', title, sub, urgent: true }
+  }
+  if (/fully signed|ready for sign|waiting for signature/i.test(action)) {
+    return { code: 'NOTIF-CMS-005', title, sub, urgent: false }
+  }
+  if (/void/i.test(action) || type === 'void') {
+    return { code: 'NOTIF-CMS-013', title, sub, urgent: false }
+  }
+  if (/upload|supporting|dokumen/i.test(action) || type === 'upload') {
+    return { code: 'NOTIF-CMS-012', title, sub, urgent: false }
+  }
+  if (/create|dibuat|kontrak baru/i.test(action) || type === 'create') {
+    return { code: 'NOTIF-CMS-001', title, sub, urgent: false }
+  }
+  if (/expired/i.test(action)) {
+    return { code: 'NOTIF-CMS-018', title, sub, urgent: true }
+  }
+  if (/party|edit party|nonaktif|aktifkan/i.test(action) || type === 'party') {
+    return { code: 'NOTIF-CMS-019', title, sub, urgent: false }
+  }
+
+  return { code: 'NOTIF-CMS-AUDIT', title, sub, urgent: type === 'termination' }
 }
 
 async function loadNoActiveSoParties(db: ReturnType<typeof getSupabaseAdmin>) {

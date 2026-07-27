@@ -151,6 +151,50 @@ export async function persistSupportingDocument(input: {
   return data
 }
 
+/** Soft-void supporting doc — does not change contract lifecycle (BRL-CMS-016). */
+export async function voidSupportingDocument(documentId: string, reason?: string) {
+  const db = getSupabaseAdmin()
+  const { data: doc, error: findError } = await db
+    .from('documents')
+    .select('*')
+    .eq('id', documentId)
+    .single()
+
+  if (findError || !doc) throw new Error('Document not found')
+  if (doc.voided_at) throw new Error('Dokumen sudah di-void')
+  if (doc.document_category && !['supporting', 'termination', 'amendment'].includes(doc.document_category)) {
+    throw new Error('Hanya supporting / termination / amendment document yang dapat di-void')
+  }
+
+  const { data, error } = await db
+    .from('documents')
+    .update({
+      voided_at: new Date().toISOString(),
+      void_reason: reason?.trim() || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', documentId)
+    .select('*')
+    .single()
+
+  if (error) throw new Error(error.message)
+
+  await db.from('audit_logs').insert({
+    action: `Supporting document void — ${doc.file_name}`,
+    action_type: 'void',
+    party_id: doc.party_id,
+    contract_id: doc.contract_id,
+    actor_name: 'CMS',
+    payload: {
+      document_id: documentId,
+      file_name: doc.file_name,
+      reason: reason?.trim() || null,
+    },
+  })
+
+  return data
+}
+
 export async function getDocumentDownloadUrl(documentId: string, expiresInSec = 3600) {
   const db = getSupabaseAdmin()
   const { data: doc, error } = await db.from('documents').select('*').eq('id', documentId).single()

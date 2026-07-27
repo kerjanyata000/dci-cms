@@ -12,15 +12,16 @@ import { ContractReviewModal } from '@/components/contracts/ContractReviewModal'
 import { TerminationModal } from '@/components/contracts/TerminationModal'
 import { UploadSupportingModal } from '@/components/contracts/UploadSupportingModal'
 import { ContractRowActions } from '@/components/parties/ContractRowActions'
+import { EditPartyModal } from '@/components/parties/EditPartyModal'
 import { LinkOdooModal } from '@/components/parties/LinkOdooModal'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorBanner } from '@/components/ui/ErrorBanner'
 import { TablePagination, paginateSlice } from '@/components/ui/TablePagination'
 import { formatCurrency } from '@/lib/format/currency'
 import { fetchSyncedOrders, runSoSync, type SyncedOrderRow } from '@/lib/so/api'
-import { fetchPartyDetail, type PartyDetailPayload } from '@/lib/parties/api'
+import { fetchPartyDetail, voidPartyDocument, type PartyDetailPayload } from '@/lib/parties/api'
 import { ODOO_LINK_HINTS, ODOO_LINK_LABELS, formatOdooLinkSummary } from '@/lib/parties/types'
-import type { Contract, ContractMetadata } from '@/types/cms'
+import type { Contract, ContractMetadata, DocumentRow } from '@/types/cms'
 import { ACTIVE_FOR_TERM } from '@/lib/contracts/constants'
 import { ROLES } from '@/lib/roles'
 import type { AppRole } from '@/types/cms'
@@ -40,6 +41,7 @@ function contractMeta(c: Contract | undefined): ContractMetadata {
 function partyStatusClass(status: string): string {
   const s = status.toLowerCase().replace(/\s+/g, '_')
   if (s === 'active') return 'active'
+  if (s === 'inactive') return 'draft'
   if (s.includes('review')) return 'under_review'
   if (s.includes('termin')) return 'terminated'
   return 'draft'
@@ -47,7 +49,8 @@ function partyStatusClass(status: string): string {
 
 function statusPillClass(status: string | undefined): string {
   if (!status) return 'draft'
-  if (status === 'under_review') return 'under_review'
+  if (status === 'under_review' || status === 'revision_required') return 'under_review'
+  if (status === 'expired') return 'soon'
   return status
 }
 
@@ -148,7 +151,9 @@ export function PartyDetailView({ partyId, role }: Props) {
   const [reviewContract, setReviewContract] = useState<Contract | null>(null)
   const [cpChangeContract, setCpChangeContract] = useState<Contract | null>(null)
   const [editContract, setEditContract] = useState<Contract | null>(null)
+  const [editPartyOpen, setEditPartyOpen] = useState(false)
   const [uploadSupportingOpen, setUploadSupportingOpen] = useState(false)
+  const [voidBusyId, setVoidBusyId] = useState<string | null>(null)
   const [soRows, setSoRows] = useState<SyncedOrderRow[]>([])
   const [soBusy, setSoBusy] = useState(false)
   const [soSyncMsg, setSoSyncMsg] = useState('')
@@ -231,8 +236,27 @@ export function PartyDetailView({ partyId, role }: Props) {
   if (!data) return <PartyDetailSkeleton />
 
   const { party, contracts, documents, amendments, terminations, counterpartyChanges, auditLogs, soHealth } = data
-  const supportingDocs = documents.filter((d) => d.document_category === 'supporting')
+  const supportingDocs = documents.filter(
+    (d) => d.document_category === 'supporting' && !d.voided_at,
+  )
+  const voidedSupporting = documents.filter(
+    (d) => d.document_category === 'supporting' && d.voided_at,
+  )
   const contractDocs = documents.filter((d) => d.document_category !== 'supporting')
+
+  async function handleVoidDoc(doc: DocumentRow) {
+    const reason = window.prompt(`Void “${doc.file_name}”? Isi alasan (opsional):`)
+    if (reason === null) return
+    setVoidBusyId(doc.id)
+    try {
+      await voidPartyDocument(partyId, doc.id, reason.trim() || undefined)
+      await load()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Void gagal')
+    } finally {
+      setVoidBusyId(null)
+    }
+  }
   const activeContracts = contracts.filter((c) => ACTIVE_FOR_TERM.includes(c.status))
   const sealNo = party.party_code.replace(/^PTY-/i, '')
   const primary = pickPrimaryContract(contracts)
@@ -277,8 +301,20 @@ export function PartyDetailView({ partyId, role }: Props) {
               <dd className="mono">{party.party_code}</dd>
             </div>
             <div>
+              <dt>Tipe</dt>
+              <dd>{party.party_type || '—'}</dd>
+            </div>
+            <div>
               <dt>PIC</dt>
               <dd>{party.pic || '—'}</dd>
+            </div>
+            <div>
+              <dt>NPWP</dt>
+              <dd className="mono">{party.npwp || '—'}</dd>
+            </div>
+            <div>
+              <dt>Alamat</dt>
+              <dd>{party.address || '—'}</dd>
             </div>
             <div>
               <dt>Party Status</dt>
@@ -297,8 +333,21 @@ export function PartyDetailView({ partyId, role }: Props) {
         <div className="dossier-actions">
           {canEdit ? (
             <>
-              <button type="button" className="btn brass" onClick={() => setAddContractOpen(true)}>
+              <button
+                type="button"
+                className="btn brass"
+                disabled={party.party_status === 'Inactive'}
+                title={
+                  party.party_status === 'Inactive'
+                    ? 'Party Inactive — aktifkan dulu untuk kontrak baru'
+                    : undefined
+                }
+                onClick={() => setAddContractOpen(true)}
+              >
                 + Add Contract
+              </button>
+              <button type="button" className="btn ghost dossier-btn-ghost" onClick={() => setEditPartyOpen(true)}>
+                Edit Party
               </button>
               <button type="button" className="btn ghost dossier-btn-ghost" onClick={() => setLinkOpen(true)}>
                 {party.odoo_partner_id != null ? 'Kelola Link Odoo' : 'Link Odoo'}
@@ -604,13 +653,48 @@ export function PartyDetailView({ partyId, role }: Props) {
                     <td>{d.file_name}</td>
                     <td>{d.description || '—'}</td>
                     <td>{d.status}</td>
-                    <td>
+                    <td className="row-actions">
                       <DocumentDownloadButton documentId={d.id} />
+                      {canEdit && (
+                        <button
+                          type="button"
+                          className="btn ghost small"
+                          disabled={voidBusyId === d.id}
+                          onClick={() => void handleVoidDoc(d)}
+                        >
+                          {voidBusyId === d.id ? '…' : 'Void'}
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          )}
+          {voidedSupporting.length > 0 && (
+            <>
+              <h3 style={{ marginTop: 16, fontSize: 14 }}>Voided</h3>
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>File</th>
+                    <th>Reason</th>
+                    <th>Voided</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {voidedSupporting.map((d) => (
+                    <tr key={d.id}>
+                      <td className="muted">{d.file_name}</td>
+                      <td className="muted">{d.void_reason || '—'}</td>
+                      <td className="muted">
+                        {d.voided_at ? new Date(d.voided_at).toLocaleString('id-ID') : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
           )}
           {contractDocs.length > 0 && (
             <>
@@ -864,6 +948,16 @@ export function PartyDetailView({ partyId, role }: Props) {
         onLinked={(updated) => {
           setData((prev) => (prev ? { ...prev, party: updated } : prev))
           setLinkOpen(false)
+        }}
+      />
+
+      <EditPartyModal
+        party={party}
+        open={editPartyOpen}
+        onClose={() => setEditPartyOpen(false)}
+        onUpdated={(updated) => {
+          setData((prev) => (prev ? { ...prev, party: updated } : prev))
+          setEditPartyOpen(false)
         }}
       />
     </div>

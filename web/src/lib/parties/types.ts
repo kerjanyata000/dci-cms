@@ -5,6 +5,11 @@ export type PartyRow = {
   party_code: string
   name: string
   pic: string | null
+  npwp?: string | null
+  address?: string | null
+  party_type?: string | null
+  contact_email?: string | null
+  contact_phone?: string | null
   odoo_partner_id: number | null
   odoo_link_status: OdooLinkStatus
   party_status: string
@@ -18,6 +23,11 @@ export function mapPartyRow(row: PartyRow): Party {
     party_code: row.party_code,
     name: row.name,
     pic: row.pic,
+    npwp: row.npwp ?? null,
+    address: row.address ?? null,
+    party_type: row.party_type ?? null,
+    contact_email: row.contact_email ?? null,
+    contact_phone: row.contact_phone ?? null,
     odoo_partner_id: row.odoo_partner_id,
     odoo_link_status: row.odoo_link_status,
     party_status: row.party_status,

@@ -67,7 +67,15 @@ export async function fetchPartyDetail(id: string): Promise<PartyDetailPayload> 
   return parseJson<PartyDetailPayload>(await cmsFetch(`/api/parties/${id}`))
 }
 
-export async function createParty(input: { name: string; pic?: string }): Promise<Party> {
+export async function createParty(input: {
+  name: string
+  pic?: string
+  npwp?: string
+  address?: string
+  party_type?: string
+  contact_email?: string
+  contact_phone?: string
+}): Promise<Party> {
   const data = await parseJson<{ party: Party }>(
     await cmsFetch('/api/parties', {
       method: 'POST',
@@ -76,6 +84,54 @@ export async function createParty(input: { name: string; pic?: string }): Promis
     }),
   )
   return data.party
+}
+
+export async function updateParty(
+  partyId: string,
+  input: {
+    name?: string
+    pic?: string | null
+    npwp?: string | null
+    address?: string | null
+    party_type?: string | null
+    contact_email?: string | null
+    contact_phone?: string | null
+  },
+): Promise<Party> {
+  const data = await parseJson<{ party: Party }>(
+    await cmsFetch(`/api/parties/${partyId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'update', ...input }),
+    }),
+  )
+  return data.party
+}
+
+export async function setPartyActive(partyId: string, active: boolean): Promise<Party> {
+  const data = await parseJson<{ party: Party }>(
+    await cmsFetch(`/api/parties/${partyId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: active ? 'activate' : 'deactivate' }),
+    }),
+  )
+  return data.party
+}
+
+export async function voidPartyDocument(
+  partyId: string,
+  documentId: string,
+  reason?: string,
+): Promise<DocumentRow> {
+  const data = await parseJson<{ document: DocumentRow }>(
+    await cmsFetch(`/api/parties/${partyId}/documents`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'void', documentId, reason }),
+    }),
+  )
+  return data.document
 }
 
 export async function linkPartyOdoo(

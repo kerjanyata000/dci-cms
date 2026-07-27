@@ -1,6 +1,6 @@
 import { requireCanEdit, handleRouteError } from '@/lib/auth/route-helpers'
 import { jsonError, jsonOk } from '@/lib/server/api-route'
-import { persistSupportingDocument } from '@/lib/documents/server'
+import { persistSupportingDocument, voidSupportingDocument } from '@/lib/documents/server'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 
 export const runtime = 'nodejs'
@@ -47,5 +47,40 @@ export async function POST(
     return jsonOk({ document: doc }, { status: 201 })
   } catch (err) {
     return handleRouteError(err, 'Upload failed')
+  }
+}
+
+export async function PATCH(
+  request: Request,
+  context: { params: Promise<{ id: string }> },
+) {
+  try {
+    await requireCanEdit(request)
+    const { id: partyId } = await context.params
+    const body = (await request.json()) as {
+      action?: 'void'
+      documentId?: string
+      reason?: string
+    }
+
+    if (body.action !== 'void' || !body.documentId) {
+      return jsonError('action=void and documentId required', 400)
+    }
+
+    const db = getSupabaseAdmin()
+    const { data: doc } = await db
+      .from('documents')
+      .select('id, party_id')
+      .eq('id', body.documentId)
+      .single()
+
+    if (!doc || doc.party_id !== partyId) {
+      return jsonError('Document not found for this party', 404)
+    }
+
+    const voided = await voidSupportingDocument(body.documentId, body.reason)
+    return jsonOk({ document: voided })
+  } catch (err) {
+    return handleRouteError(err, 'Void failed')
   }
 }

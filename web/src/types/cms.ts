@@ -38,6 +38,11 @@ export type Party = {
   party_code: string
   name: string
   pic: string | null
+  npwp: string | null
+  address: string | null
+  party_type: string | null
+  contact_email: string | null
+  contact_phone: string | null
   odoo_partner_id: number | null
   odoo_link_status: OdooLinkStatus
   party_status: string
@@ -88,6 +93,8 @@ export type DocumentRow = {
   status: DocumentStatus
   document_category?: string | null
   description?: string | null
+  voided_at?: string | null
+  void_reason?: string | null
   ragflow_dataset_id: string | null
   ragflow_doc_id: string | null
   extraction_error: string | null
