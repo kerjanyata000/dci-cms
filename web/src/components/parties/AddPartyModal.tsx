@@ -67,7 +67,6 @@ export function AddPartyModal({ open, onClose, onCreated }: Props) {
         <div className="modal-head">
           <div>
             <h2>Add New Party</h2>
-            <p className="muted">Disimpan ke Supabase · status awal Pending Odoo Link</p>
           </div>
           <ModalCloseButton onClick={onClose} />
         </div>

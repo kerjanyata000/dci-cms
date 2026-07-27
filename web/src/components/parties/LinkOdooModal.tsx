@@ -187,13 +187,6 @@ export function LinkOdooModal({ party, open, onClose, onLinked }: Props) {
           </div>
         )}
 
-        {!hasExistingLink && (
-          <p className="muted modal-hint">
-            Kandidat Partner di bawah sudah dicari otomatis. Modal hanya tertutup lewat Batal atau tombol tutup.
-            (klik area gelap tidak menutup).
-          </p>
-        )}
-
         <div className="field">
           <label htmlFor="odoo-q">Cari di Odoo (res.partner)</label>
           <div className="row-actions">
