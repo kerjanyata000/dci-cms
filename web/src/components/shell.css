@@ -732,6 +732,21 @@ a {
   gap: 2px;
 }
 
+.contract-actions-menu-floating {
+  position: fixed;
+  right: auto;
+  top: auto;
+  z-index: 400;
+  min-width: 200px;
+  box-shadow: 0 16px 36px rgba(18, 32, 58, 0.18);
+  animation: scale-in var(--dur, 220ms) var(--ease-out, ease) both;
+  transform-origin: top right;
+}
+
+.contract-actions-menu-floating.open-up {
+  transform-origin: bottom right;
+}
+
 .contract-actions-menu button {
   text-align: left;
   background: none;
@@ -4277,13 +4292,6 @@ textarea {
   .contract-row-actions {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .contract-actions-menu {
-    position: static;
-    margin-top: 4px;
-    box-shadow: none;
-    border: 1px solid var(--line);
   }
 
   .table-toolbar {
