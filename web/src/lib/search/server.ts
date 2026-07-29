@@ -3,6 +3,7 @@ import 'server-only'
 import { mapContractRow, type ContractRow } from '@/lib/contracts/types'
 import { mapPartyRow, type PartyRow } from '@/lib/parties/types'
 import { retrieveRagflowChunks } from '@/lib/ragflow/server'
+import { buildSearchSnippet } from '@/lib/ragflow/text'
 import type { RagflowSearchHit } from '@/lib/ragflow/types'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 import { PARTY_ON_CONTRACT } from '@/lib/supabase/embeds'
@@ -18,6 +19,8 @@ export type ContentSearchHit = RagflowSearchHit & {
   party_name: string | null
   file_name: string | null
   displayContent?: string
+  /** true jika potongan memuat kata kunci literal */
+  literalMatch?: boolean
 }
 
 export type SmartSearchResult = {
@@ -156,6 +159,7 @@ export async function runSmartSearch(params: {
           const contract = doc?.contract_id ? contractMap.get(doc.contract_id) : null
           const partyId = (doc?.party_id ?? contract?.party_id) as string | undefined
           const party = partyId ? partyMap.get(partyId) : null
+          const snippet = buildSearchSnippet(hit.content || hit.displayContent || '', query)
           return {
             ...hit,
             document_id: doc?.id ?? null,
@@ -164,8 +168,16 @@ export async function runSmartSearch(params: {
             contract_code: (contract?.contract_code as string) ?? null,
             party_name: (party?.name as string) ?? null,
             file_name: doc?.file_name ?? hit.fileName ?? null,
-            displayContent: hit.displayContent,
+            displayContent: snippet.text,
+            literalMatch: snippet.matched,
           }
+        })
+        // Utamakan hit yang benar-benar memuat kata kunci di teks
+        result.contentHits.sort((a, b) => {
+          const am = a.literalMatch ? 1 : 0
+          const bm = b.literalMatch ? 1 : 0
+          if (am !== bm) return bm - am
+          return (b.score ?? 0) - (a.score ?? 0)
         })
       }
     } catch (err) {

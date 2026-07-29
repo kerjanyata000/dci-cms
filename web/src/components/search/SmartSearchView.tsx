@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
+import { HighlightedText } from '@/components/search/HighlightedText'
 import { runSearch } from '@/lib/search/api'
 import type { SearchScope } from '@/lib/search/server'
 import type { SmartSearchResult } from '@/lib/search/server'
@@ -327,11 +328,20 @@ export function SmartSearchView(_props: Props) {
                     <span className="muted" style={{ marginLeft: 8 }}>
                       score {(hit.score * 100).toFixed(0)}%
                     </span>
+                    {hit.literalMatch === false && (
+                      <span className="status-pill draft" style={{ marginLeft: 8 }}>
+                        Semantik
+                      </span>
+                    )}
                   </div>
                   <p className="search-content-snippet">
-                    {(hit.displayContent ?? hit.content).slice(0, 320)}
-                    {(hit.displayContent ?? hit.content).length > 320 ? '…' : ''}
+                    <HighlightedText text={hit.displayContent ?? hit.content} query={result.query} />
                   </p>
+                  {hit.literalMatch === false && (
+                    <p className="muted" style={{ fontSize: 12, margin: '4px 0 0' }}>
+                      Kata kunci tidak muncul di potongan ini — hasil kedekatan makna (semantic).
+                    </p>
+                  )}
                   {hit.party_id && (
                     <Link href={`/parties/${hit.party_id}`} className="btn ghost">
                       Buka Party
