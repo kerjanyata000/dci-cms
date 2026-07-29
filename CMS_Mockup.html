@@ -54,11 +54,44 @@ a{color:inherit;}
 .nav-item:hover{background:rgba(255,255,255,.06);color:#fff;}
 .nav-item.active{background:rgba(168,120,60,.18);color:#fff;position:relative;}
 .nav-item.active::before{content:"";position:absolute;left:-16px;top:6px;bottom:6px;width:3px;background:var(--brass);border-radius:2px;}
-.sidebar-foot{margin-top:auto;padding:12px 10px;font-size:11px;color:#7C8AA3;border-top:1px solid rgba(255,255,255,.1);}
+.sidebar-foot{margin-top:auto;padding-top:12px;border-top:1px solid rgba(255,255,255,.1);font-size:11px;color:#7C8AA3;}
+.sys-status{display:flex;flex-wrap:wrap;gap:6px;}
+.integration-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-family:var(--mono);letter-spacing:.02em;padding:4px 8px;border-radius:6px;border:1px solid transparent;line-height:1.2;}
+.integration-badge-sidebar{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.08);color:#b8c4d6;}
+.integration-badge-name{font-weight:600;}
+.integration-badge-state{opacity:.85;font-size:9px;text-transform:uppercase;}
+.status-dot{width:7px;height:7px;border-radius:50%;flex:none;}
+.integration-badge.live .status-dot{background:#3ecf8e;box-shadow:0 0 0 2px rgba(62,207,142,.25);}
+.integration-badge.dummy .status-dot{background:var(--amber);box-shadow:0 0 0 2px rgba(192,138,46,.2);}
+.profile-wrap{position:relative;}
+.profile-trigger{cursor:pointer;border:1px solid transparent;background:none;font:inherit;text-align:left;padding:4px 8px;border-radius:10px;display:flex;align-items:center;gap:10px;}
+.profile-trigger:hover{background:var(--slate-light);border-color:var(--line);}
+.profile-trigger-text{display:flex;flex-direction:column;gap:1px;min-width:0;}
+.profile-trigger-text .muted{font-size:11px;color:var(--muted);}
+.profile-panel{display:none;position:absolute;right:0;top:calc(100% + 8px);width:270px;background:var(--paper-2);border:1px solid var(--line);border-radius:12px;box-shadow:0 16px 36px rgba(18,32,58,.16);z-index:70;padding:12px;}
+.profile-panel.active{display:block;}
+.profile-panel-head{padding-bottom:10px;margin-bottom:8px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:6px;}
+.profile-panel-head b{font-size:14px;color:var(--ink);}
+.profile-panel-head .role-badge{align-self:flex-start;margin-top:0;}
+.profile-panel-head .role-badge-legal{background:var(--brass-light);color:#6B4E23;}
+.profile-panel-head .role-badge-business{background:#E6E9F5;color:#3F4E9C;}
+.profile-panel-head .role-badge-finance{background:var(--green-light);color:var(--green);}
+.profile-panel-head .role-badge-management{background:var(--slate-light);color:var(--ink);}
+.profile-panel-head .role-badge-it{background:#DDF0F5;color:#1E7C93;}
+.profile-panel-nav{display:flex;flex-direction:column;gap:2px;}
+.profile-panel-nav button{display:block;width:100%;text-align:left;padding:8px 10px;border-radius:8px;font-size:13.5px;border:none;background:transparent;color:var(--text);cursor:pointer;}
+.profile-panel-nav button:hover{background:var(--slate-light);}
+.profile-logout{width:100%;margin-top:8px;justify-content:center;}
+.user-avatar-legal{background:var(--brass-light);color:#6B4E23;}
+.user-avatar-business{background:#E6E9F5;color:#3F4E9C;}
+.user-avatar-finance{background:var(--green-light);color:var(--green);}
+.user-avatar-management{background:var(--slate-light);color:var(--ink);}
+.user-avatar-it{background:#DDF0F5;color:#1E7C93;}
 .shell.sidebar-collapsed .brand-text,
 .shell.sidebar-collapsed .nav-label,
 .shell.sidebar-collapsed .nav-text,
 .shell.sidebar-collapsed .sidebar-foot{display:none;}
+.shell.sidebar-collapsed .sys-status{display:none;}
 .shell.sidebar-collapsed .brand{justify-content:center;padding:0 0 16px;border-bottom:1px solid rgba(255,255,255,.12);}
 .shell.sidebar-collapsed .sidebar-toggle{margin:0 auto 10px;}
 .shell.sidebar-collapsed .nav-item{justify-content:center;padding:10px;}
@@ -408,26 +441,38 @@ tbody tr.clickable{transition:background .12s;}
 .empty-state svg{width:34px;height:34px;margin-bottom:10px;color:var(--line);}
 
 
-.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--ink);padding:24px;}
-.login-card{background:var(--paper-2);border-radius:16px;width:100%;max-width:920px;display:grid;grid-template-columns:1fr 1fr;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.35);}
-.login-side{background:linear-gradient(180deg,var(--ink) 0%,var(--ink-2) 100%);color:#fff;padding:44px 36px;display:flex;flex-direction:column;}
-.login-side .brand-seal{width:44px;height:44px;font-size:17px;margin-bottom:20px;}
-.login-side h2{font-family:var(--serif);font-size:22px;margin:0 0 10px;line-height:1.3;}
-.login-side p{font-size:12.8px;color:#B9C4D9;line-height:1.6;margin:0 0 22px;}
-.login-side-list{list-style:none;padding:0;margin:0;font-size:12px;color:#B9C4D9;display:flex;flex-direction:column;gap:9px;}
-.login-side-list li{display:flex;gap:8px;align-items:flex-start;}
-.login-side-list svg{width:14px;height:14px;color:var(--brass);flex:none;margin-top:1px;}
-.login-form{padding:44px 40px;}
-.login-form h1{font-family:var(--serif);font-size:22px;margin:0 0 6px;}
-.login-form>p{margin:0 0 24px;color:var(--muted);font-size:12.8px;}
-.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px;}
-.role-card{border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;cursor:pointer;font-size:12px;transition:border-color .15s,background .15s;}
-.role-card:hover{border-color:var(--brass);}
-.role-card.selected{border-color:var(--brass);background:var(--brass-light);}
-.role-card b{display:block;font-size:12.5px;margin-bottom:2px;}
-.role-card span{color:var(--muted);font-size:10.8px;line-height:1.4;}
-.login-error{display:none;background:var(--red-light);color:#7A2B20;border:1px solid #EBC3BA;border-radius:8px;padding:10px 13px;font-size:12px;margin-bottom:16px;}
+.login-page{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--ink);padding:24px;overflow:hidden;}
+.login-page::before{content:'';position:absolute;inset:-10%;background:radial-gradient(ellipse 55% 45% at 20% 30%,rgba(168,120,60,.18),transparent 55%),radial-gradient(ellipse 50% 40% at 80% 70%,rgba(60,100,160,.12),transparent 50%),radial-gradient(rgba(255,255,255,.045) 1px,transparent 1px);background-size:100% 100%,100% 100%,28px 28px;pointer-events:none;}
+.login-page::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 50% 100%,rgba(0,0,0,.25),transparent 60%);pointer-events:none;}
+.login-card{position:relative;z-index:1;background:var(--paper-2);border-radius:18px;width:100%;max-width:880px;display:grid;grid-template-columns:.95fr 1.05fr;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.42),0 0 0 1px rgba(255,255,255,.06);padding:0;}
+.login-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--brass),#d4a574,var(--brass),#d4a574);background-size:200% 100%;z-index:2;}
+.login-side{background:linear-gradient(165deg,var(--ink) 0%,var(--ink-2) 55%,#152238 100%);color:#fff;padding:40px 36px 32px;display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,.06);}
+.login-side-top{margin-bottom:18px;}
+.login-brand-seal{width:48px;height:48px;font-size:18px;margin-bottom:0;background:rgba(168,120,60,.08);border-color:var(--brass);color:var(--brass);}
+.login-product-tag{margin:10px 0 0;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9fb0c8;}
+.login-side h2{font-family:var(--serif);font-size:24px;font-weight:600;margin:0;line-height:1.25;letter-spacing:-.02em;}
+.login-form{padding:40px 40px 36px;display:flex;flex-direction:column;}
+.login-mobile-brand{display:none;align-items:center;gap:12px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--line);}
+.login-mobile-brand b{display:block;font-family:var(--serif);font-size:16px;color:var(--ink);}
+.login-form-head{margin-bottom:22px;}
+.login-form h1{font-family:var(--serif);font-size:26px;font-weight:600;letter-spacing:-.02em;margin:0;color:var(--ink);}
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.role-card{border:1.5px solid var(--line);border-left-width:3px;border-radius:10px;padding:14px 14px 13px;cursor:pointer;font-size:12px;text-align:left;background:var(--paper-2);font:inherit;transition:border-color .15s,background .15s,box-shadow .15s,transform .12s;}
+.role-card:hover{border-color:var(--brass);box-shadow:0 6px 18px rgba(18,32,58,.08);transform:translateY(-2px);}
+.role-card.selected{border-color:var(--brass);background:var(--brass-light);box-shadow:0 0 0 1px rgba(168,120,60,.28),0 8px 20px rgba(168,120,60,.12);transform:translateY(-1px);}
+.role-card.selected b{color:#6b4e23;}
+.role-card-legal{border-left-color:var(--brass);}
+.role-card-business{border-left-color:#3f4e9c;}
+.role-card-finance{border-left-color:var(--green);}
+.role-card-management{border-left-color:var(--ink-2);}
+.role-card-it{border-left-color:#1e7c93;}
+.role-card b{display:block;font-size:12.5px;font-weight:600;margin-bottom:0;color:var(--ink);}
+.login-error{display:none;background:var(--red-light);color:#7a2b20;border:1px solid #ebc3ba;border-radius:10px;padding:11px 14px;font-size:12.5px;margin-bottom:16px;line-height:1.45;}
 .login-error.show{display:block;}
+.login-submit{width:100%;justify-content:center;gap:8px;padding:12px 18px;font-weight:600;font-size:14px;margin-top:4px;}
+.login-submit svg{width:16px;height:16px;}
+.login-submit:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 10px 24px rgba(18,32,58,.28);}
+.login-submit:hover:not(:disabled) svg{transform:translateX(3px);}
 .role-badge{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:3px 9px;border-radius:20px;background:rgba(168,120,60,.18);color:var(--brass);margin-top:2px;}
 .readonly-banner{display:flex;gap:10px;align-items:flex-start;background:var(--slate-light);border:1px solid var(--line);border-radius:10px;padding:11px 14px;font-size:12.3px;color:var(--muted);margin-bottom:18px;}
 .readonly-banner svg{width:16px;height:16px;flex:none;margin-top:1px;}
@@ -446,6 +491,12 @@ tbody tr.clickable{transition:background .12s;}
 .pending-item{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px dashed var(--line);font-size:13px;}
 .pending-item:last-child{border-bottom:none;}
 .pending-item span{color:var(--muted);font-size:11.5px;}
+@media(max-width:720px){
+  .login-card{grid-template-columns:1fr;max-width:480px;}
+  .login-side{display:none;}
+  .login-mobile-brand{display:flex;}
+  .login-form{padding:28px 22px 24px;}
+}
 
 
 .stepper-flow{display:flex;align-items:center;gap:0;margin-bottom:20px;flex-wrap:wrap;}
@@ -502,42 +553,116 @@ tbody tr.clickable{transition:background .12s;}
 }
 @media(max-width:560px){
   .kpi-grid{grid-template-columns:1fr;}
-  .login-card{grid-template-columns:1fr;}
-  .login-side{display:none;}
+}
+
+/* ===== Demo Tour (stakeholder walkthrough) ===== */
+.demo-fab{
+  position:fixed;right:18px;bottom:18px;z-index:90;
+  background:var(--brass);color:#fff;border:none;border-radius:999px;
+  padding:12px 16px;font-size:12.5px;font-weight:700;letter-spacing:.02em;
+  box-shadow:0 8px 24px rgba(18,32,58,.28);display:flex;align-items:center;gap:8px;
+}
+.demo-fab:hover{filter:brightness(1.05);}
+.demo-fab svg{width:16px;height:16px;}
+.demo-panel{
+  position:fixed;right:18px;bottom:68px;z-index:90;width:min(380px,calc(100vw - 24px));
+  max-height:min(72vh,640px);overflow:auto;background:var(--paper-2);
+  border:1px solid var(--line);border-radius:14px;box-shadow:0 16px 40px rgba(18,32,58,.22);
+  display:none;
+}
+.demo-panel.open{display:block;}
+.demo-panel-head{
+  position:sticky;top:0;background:var(--ink);color:#EDEFF4;padding:14px 16px;
+  display:flex;justify-content:space-between;align-items:flex-start;gap:10px;z-index:1;
+}
+.demo-panel-head h3{margin:0;font-family:var(--serif);font-size:15px;}
+.demo-panel-head p{margin:4px 0 0;font-size:11px;color:#9FB0C8;line-height:1.4;}
+.demo-panel-close{border:none;background:rgba(255,255,255,.1);color:#fff;width:28px;height:28px;border-radius:8px;}
+.demo-sec{padding:12px 14px 4px;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;}
+.demo-item{
+  display:flex;align-items:flex-start;gap:10px;width:100%;text-align:left;
+  border:none;background:transparent;padding:10px 14px;border-bottom:1px solid var(--line);
+  cursor:pointer;font-size:12.5px;color:var(--text);
+}
+.demo-item:hover{background:var(--brass-light);}
+.demo-item b{display:block;font-size:12.5px;margin-bottom:2px;}
+.demo-item span{display:block;font-size:11px;color:var(--muted);line-height:1.35;}
+.demo-item .di-ico{
+  flex:none;width:28px;height:28px;border-radius:8px;background:var(--slate-light);
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--ink);
+}
+.search-results-panel{
+  display:none;margin:0 28px;padding:0;border:1px solid var(--line);border-radius:12px;
+  background:var(--paper-2);overflow:hidden;
+}
+.search-results-panel.show{display:block;}
+.search-results-panel .sr-head{
+  padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;
+}
+.search-results-panel .sr-head b{font-size:13px;}
+.search-results-panel .sr-scopes{display:flex;gap:6px;flex-wrap:wrap;}
+.search-results-panel .sr-scope{
+  border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 10px;font-size:11px;font-weight:600;
+}
+.search-results-panel .sr-scope.active{border-color:var(--brass);background:var(--brass-light);color:#6B4E23;}
+.search-results-panel .sr-row{
+  display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+  padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer;text-align:left;width:100%;
+  background:transparent;border-left:none;border-right:none;border-top:none;
+}
+.search-results-panel .sr-row:hover{background:var(--paper);}
+.search-results-panel .sr-row:last-child{border-bottom:none;}
+.search-results-panel .sr-meta{font-size:11px;color:var(--muted);margin-top:3px;}
+.search-results-panel .sr-snippet{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.45;}
+.search-results-panel .sr-snippet mark{background:var(--brass-light);color:#6B4E23;padding:0 2px;border-radius:2px;}
+.odoo-candidate{
+  border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer;
+}
+.odoo-candidate:hover,.odoo-candidate.selected{border-color:var(--brass);background:var(--brass-light);}
+.odoo-candidate b{display:block;font-size:13px;}
+.odoo-candidate span{font-size:11px;color:var(--muted);}
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+.compare-grid .cmp{border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:11.5px;background:#fff;}
+.compare-grid .cmp span{display:block;font-size:10px;color:var(--muted);margin-bottom:2px;}
+@media(max-width:720px){
+  .search-results-panel{margin:0 14px;}
+  .demo-fab{right:12px;bottom:12px;}
+  .demo-panel{right:12px;bottom:60px;}
 }
 </style>
 
 </head>
 <body>
-<div style="background:#12203A;color:#EDEFF4;padding:10px 20px;font-size:12.5px;line-height:1.45;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;">
-  <div><b style="color:#F1E4D0;">Mockup ↔ App</b> — Tombol utama mengikuti aplikasi Next.js: Add/Edit Party, Link Odoo, Review (Revision Required), Amendment Ready/FS, Void supporting, SO Sync setelah Fully Signed, filter nama/kode/NPWP.</div>
-  <span style="opacity:.75;">Sumber: <code style="color:#F1E4D0;">web/</code></span>
-</div>
 
 <div id="login-screen" class="login-page">
   <div class="login-card">
-    <div class="login-side">
-      <div class="brand-seal">CM</div>
+    <aside class="login-side" aria-label="Brand">
+      <div class="login-side-top">
+        <div class="brand-seal login-brand-seal">CM</div>
+        <p class="login-product-tag">DCI · Contract Management System</p>
+      </div>
       <h2>Contract Management System</h2>
-      <p>Party-centric contract registry terintegrasi Odoo — mengikuti <code>docs/BRD-Contract-Management-System-v1.3.md</code> (BRD v1.3, 2026-07-08).</p>
-      <ul class="login-side-list">
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>Tampilan &amp; menu menyesuaikan role (BRD §5)</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>Legal-managed actions tanpa approval internal (BRL-CMS-007/012/015)</li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>Audit trail lengkap untuk setiap aksi (BRL-CMS-025)</li>
-      </ul>
-      <div style="margin-top:auto;padding-top:24px;font-size:10.5px;color:#7C8AA3;">DCI · Contract Management System v1.3<br>Prototype — data register MSA Customer · landasan: docs/BRD…v1.3.md</div>
-    </div>
-    <div class="login-form">
-      <h1>Masuk ke akun Anda</h1>
-      <p>Pilih role untuk mensimulasikan tampilan &amp; akses sesuai BRD §5 Stakeholders / FR-DASH-001–002.</p>
-      <div class="login-error" id="login-error">Akses ditolak (FR-DASH-002) — email/password tidak valid, atau Anda tidak memiliki akses ke sistem ini.</div>
-      <div class="field"><label>Email</label><input id="login-email" value="legal.admin@dci.co.id"></div>
-      <div class="field"><label>Password</label><input id="login-password" type="password" value="••••••••"></div>
-      <div class="field"><label>Login sebagai (role demo)</label></div>
-      <div class="role-grid" id="role-grid"></div>
-      <button class="btn primary" style="width:100%;justify-content:center;" onclick="doLogin()">Masuk</button>
-      <p style="font-size:11px;color:var(--muted);margin-top:14px;text-align:center;">Prototype internal — kredensial di atas hanya contoh, tidak tersambung ke sistem otentikasi nyata.</p>
-    </div>
+    </aside>
+
+    <form class="login-form" onsubmit="event.preventDefault(); doLogin();">
+      <div class="login-mobile-brand" aria-hidden="true">
+        <div class="brand-seal login-brand-seal">CM</div>
+        <div><b>Contract MS</b></div>
+      </div>
+
+      <div class="login-form-head">
+        <h1>Pilih role</h1>
+      </div>
+
+      <div class="login-error" id="login-error"></div>
+
+      <div class="role-grid" id="role-grid" role="listbox" aria-label="Pilih role"></div>
+
+      <button class="btn primary login-submit" type="submit" id="login-submit-btn">
+        Masuk
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+      </button>
+    </form>
   </div>
 </div>
 <div class="shell" id="app-shell" style="display:none">
@@ -551,7 +676,7 @@ tbody tr.clickable{transition:background .12s;}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
     </div>
-    <div class="nav-group">
+    <nav class="nav-group" id="sidebar-nav">
       <button class="nav-item active" data-view="dashboard">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
         <span class="nav-text">Dashboard</span>
@@ -560,9 +685,10 @@ tbody tr.clickable{transition:background .12s;}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         <span class="nav-text">Parties</span>
       </button>
-    </div>
-    <div class="nav-group">
-      <div class="nav-label">Agenda</div>
+      <button class="nav-item" data-view="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span class="nav-text">Smart Search</span>
+      </button>
       <button class="nav-item" data-view="renewal">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
         <span class="nav-text">Renewal Calendar</span>
@@ -571,8 +697,21 @@ tbody tr.clickable{transition:background .12s;}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
         <span class="nav-text">SO Health</span>
       </button>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="sys-status sys-status-sidebar" role="status" aria-live="polite">
+        <span class="integration-badge live integration-badge-sidebar" title="Odoo terhubung (demo)">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span class="integration-badge-name">Odoo</span>
+          <span class="integration-badge-state">Live</span>
+        </span>
+        <span class="integration-badge live integration-badge-sidebar" title="Layanan ekstraksi dokumen (demo)">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span class="integration-badge-name">Ekstraksi</span>
+          <span class="integration-badge-state">Live</span>
+        </span>
+      </div>
     </div>
-    <div class="sidebar-foot" id="sidebar-role-info">Legal / Contract Admin<br>DCI · Contract Management System v1.3</div>
   </aside>
 
   <div class="main">
@@ -582,11 +721,7 @@ tbody tr.clickable{transition:background .12s;}
       </button>
       <div class="search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input id="global-search" oninput="onGlobalSearch(this.value)" onkeydown="onGlobalSearchKey(event)" placeholder="Cari Party (nama, PIC, No. Agreement) atau Contract (tipe, status)…" autocomplete="off">
-      </div>
-      <div class="search-tags">
-        <span class="search-tag">Party Criteria</span>
-        <span class="search-tag">Contract Criteria</span>
+        <input id="global-search" oninput="onGlobalSearch(this.value)" onkeydown="onGlobalSearchKey(event)" placeholder="Cari party, kontrak, atau isi dokumen…" autocomplete="off" aria-label="Smart search">
       </div>
       <div class="top-right">
         <div class="popover-wrap">
@@ -597,19 +732,21 @@ tbody tr.clickable{transition:background .12s;}
             <button class="pop-foot" onclick="showView('notifications'); closeAllPop();">Lihat semua notifikasi →</button>
           </div>
         </div>
-        <div class="popover-wrap">
-          <button class="user-chip as-btn" onclick="togglePop('pop-user', event)">
+        <div class="profile-wrap" id="profile-wrap">
+          <button type="button" class="user-chip profile-trigger" onclick="toggleProfilePanel(event)" aria-haspopup="menu" aria-expanded="false" id="profile-trigger">
             <div class="user-avatar" id="topbar-avatar">LG</div>
-            <div class="user-meta"><b id="topbar-username">Legal Admin</b><span id="topbar-role">Role: Legal / Contract Admin</span></div>
+            <span class="profile-trigger-text">
+              <b id="topbar-username">Legal Admin</b>
+              <span class="muted" id="topbar-role">Legal / Contract Admin</span>
+            </span>
           </button>
-          <div class="popover" id="pop-user" style="width:240px;" onclick="event.stopPropagation()">
-            <button type="button" class="pop-item plain" onclick="openUserProfile(event)">👤 Profil Saya</button>
-            <button type="button" class="pop-item plain" onclick="openNotifPrefs(event)">⚙️ Preferensi Notifikasi</button>
-            <button type="button" class="pop-item plain" onclick="openRoleAccess(event)">🔑 Role &amp; Access Rights</button>
-            <button type="button" class="pop-item plain" data-menu="so" onclick="showView('so'); closeAllPop();">🔗 Integrasi Odoo · SO</button>
-            <button type="button" class="pop-item plain" data-menu="audit" onclick="showView('audit'); closeAllPop();">📋 Activity Log</button>
-            <button type="button" class="pop-item plain" onclick="openModal('modal-about')">ℹ Tentang Sistem</button>
-            <button type="button" class="pop-item plain" style="color:var(--red);" onclick="doLogout()">↪ Keluar</button>
+          <div class="profile-panel" id="pop-user" role="menu" onclick="event.stopPropagation()">
+            <div class="profile-panel-head">
+              <b id="profile-panel-name">Legal Admin</b>
+              <span class="role-badge role-badge-legal" id="profile-panel-badge">Legal / Contract Admin</span>
+            </div>
+            <nav class="profile-panel-nav" id="profile-panel-nav"></nav>
+            <button type="button" class="btn ghost profile-logout" onclick="doLogout()">Keluar</button>
           </div>
         </div>
       </div>
@@ -617,7 +754,28 @@ tbody tr.clickable{transition:background .12s;}
 
     <div class="search-hit" id="search-hit">
       <div><b id="search-hit-title">Hasil pencarian</b><br><span id="search-hit-sub"></span></div>
-      <button type="button" class="btn small ghost" style="background:#fff" onclick="clearGlobalSearch()">Bersihkan</button>
+      <div class="btn-row">
+        <button type="button" class="btn small brass" onclick="openSmartSearchFromBar()">Buka Smart Search</button>
+        <button type="button" class="btn small ghost" style="background:#fff" onclick="clearGlobalSearch()">Bersihkan</button>
+      </div>
+    </div>
+    <div class="search-results-panel" id="smart-search-panel">
+      <div class="sr-head">
+        <div>
+          <b>Smart Search</b>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;">Contoh hasil Party / Kontrak / isi dokumen (demo lokal)</div>
+        </div>
+        <div class="btn-row">
+          <div class="sr-scopes" id="sr-scopes">
+            <button type="button" class="sr-scope active" data-scope="all" onclick="setSearchScope('all',this)">Semua</button>
+            <button type="button" class="sr-scope" data-scope="parties" onclick="setSearchScope('parties',this)">Party</button>
+            <button type="button" class="sr-scope" data-scope="contracts" onclick="setSearchScope('contracts',this)">Kontrak</button>
+            <button type="button" class="sr-scope" data-scope="content" onclick="setSearchScope('content',this)">Isi Dokumen</button>
+          </div>
+          <button type="button" class="btn small ghost" style="background:#fff" onclick="clearGlobalSearch()">Tutup</button>
+        </div>
+      </div>
+      <div id="smart-search-results"></div>
     </div>
 
     <div class="readonly-banner" id="role-banner" style="margin:14px 28px 0;"></div>
@@ -645,13 +803,43 @@ tbody tr.clickable{transition:background .12s;}
         <div class="footer-note" id="dash-footer">Dashboard monitoring (tanpa CTA) · Odoo adapter DUMMY siap live · BRD FR-DASH-003</div>
       </div>
 
+      <!-- ============ SMART SEARCH ============ -->
+      <div class="view" id="view-search">
+        <div class="page-head">
+          <div>
+            <div class="crumb">Search</div>
+            <h1>Smart Search</h1>
+            <p style="margin:4px 0 0;font-size:12.5px;color:var(--muted);">Cari Party, kontrak, atau cuplikan isi dokumen (contoh lokal)</p>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="btn-row" style="flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+            <input id="page-search-q" placeholder="cth. Customer ABC, MSA, perpanjangan…" style="flex:1;min-width:200px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font:inherit;" onkeydown="if(event.key==='Enter'){event.preventDefault();runPageSmartSearch();}">
+            <button type="button" class="btn primary" onclick="runPageSmartSearch()">Cari</button>
+          </div>
+          <div class="sr-scopes" id="page-sr-scopes" style="margin-bottom:8px;">
+            <button type="button" class="sr-scope active" data-scope="all" onclick="setPageSearchScope('all',this)">Semua</button>
+            <button type="button" class="sr-scope" data-scope="parties" onclick="setPageSearchScope('parties',this)">Party</button>
+            <button type="button" class="sr-scope" data-scope="contracts" onclick="setPageSearchScope('contracts',this)">Kontrak</button>
+            <button type="button" class="sr-scope" data-scope="content" onclick="setPageSearchScope('content',this)">Isi Dokumen</button>
+          </div>
+          <div class="btn-row" style="flex-wrap:wrap;gap:6px;">
+            <button type="button" class="btn small ghost" style="background:#fff" onclick="fillPageSearch('Customer ABC')">Customer ABC</button>
+            <button type="button" class="btn small ghost" style="background:#fff" onclick="fillPageSearch('MSA')">MSA</button>
+            <button type="button" class="btn small ghost" style="background:#fff" onclick="fillPageSearch('perpanjangan otomatis')">perpanjangan otomatis</button>
+            <button type="button" class="btn small ghost" style="background:#fff" onclick="fillPageSearch('PTY-00006')">PTY-00006</button>
+          </div>
+        </div>
+        <div id="page-search-results" class="card" style="padding:0;overflow:hidden;"></div>
+      </div>
+
       <!-- ============ PARTIES LIST ============ -->
       <div class="view" id="view-parties">
         <div class="page-head">
           <div>
             <div class="crumb">Parties</div>
             <h1>Parties — Search &amp; View</h1>
-            <h1>Parties — Search &amp; View</h1>
+            <p style="margin:4px 0 0;font-size:12.5px;color:var(--muted);">Register party-centric · filter status / Odoo link / PIC · Add Party (Legal)</p>
           </div>
           <div class="btn-row">
             <button class="btn primary" id="btn-parties-add-party" onclick="openAddPartyModal()">+ Add New Party</button>
@@ -958,14 +1146,18 @@ tbody tr.clickable{transition:background .12s;}
     </div>
     <div class="modal-body">
       <div class="field-row">
-        <div class="field"><label>Legal Name</label><input id="ap-name" placeholder="PT Nama Perusahaan" oninput="refreshAddPartyOdooMatch()"></div>
+        <div class="field"><label>Legal Name</label><input id="ap-name" placeholder="PT Nama Perusahaan" oninput="refreshAddPartyChecks()"></div>
         <div class="field"><label>Party Type</label><select id="ap-type"><option>Customer</option><option>Vendor</option><option>Counterparty</option></select></div>
       </div>
       <div class="field-row">
+        <div class="field"><label>NPWP</label><input id="ap-npwp" placeholder="00.000.000.0-000.000" oninput="refreshAddPartyChecks()"></div>
         <div class="field"><label>PIC Legal</label><input id="ap-pic" placeholder="Nama PIC Legal"></div>
-        <div class="field"><label>Agreement Date</label><input id="ap-date" type="date" value="2026-07-21"></div>
       </div>
-      <div class="field"><label>Contact Person</label><input placeholder="Nama, email, telepon"></div>
+      <div class="field-row">
+        <div class="field"><label>Agreement Date</label><input id="ap-date" type="date" value="2026-07-21"></div>
+        <div class="field"><label>Contact</label><input id="ap-contact" placeholder="Nama, email, telepon"></div>
+      </div>
+      <div class="notice" id="ap-dup-notice" style="display:none;margin-bottom:12px;"></div>
       <div class="match-box">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
         <div id="ap-odoo-match"><b>Pengecekan Odoo Partner…</b><br>Menggunakan OdooClient (<span class="mono">dummy</span>).</div>
@@ -1431,7 +1623,7 @@ function showView(view){
   // Highlight parent nav: party-detail → Parties; secondary pages → matching item if present
   const highlight = (view === 'party-detail') ? 'parties' : view;
   navItems.forEach(b=>{
-    b.classList.toggle('active', b.dataset.view === highlight && ['dashboard','parties','renewal','so'].includes(highlight));
+    b.classList.toggle('active', b.dataset.view === highlight && ['dashboard','parties','search','renewal','so'].includes(highlight));
   });
 
   if(view==='parties') renderPartiesTable();
@@ -1440,6 +1632,7 @@ function showView(view){
   if(view==='notifications') renderNotificationsPage();
   if(view==='dashboard') renderDashboardForRole();
   if(view==='renewal') renderRenewal();
+  if(view==='search') renderPageSmartSearch();
   if(view==='so') renderSo();
   closeMobileSidebar();
   closeAllPop();
@@ -1459,19 +1652,41 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
   });
 });
 
-function openModal(id){ closeAllPop(); document.getElementById(id).classList.add('active'); }
+function openModal(id){
+  closeAllPop();
+  const el = document.getElementById(id);
+  if(!el){ console.warn('Modal missing:', id); showToast('Popup '+id+' belum ada.'); return; }
+  if(id==='modal-change-cp') refreshChangeCpNotice();
+  el.classList.add('active');
+}
 function closeModal(id){ document.getElementById(id).classList.remove('active'); }
 document.addEventListener('click', e=>{
   if(e.target.classList && e.target.classList.contains('modal-overlay')) e.target.classList.remove('active');
 });
 
-function closeAllPop(){ document.querySelectorAll('.popover').forEach(p=>p.classList.remove('active')); }
+function closeAllPop(){
+  document.querySelectorAll('.popover').forEach(p=>p.classList.remove('active'));
+  const panel = document.getElementById('pop-user');
+  if(panel) panel.classList.remove('active');
+  const trig = document.getElementById('profile-trigger');
+  if(trig) trig.setAttribute('aria-expanded','false');
+}
 function togglePop(id, evt){
   if(evt) evt.stopPropagation();
   const el = document.getElementById(id);
   const wasActive = el.classList.contains('active');
   closeAllPop();
   if(!wasActive) el.classList.add('active');
+}
+function toggleProfilePanel(evt){
+  if(evt) evt.stopPropagation();
+  const panel = document.getElementById('pop-user');
+  const was = panel.classList.contains('active');
+  closeAllPop();
+  if(!was){
+    panel.classList.add('active');
+    document.getElementById('profile-trigger').setAttribute('aria-expanded','true');
+  }
 }
 document.addEventListener('click', ()=>closeAllPop());
 
@@ -1510,10 +1725,9 @@ function openUserProfile(evt){
     '<div class="info-grid">'
     +'<div class="info-item"><label>Nama</label><div>'+CURRENT_USER.name+'</div></div>'
     +'<div class="info-item"><label>Role</label><div>'+r.label+'</div></div>'
-    +'<div class="info-item"><label>Email (demo)</label><div class="mono">'+CURRENT_USER.role+'@dci.co.id</div></div>'
     +'<div class="info-item"><label>Akses edit</label><div>'+(r.canEdit?'Ya (Legal)':'View-only')+'</div></div>'
     +'</div>'
-    +'<p style="font-size:12.5px;color:var(--muted);margin:14px 0 0;line-height:1.5">Profil dari sesi login mockup. Integrasi SSO/AD menyusul di implementasi live.</p>';
+    +'<p style="font-size:12.5px;color:var(--muted);margin:14px 0 0;line-height:1.5">Sesi mock login (sama seperti app mode mock) — pilih role tanpa email/password.</p>';
   openModal('modal-profile');
 }
 function openNotifPrefs(evt){
@@ -1585,27 +1799,24 @@ function onGlobalSearch(v){
   searchQuery = (v||'').trim().toLowerCase();
   partiesPage = 1;
   const hit = document.getElementById('search-hit');
+  const panel = document.getElementById('smart-search-panel');
   if(!searchQuery){
     hit.classList.remove('show');
+    panel.classList.remove('show');
     if(document.getElementById('view-parties').classList.contains('active')) renderPartiesTable();
     return;
   }
-  // Always apply search on Parties list (navigate there)
-  const partiesNav = document.querySelector('.nav-item[data-view=parties]');
-  if(partiesNav && !document.getElementById('view-parties').classList.contains('active')){
-    showView('parties');
-  } else {
-    renderPartiesTable();
-  }
   const n = filteredParties().length;
-  document.getElementById('search-hit-title').textContent = n ? (n+' party cocok') : 'Tidak ada hasil';
-  document.getElementById('search-hit-sub').textContent = 'Filter: "'+searchQuery+'" · Party / PIC / Agreement / tipe dokumen / status / Contract ID';
+  document.getElementById('search-hit-title').textContent = n ? (n+' party cocok di register') : 'Tidak ada party cocok';
+  document.getElementById('search-hit-sub').textContent = 'Filter: "'+searchQuery+'" · klik Smart Search untuk contoh hasil isi dokumen';
   hit.classList.add('show');
+  renderSmartSearchResults(searchQuery, window._searchScope || 'all');
+  panel.classList.add('show');
 }
 function onGlobalSearchKey(e){
   if(e.key==='Enter'){
     e.preventDefault();
-    onGlobalSearch(e.target.value);
+    openSmartSearchFromBar();
   }
   if(e.key==='Escape'){
     clearGlobalSearch();
@@ -1616,7 +1827,124 @@ function clearGlobalSearch(){
   if(input) input.value = '';
   searchQuery = '';
   document.getElementById('search-hit').classList.remove('show');
+  document.getElementById('smart-search-panel').classList.remove('show');
   if(document.getElementById('view-parties').classList.contains('active')) renderPartiesTable();
+}
+function openSmartSearchFromBar(){
+  const q = (document.getElementById('global-search').value || 'Customer ABC').trim();
+  document.getElementById('global-search').value = q;
+  showView('search');
+  document.getElementById('page-search-q').value = q;
+  window._pageSearchScope = window._searchScope || 'all';
+  runPageSmartSearch();
+}
+function setPageSearchScope(scope, btn){
+  window._pageSearchScope = scope;
+  document.querySelectorAll('#page-sr-scopes .sr-scope').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  runPageSmartSearch();
+}
+function fillPageSearch(q){
+  document.getElementById('page-search-q').value = q;
+  runPageSmartSearch();
+}
+function runPageSmartSearch(){
+  const q = (document.getElementById('page-search-q').value || '').trim();
+  searchQuery = q.toLowerCase();
+  renderPageSmartSearch();
+}
+function renderPageSmartSearch(){
+  const scope = window._pageSearchScope || 'all';
+  const q = (document.getElementById('page-search-q') && document.getElementById('page-search-q').value) || searchQuery || '';
+  // reuse renderer into page container
+  const box = document.getElementById('page-search-results');
+  if(!box) return;
+  const term = (q||'').toLowerCase();
+  const parties = state.parties.filter(p=>{
+    const blob = (p.name+' '+p.id+' '+p.pic+' '+p.agreementNo+' '+p.doc+' '+p.contractId+' '+p.statusText).toLowerCase();
+    return !term || blob.includes(term);
+  }).slice(0,8);
+  const contentHits = [
+    {party:'PTY-00001', title:'MSA Customer ABC', snip:'Klausul <mark>perpanjangan otomatis</mark> berlaku 12 bulan kecuali ada notice tertulis H-30.'},
+    {party:'PTY-00228', title:'Colocation Agreement', snip:'Pihak setuju menyediakan rack <mark>colocation</mark> dengan SLA 99.9% uptime.'},
+    {party:'PTY-00006', title:'Telecom MSA', snip:'Nilai kontrak dan periode terkunci; perubahan lewat Amendment / Change CP saja.'},
+  ].filter(h=>!term || h.title.toLowerCase().includes(term) || h.snip.toLowerCase().includes(term) || term.includes('perpanjangan') || term.includes('colo') || term.includes('msa'));
+
+  let html = '';
+  if(!term){
+    html = '<div style="padding:24px 18px;font-size:13px;color:var(--muted);">Masukkan kata kunci atau pilih contoh di atas.</div>';
+  } else {
+    if(scope==='all' || scope==='parties'){
+      parties.forEach(p=>{
+        html += '<button type="button" class="sr-row" onclick="openPartyDetail(\''+p.id+'\')">'
+          +'<div><b>'+p.name+'</b><div class="sr-meta">'+p.id+' · PIC '+p.pic+' · <span class="status-pill '+p.status+'">'+p.statusText+'</span></div></div>'
+          +'<span class="status-pill '+(p.odooLink==='linked'?'closed':'process')+'">'+odooLinkLabel(p.odooLink)+'</span></button>';
+      });
+    }
+    if(scope==='all' || scope==='contracts'){
+      parties.slice(0,4).forEach(p=>{
+        html += '<button type="button" class="sr-row" onclick="openPartyDetail(\''+p.id+'\')">'
+          +'<div><b>'+p.doc+'</b><div class="sr-meta">'+p.contractId+' · '+p.name+'</div></div>'
+          +'<span class="status-pill '+p.status+'">'+p.statusText+'</span></button>';
+      });
+    }
+    if(scope==='all' || scope==='content'){
+      contentHits.forEach(h=>{
+        html += '<button type="button" class="sr-row" onclick="openPartyDetail(\''+h.party+'\')">'
+          +'<div><b>'+h.title+'</b><div class="sr-meta">Isi dokumen · '+h.party+'</div><div class="sr-snippet">'+h.snip+'</div></div></button>';
+      });
+    }
+    if(!html) html = '<div style="padding:18px;font-size:12.5px;color:var(--muted);">Tidak ada hasil untuk "'+q+'".</div>';
+  }
+  box.innerHTML = html;
+}
+function setSearchScope(scope, btn){
+  window._searchScope = scope;
+  document.querySelectorAll('#sr-scopes .sr-scope').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderSmartSearchResults(searchQuery || 'msa', scope);
+}
+function renderSmartSearchResults(q, scope){
+  const box = document.getElementById('smart-search-results');
+  if(!box) return;
+  const term = (q||'').toLowerCase();
+  const parties = state.parties.filter(p=>{
+    const blob = (p.name+' '+p.id+' '+p.pic+' '+p.agreementNo+' '+p.doc+' '+p.contractId+' '+p.statusText).toLowerCase();
+    return !term || blob.includes(term);
+  }).slice(0,5);
+  const contentHits = [
+    {party:'PTY-00001', title:'MSA Customer ABC', snip:'Klausul <mark>perpanjangan otomatis</mark> berlaku 12 bulan kecuali ada notice tertulis H-30.'},
+    {party:'PTY-00228', title:'Colocation Agreement', snip:'Pihak setuju menyediakan rack <mark>colocation</mark> dengan SLA 99.9% uptime.'},
+    {party:'PTY-00006', title:'Telecom MSA', snip:'Nilai kontrak dan periode terkunci; perubahan lewat Amendment / Change CP saja.'},
+  ].filter(h=>!term || h.title.toLowerCase().includes(term) || h.snip.toLowerCase().includes(term) || term.includes('perpanjangan') || term.includes('colo') || term.includes('msa'));
+
+  let html = '';
+  if(scope==='all' || scope==='parties'){
+    parties.forEach(p=>{
+      html += '<button type="button" class="sr-row" onclick="openPartyDetail(\''+p.id+'\');clearGlobalSearch();">'
+        +'<div><b>'+p.name+'</b><div class="sr-meta">'+p.id+' · PIC '+p.pic+' · <span class="status-pill '+p.status+'">'+p.statusText+'</span></div></div>'
+        +'<span class="status-pill '+(p.odooLink==='linked'?'closed':'process')+'">'+odooLinkLabel(p.odooLink)+'</span></button>';
+    });
+  }
+  if(scope==='all' || scope==='contracts'){
+    parties.slice(0,3).forEach(p=>{
+      html += '<button type="button" class="sr-row" onclick="openPartyDetail(\''+p.id+'\');clearGlobalSearch();">'
+        +'<div><b>'+p.doc+'</b><div class="sr-meta">'+p.contractId+' · '+p.name+'</div></div>'
+        +'<span class="status-pill '+p.status+'">'+p.statusText+'</span></button>';
+    });
+  }
+  if(scope==='all' || scope==='content'){
+    contentHits.forEach(h=>{
+      html += '<button type="button" class="sr-row" onclick="openPartyDetail(\''+h.party+'\');clearGlobalSearch();">'
+        +'<div><b>'+h.title+'</b><div class="sr-meta">Isi dokumen · '+h.party+'</div><div class="sr-snippet">'+h.snip+'</div></div></button>';
+    });
+  }
+  if(!html){
+    html = '<div style="padding:18px 16px;font-size:12.5px;color:var(--muted);">Tidak ada hasil untuk "'+(q||'')+'". Coba: Customer ABC, MSA, perpanjangan, PTY-00006.</div>';
+  } else {
+    html += '<div style="padding:10px 16px;font-size:11px;color:var(--muted);border-top:1px solid var(--line);">Contoh query: Customer ABC · MSA · perpanjangan otomatis · PTY-00006</div>';
+  }
+  box.innerHTML = html;
 }
 
 function odooLinkLabel(code){
@@ -1718,7 +2046,8 @@ function renderPartyDetail(id){
   if(isEditor()){
     daEl.innerHTML = '<button class="btn brass small" onclick="openAddContractFor(state.currentPartyId)">+ Add Contract</button>'
       + '<button class="btn ghost small" style="background:#fff" onclick="openEditPartyFor(\''+p.id+'\')">Edit Party</button>'
-      + '<button class="btn ghost small" style="background:#fff" onclick="openModal(\'modal-link-odoo\')">'+((p.odooLink==='linked'||p.odooPartnerId)?'Kelola Link Odoo':'Link Odoo')+'</button>';
+      + '<button class="btn ghost small" style="background:#fff" onclick="openLinkOdooFor(\''+p.id+'\')">'+((p.odooLink==='linked'||p.odooPartnerId)?'Kelola Link Odoo':'Link Odoo')+'</button>'
+      + '<button class="btn ghost small" style="background:#fff" onclick="openDeactivatePartyFor(\''+p.id+'\')">Deactivate</button>';
   } else {
     daEl.innerHTML = '<span class="role-badge">View-only</span>';
   }
@@ -1745,6 +2074,7 @@ function renderPartyDetail(id){
   const canEdit = isEditor();
   let cHtml = canEdit ? ('<div class="btn-row" style="margin-bottom:16px;">'
     +'<button class="btn small brass" onclick="openAmendmentFor(\''+p.id+'\')">+ Create Amendment/Addendum</button>'
+    +'<button class="btn small ghost" style="background:#fff" onclick="openChangeCpFor(\''+p.id+'\')">Change Counterparty</button>'
     +'<button class="btn small ghost" style="background:#fff" onclick="openTerminationFor(\''+p.id+'\')">Early Termination</button>'
     +'</div>') : '';
   cHtml += '<div class="timeline-doc">';
@@ -1752,10 +2082,12 @@ function renderPartyDetail(id){
     +'<div class="doc-meta-row"><div><span>Agreement Date</span><b>'+p.date+'</b></div><div><span>Durasi</span><b>'+p.dur+'</b></div><div><span>Format</span><b>'+p.format+'</b></div><div><span>Status</span><b><span class="status-pill '+statusClass+'">'+p.statusText+'</span></b></div></div>'
     +(canEdit ? ('<div class="btn-row" style="margin-top:12px;"><button class="btn small ghost" style="background:#fff" onclick="openEditContractFor(\''+p.id+'\')">Edit Contract Details</button><button class="btn small ghost" style="background:#fff" onclick="openReviewStatusFor(\''+p.id+'\')">Update Review Status</button></div>') : '')
     +'</div>';
-  p.amendments.forEach(a=>{
+  p.amendments.forEach((a, ai)=>{
     cHtml += '<div class="doc-item"><div class="doc-top"><div class="doc-title">'+a.title+(a._new?' <span class="new-flag">Baru</span>':'')+'<small>Linked ke '+p.contractId+'</small></div><span class="doc-tag">Amendment</span></div>'
       +'<div class="doc-meta-row"><div><span>Effective Date</span><b>'+a.date+'</b></div><div><span>Status</span><b><span class="status-pill '+a.status+'">'+a.statusText+'</span></b></div>'+(a.value?('<div><span>Nilai Terdampak</span><b>'+a.value+'</b></div>'):'')+'</div>'
-      +(a.summary?('<div class="doc-summary">'+a.summary+'</div>'):'')+'</div>';
+      +(a.summary?('<div class="doc-summary">'+a.summary+'</div>'):'')
+      +(canEdit ? ('<div class="btn-row" style="margin-top:10px;"><button class="btn small ghost" style="background:#fff" onclick="openAmdReviewFor(\''+p.id+'\','+ai+')">Review Amendment Status</button></div>') : '')
+      +'</div>';
   });
   cHtml += '</div>';
   if(!canEdit){ cHtml = '<div class="readonly-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><div>Role Anda memiliki akses <b>view-only</b> pada kontrak. Hubungi Legal / Contract Admin untuk perubahan.</div></div>' + cHtml; }
@@ -1817,16 +2149,19 @@ function renderPartyDetail(id){
 
   // SO sync
   let soHtml = '<div class="card"><div class="card-head"><h3>Sales Order Synchronization</h3>'+(p.soRecords.length?'<span class="status-pill closed">Synchronized</span>':'<span class="status-pill process">Belum Sinkron</span>')+'</div>';
+  if(isEditor() || (CURRENT_USER && (CURRENT_USER.role==='finance'||CURRENT_USER.role==='it'))){
+    soHtml += '<div class="btn-row" style="margin-bottom:12px;"><button class="btn small brass" onclick="runSoSyncForParty(\''+p.id+'\')">Run Sync (party ini)</button></div>';
+  }
   if(p.soRecords.length===0){
-    soHtml += '<p style="font-size:12.8px;color:var(--muted);">Belum ada data SO tertaut untuk party ini.</p>';
+    soHtml += '<p style="font-size:12.8px;color:var(--muted);">Belum ada data SO tertaut untuk party ini. Setelah Fully Signed, prompt sync muncul (demo).</p>';
   } else {
-    soHtml += '<table><thead><tr><th>SO Number</th><th>Status Odoo</th><th>Periode</th><th>Terakhir Sinkron</th></tr></thead><tbody>';
-    p.soRecords.forEach(s=>{
-      soHtml += '<tr><td class="mono">'+s.so+'</td><td><span class="status-pill '+s.status+'">'+s.statusText+'</span></td><td>'+s.period+'</td><td>'+s.sync+'</td></tr>';
+    soHtml += '<table><thead><tr><th>SO Number</th><th>Status Odoo</th><th>Periode</th><th>Terakhir Sinkron</th><th></th></tr></thead><tbody>';
+    p.soRecords.forEach((s, si)=>{
+      soHtml += '<tr style="cursor:pointer" onclick="openSoDetailFor(\''+p.id+'\','+si+')"><td class="mono">'+s.so+'</td><td><span class="status-pill '+s.status+'">'+s.statusText+'</span></td><td>'+s.period+'</td><td>'+s.sync+'</td><td><button class="btn small ghost" style="background:#fff" onclick="event.stopPropagation();openSoDetailFor(\''+p.id+'\','+si+')">Detail</button></td></tr>';
     });
     soHtml += '</tbody></table>';
   }
-  soHtml += '<p style="font-size:11.5px;color:var(--muted);margin-top:10px;">Data SO bersifat ilustratif — nomor SO/Odoo Partner ID tidak tersedia pada spreadsheet sumber.</p></div>';
+  soHtml += '<p style="font-size:11.5px;color:var(--muted);margin-top:10px;">CMS consume-only — tidak create/amend/cancel SO di Odoo (BR-CMS-020).</p></div>';
   document.getElementById('t-so').innerHTML = soHtml;
 
   // Audit local
@@ -1884,6 +2219,11 @@ function openTerminationFor(partyId){
 function openUploadFor(partyId){
   document.getElementById('modal-upload').dataset.party = partyId;
   openModal('modal-upload');
+}
+function openChangeCpFor(partyId){
+  state.currentPartyId = partyId;
+  refreshChangeCpNotice();
+  openModal('modal-change-cp');
 }
 document.getElementById('modal-change-cp').addEventListener('transitionstart', ()=>{});
 function refreshChangeCpNotice(){
@@ -1948,15 +2288,35 @@ async function refreshAddPartyOdooMatch(){
     box.innerHTML = '<b>'+hits.length+' kandidat Odoo Partner (res.partner)</b><br>Contoh: <b>'+h.name+'</b> · VAT '+ (h.vat||'—') +' · ID <span class="mono">'+h.id+'</span>. Mode: <span class="mono">'+OdooClient.mode()+'</span>.';
   }
 }
+function refreshAddPartyChecks(){
+  const name = ((document.getElementById('ap-name')||{}).value||'').trim().toLowerCase();
+  const npwp = ((document.getElementById('ap-npwp')||{}).value||'').trim();
+  const notice = document.getElementById('ap-dup-notice');
+  const dups = state.parties.filter(p=>{
+    const sameName = name && p.name.toLowerCase()===name;
+    const sameNpwp = npwp && (p.npwp||'')===npwp;
+    return sameName || sameNpwp;
+  });
+  if(dups.length){
+    notice.style.display = 'flex';
+    notice.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+      +'<div><b>Duplikat terdeteksi</b> — mirip '+dups[0].name+' ('+dups[0].id+'). Simpan diblokir di app; di demo tetap bisa lanjut untuk ilustrasi.</div>';
+  } else {
+    notice.style.display = 'none';
+    notice.innerHTML = '';
+  }
+  refreshAddPartyOdooMatch();
+}
 function submitAddParty(){
   const name = document.getElementById('ap-name').value || 'Party Baru';
   const pic = document.getElementById('ap-pic').value || '—';
+  const npwp = (document.getElementById('ap-npwp')&&document.getElementById('ap-npwp').value) || '';
   const date = document.getElementById('ap-date').value;
   const dateFmt = date ? new Date(date).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : nowStamp();
   const nextNo = String(state.parties.length+1).padStart(3,'0');
   const newParty = {
     partyStatus:'Active', _deletable:true, reviewStatus:'draft',
-    no: nextNo, id:'PTY-'+String(9000+state.parties.length), name, pic, doc:'Master Services Agreement',
+    no: nextNo, id:'PTY-'+String(9000+state.parties.length), name, pic, npwp, doc:'Master Services Agreement',
     agreementNo:'—', date:dateFmt, dur:'—', format:'—', status:'draft', statusText:'Draft',
     value:'—', payment:'—', latePct:'—', earlyTerm:'—', autoRenewal:'—', odooLink:'pending',
     contractId:'CMS-NEW-'+nextNo, contracts:[], amendments:[], novations:[], terminations:[], supportingDocs:[], soRecords:[],
@@ -2080,13 +2440,7 @@ function submitUpload(){
   if(document.getElementById('view-party-detail').classList.contains('active')) renderPartyDetail(p.id);
 }
 
-// wire dynamic notice for Change CP modal open
-document.querySelector('button[onclick="openModal(\'modal-change-cp\')"]');
-const origOpenModal = openModal;
-openModal = function(id){
-  if(id==='modal-change-cp') refreshChangeCpNotice();
-  origOpenModal(id);
-};
+// Change CP notice is handled inside openModal()
 
 // =====================================================================
 // RENEWAL CALENDAR — real month grid + due markers
@@ -2543,20 +2897,20 @@ function renderNotifications(){
 // =====================================================================
 const ROLES = {
   legal: {
-    label:'Legal / Contract Admin', initials:'LG', chip:'legal',
-    nav:['dashboard','parties','renewal'],
-    views:['dashboard','parties','party-detail','renewal','so','audit','notifications'],
+    label:'Legal / Contract Admin', initials:'LG', chip:'legal', defaultName:'Legal Admin',
+    nav:['dashboard','parties','search','renewal'],
+    views:['dashboard','parties','party-detail','renewal','so','audit','notifications','search'],
     canEdit:true, canSync:true, canRequest:false,
     desc:'Akses penuh: create/edit contract, change counterparty, amendment, termination, party CRUD.',
     crumb:'Home · Legal Workspace',
     titlePrefix:'Workspace Legal',
-    notice:'<b>Legal / Contract Admin.</b> Alur utama: Dashboard → Parties → Renewal. SO Health &amp; Activity Log lewat menu profil / dashboard (bukan sidebar utama).',
+    notice:'<b>Legal / Contract Admin.</b> Alur utama: Dashboard → Parties → Smart Search → Renewal. SO Health &amp; Activity Log lewat menu profil.',
     showRenewalBtn:true, showSoBtn:true, showAuditBtn:true
   },
   business: {
-    label:'Business User / Requestor', initials:'BU', chip:'business',
-    nav:['dashboard','parties'],
-    views:['dashboard','parties','party-detail','notifications'],
+    label:'Business User / Requestor', initials:'BU', chip:'business', defaultName:'Business Requestor',
+    nav:['dashboard','parties','search'],
+    views:['dashboard','parties','party-detail','notifications','search'],
     canEdit:false, canSync:false, canRequest:true,
     desc:'Melihat kontrak &amp; party terkait, mengajukan permintaan ke Legal.',
     crumb:'Home · Business Requestor',
@@ -2565,9 +2919,9 @@ const ROLES = {
     showRenewalBtn:false, showSoBtn:false, showAuditBtn:false
   },
   finance: {
-    label:'Finance / Commercial User', initials:'FC', chip:'finance',
-    nav:['dashboard','parties','so'],
-    views:['dashboard','parties','party-detail','so','notifications'],
+    label:'Finance / Commercial', initials:'FC', chip:'finance', defaultName:'Finance Commercial',
+    nav:['dashboard','so','parties','search'],
+    views:['dashboard','parties','party-detail','so','notifications','search'],
     canEdit:false, canSync:false, canRequest:false,
     desc:'Referensi kontrak, party, dan SO untuk follow-up operasional/komersial.',
     crumb:'Home · Finance / Commercial',
@@ -2576,9 +2930,9 @@ const ROLES = {
     showRenewalBtn:false, showSoBtn:true, showAuditBtn:false
   },
   management: {
-    label:'Management / Directors', initials:'MD', chip:'management',
-    nav:['dashboard','parties','renewal'],
-    views:['dashboard','parties','party-detail','renewal','audit','notifications'],
+    label:'Management / Directors', initials:'MD', chip:'management', defaultName:'Management Director',
+    nav:['dashboard','renewal','parties','search'],
+    views:['dashboard','parties','party-detail','renewal','audit','notifications','search'],
     canEdit:false, canSync:false, canRequest:false,
     desc:'Monitoring &amp; pelaporan lintas kontrak, akses view-only (BRD §5).',
     crumb:'Home · Executive Monitor',
@@ -2587,9 +2941,9 @@ const ROLES = {
     showRenewalBtn:true, showSoBtn:false, showAuditBtn:true
   },
   it: {
-    label:'IT / Odoo Support', initials:'IT', chip:'it',
-    nav:['dashboard','parties','renewal','so'],
-    views:['dashboard','parties','party-detail','renewal','so','audit','notifications'],
+    label:'IT / Odoo Support', initials:'IT', chip:'it', defaultName:'IT Support',
+    nav:['dashboard','so','parties','renewal','search'],
+    views:['dashboard','parties','party-detail','renewal','so','audit','notifications','search'],
     canEdit:false, canSync:true, canRequest:false,
     desc:'Dukungan integrasi Odoo, Access Rights, dan technical support.',
     crumb:'Home · IT / Integration',
@@ -2607,27 +2961,26 @@ function renderRoleGrid(){
   const grid = document.getElementById('role-grid');
   grid.innerHTML = Object.keys(ROLES).map(key=>{
     const r = ROLES[key];
-    return '<div class="role-card" data-role="'+key+'" onclick="selectRole(\''+key+'\')"><b>'+r.label+'</b><span>'+r.desc+'</span></div>';
+    return '<button type="button" role="option" aria-selected="false" class="role-card role-card-'+key+'" data-role="'+key+'" onclick="selectRole(\''+key+'\')"><b>'+r.label+'</b></button>';
   }).join('');
   selectRole('legal');
 }
 let selectedRole = 'legal';
 function selectRole(key){
   selectedRole = key;
-  document.querySelectorAll('.role-card').forEach(c=>c.classList.toggle('selected', c.dataset.role===key));
+  document.querySelectorAll('.role-card').forEach(c=>{
+    const on = c.dataset.role===key;
+    c.classList.toggle('selected', on);
+    c.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
 }
 
 function doLogin(){
-  const email = document.getElementById('login-email').value.trim();
   const err = document.getElementById('login-error');
-  if(!email.includes('@')){
-    err.textContent = 'Email tidak valid. Gunakan format email perusahaan.';
-    err.classList.add('show');
-    return;
-  }
   err.classList.remove('show');
+  err.textContent = '';
   const roleInfo = ROLES[selectedRole];
-  CURRENT_USER = {role:selectedRole, name: email.split('@')[0].replace(/[.\-]/g,' ').replace(/\b\w/g, c=>c.toUpperCase())};
+  CURRENT_USER = {role:selectedRole, name: roleInfo.defaultName};
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app-shell').style.display = '';
   applyRoleUI();
@@ -2645,24 +2998,34 @@ function doLogout(){
 
 function applyRoleUI(){
   const r = ROLES[CURRENT_USER.role];
-  document.getElementById('topbar-avatar').textContent = r.initials;
+  const av = document.getElementById('topbar-avatar');
+  av.textContent = r.initials;
+  av.className = 'user-avatar user-avatar-'+CURRENT_USER.role;
   document.getElementById('topbar-username').textContent = CURRENT_USER.name;
-  document.getElementById('topbar-role').textContent = 'Role: '+r.label;
-  document.getElementById('sidebar-role-info').innerHTML = CURRENT_USER.name+'<br><span class="role-badge">'+r.label+'</span><br>DCI · Contract Management System v1.3';
+  document.getElementById('topbar-role').textContent = r.label;
+  document.getElementById('profile-panel-name').textContent = CURRENT_USER.name;
+  const badge = document.getElementById('profile-panel-badge');
+  badge.textContent = r.label;
+  badge.className = 'role-badge role-badge-'+CURRENT_USER.role;
 
   const navSet = r.nav || [];
+  const navEl = document.getElementById('sidebar-nav');
+  const byView = {};
+  navItems.forEach(btn=>{ byView[btn.dataset.view] = btn; });
+  navSet.forEach(v=>{
+    const btn = byView[v];
+    if(btn){ btn.classList.remove('hidden-role'); navEl.appendChild(btn); }
+  });
   navItems.forEach(btn=>{
-    const v = btn.dataset.view;
-    if(v && !navSet.includes(v)) btn.classList.add('hidden-role');
-    else btn.classList.remove('hidden-role');
+    if(!navSet.includes(btn.dataset.view)) btn.classList.add('hidden-role');
   });
 
-  document.querySelectorAll('#pop-user [data-menu]').forEach(el=>{
-    const key = el.dataset.menu;
-    const allowed = (r.views||[]).includes(key);
-    const alreadyInNav = (r.nav||[]).includes(key);
-    el.style.display = (allowed && !alreadyInNav) ? '' : 'none';
-  });
+  const navHtml = [];
+  if(navSet.includes('so')) navHtml.push('<button type="button" role="menuitem" onclick="showView(\'so\'); closeAllPop();">SO Health</button>');
+  if(navSet.includes('renewal')) navHtml.push('<button type="button" role="menuitem" onclick="showView(\'renewal\'); closeAllPop();">Renewal Calendar</button>');
+  if((r.views||[]).includes('audit')) navHtml.push('<button type="button" role="menuitem" onclick="showView(\'audit\'); closeAllPop();">Activity Log</button>');
+  if((r.views||[]).includes('notifications')) navHtml.push('<button type="button" role="menuitem" onclick="showView(\'notifications\'); closeAllPop();">Notifikasi</button>');
+  document.getElementById('profile-panel-nav').innerHTML = navHtml.join('');
 
   const banner = document.getElementById('role-banner');
   if(r.canEdit){
@@ -2746,10 +3109,8 @@ function renderDashboardForRole(){
   }
 
   if(role==='finance'){
-    kpis = kpiCard('SO Synchronized','184','71.9% master contracts','green')
-      + kpiCard('No Active SO','41','Perlu follow-up','amber')
-      + kpiCard('Payment Term 30h','117/124','Dari yang terisi','brass')
-      + kpiCard('SO Sync Error','22','Validasi/integrasi','red');
+    kpis = kpiCard('SO Synchronized','4','Party aktif + sale/done','green')
+      + kpiCard('Quotations','1','draft/sent · belum Active SO','amber');
     panels = '<div class="grid-2"><div class="card"><div class="card-head"><h3>Commercial snapshot</h3></div>'
       +'<div class="bar-row"><div class="bar-top"><span>Late Payment Penalty clause</span><span>217 / 256</span></div><div class="bar-track"><div class="bar-fill" style="width:84.8%;background:var(--green)"></div></div></div>'
       +'<div class="bar-row"><div class="bar-top"><span>Early Termination Fee clause</span><span>189 / 256</span></div><div class="bar-track"><div class="bar-fill" style="width:73.8%;background:var(--brass)"></div></div></div>'
@@ -2850,10 +3211,13 @@ function submitEditContract(){
 function openEditPartyFor(partyId){
   const p = getParty(partyId);
   document.getElementById('modal-edit-party').dataset.party = partyId;
-  document.getElementById('ep-contact').value = '';
-  document.getElementById('ep-contact-detail').value = '';
-  document.getElementById('ep-remarks').value = '';
-  document.getElementById('ep-locked-name').textContent = p.name+' · Odoo Link: '+odooLinkLabel(p.odooLink);
+  document.getElementById('ep-name').value = p.name || '';
+  document.getElementById('ep-npwp').value = p.npwp || '';
+  document.getElementById('ep-pic').value = p.pic || '';
+  document.getElementById('ep-address').value = p.address || '';
+  document.getElementById('ep-contact').value = p.contactEmail || '';
+  document.getElementById('ep-contact-detail').value = p.contactPhone || '';
+  document.getElementById('ep-remarks').value = p.remarks || '';
   openModal('modal-edit-party');
 }
 async function comparePartyWithOdoo(){
@@ -2866,15 +3230,22 @@ async function comparePartyWithOdoo(){
   }
   const h = hits[0];
   showToast('Odoo '+OdooClient.mode()+' partner #'+h.id+' — '+h.name+' / '+ (h.vat||'no VAT') +' (bandingkan dengan CMS).');
-  document.getElementById('ep-locked-name').textContent = p.name+' · Odoo #'+h.id+' ('+OdooClient.mode()+')';
 }
 function submitEditParty(){
   const partyId = document.getElementById('modal-edit-party').dataset.party;
   const p = getParty(partyId);
-  p.auditLocal.unshift({text:'Data Party diperbarui (contact person/remarks)', by:'Legal Admin', date:nowStamp()});
+  p.name = document.getElementById('ep-name').value || p.name;
+  p.npwp = document.getElementById('ep-npwp').value || '';
+  p.pic = document.getElementById('ep-pic').value || p.pic;
+  p.address = document.getElementById('ep-address').value || '';
+  p.contactEmail = document.getElementById('ep-contact').value || '';
+  p.contactPhone = document.getElementById('ep-contact-detail').value || '';
+  p.remarks = document.getElementById('ep-remarks').value || '';
+  p.auditLocal.unshift({text:'Data Party diperbarui (master fields)', by:'Legal Admin', date:nowStamp()});
   pushAudit({act:'Party data diperbarui — '+p.name, type:'edit', party:p.id, by:'Legal Admin', date:nowStamp()});
   showToast('Perubahan data Party tersimpan.');
   closeModal('modal-edit-party');
+  renderPartiesTable();
   if(document.getElementById('view-party-detail').classList.contains('active')) renderPartyDetail(p.id);
 }
 
@@ -3027,21 +3398,241 @@ function transitionReview(partyId, newStage){
 }
 function activateFromSigned(partyId){
   const p = getParty(partyId);
-  p.status = 'active'; p.statusText = 'Active';
+  p.status = 'fully_signed'; p.statusText = 'Fully Signed';
   p.reviewStatus = 'fully_signed';
-  if(!p.soRecords) p.soRecords = [];
-  if(!p.soRecords.length){
-    p.soRecords.push({so:'SO/DEMO/'+p.no, status:'synchronized', statusText:'Synchronized', period:'Aktif', sync:nowStamp()});
-  }
-  p.auditLocal.unshift({text:'Kontrak diaktifkan → Active setelah Fully Signed + SO sync (BRL-CMS-020)', by:'Legal Admin', date:nowStamp()});
-  pushAudit({act:'Contract status → Active — '+p.contractId, type:'sync', party:p.id, by:'Legal Admin', date:nowStamp()});
-  pushNotif({urgent:false, title:'SO synchronization completed (NOTIF-CMS-013)', sub:p.contractId+' → Active', party:p.id, date:nowStamp(), event:'SO sync completed'});
-  showToast('Kontrak sekarang Active.');
+  p.auditLocal.unshift({text:'Kontrak Fully Signed — prompt SO Sync ditampilkan', by:'Legal Admin', date:nowStamp()});
+  pushAudit({act:'Contract Fully Signed — '+p.contractId, type:'edit', party:p.id, by:'Legal Admin', date:nowStamp()});
   closeModal('modal-review-status');
+  openSoSyncPrompt(partyId);
   renderPartiesTable();
+  if(document.getElementById('view-party-detail').classList.contains('active')) renderPartyDetail(p.id);
+}
+
+// =====================================================================
+// LINK ODOO / AMD REVIEW / SO DETAIL / DEMO TOUR
+// =====================================================================
+function openLinkOdooFor(partyId){
+  const p = getParty(partyId);
+  document.getElementById('modal-link-odoo').dataset.party = partyId;
+  document.getElementById('lo-query').value = p.name;
+  document.getElementById('lo-reason').value = '';
+  document.getElementById('lo-compare').innerHTML = '';
+  document.getElementById('lo-selected').textContent = 'Belum dipilih';
+  searchLinkOdooCandidates();
+  openModal('modal-link-odoo');
+}
+async function searchLinkOdooCandidates(){
+  const q = (document.getElementById('lo-query').value||'').trim();
+  const box = document.getElementById('lo-candidates');
+  box.innerHTML = '<p style="font-size:12px;color:var(--muted)">Mencari…</p>';
+  const hits = await OdooClient.searchPartners(q?[['name','ilike',q]]:[], ['name','vat','ref','id','street','email'], 8);
+  if(!hits.length){
+    box.innerHTML = '<p style="font-size:12.5px;color:var(--muted)">Tidak ada kandidat. Ubah kata kunci.</p>';
+    return;
+  }
+  box.innerHTML = hits.map(h=>'<div class="odoo-candidate" data-id="'+h.id+'" onclick="selectLinkOdooCandidate('+h.id+')">'
+    +'<b>'+h.name+'</b><span>ID '+h.id+' · VAT '+(h.vat||'—')+' · '+(h.street||'—')+'</span></div>').join('');
+  window._loHits = hits;
+}
+function selectLinkOdooCandidate(id){
+  const hits = window._loHits || [];
+  const h = hits.find(x=>x.id===id);
+  if(!h) return;
+  window._loSelected = h;
+  document.querySelectorAll('#lo-candidates .odoo-candidate').forEach(el=>{
+    el.classList.toggle('selected', Number(el.dataset.id)===id);
+  });
+  document.getElementById('lo-selected').textContent = h.name+' (#'+h.id+')';
+  const p = getParty(document.getElementById('modal-link-odoo').dataset.party);
+  document.getElementById('lo-compare').innerHTML =
+    '<div class="compare-grid">'
+    +'<div class="cmp"><span>CMS Name</span><b>'+p.name+'</b></div>'
+    +'<div class="cmp"><span>Odoo Name</span><b>'+h.name+'</b></div>'
+    +'<div class="cmp"><span>CMS NPWP</span><b>'+(p.npwp||'—')+'</b></div>'
+    +'<div class="cmp"><span>Odoo VAT</span><b>'+(h.vat||'—')+'</b></div>'
+    +'</div>'
+    +'<p style="font-size:11.5px;color:var(--muted);margin-top:8px;">Preview status: <b>'+(p.name.toLowerCase()===h.name.toLowerCase()?'Linked':'Mismatch')+'</b> (INT-PTY).</p>';
+}
+function submitLinkOdoo(){
+  const partyId = document.getElementById('modal-link-odoo').dataset.party;
+  const p = getParty(partyId);
+  const h = window._loSelected;
+  if(!h){ showToast('Pilih Odoo Partner dulu.'); return; }
+  const reason = document.getElementById('lo-reason').value || 'Linked from demo';
+  p.odooPartnerId = h.id;
+  p.odooLink = p.name.toLowerCase()===h.name.toLowerCase() ? 'linked' : 'mismatch';
+  p.auditLocal.unshift({text:'Odoo Partner di-link → #'+h.id+' '+h.name+' ('+reason+')', by:'Legal Admin', date:nowStamp()});
+  pushAudit({act:'Odoo Partner link — '+p.id+' → #'+h.id, type:'link', party:p.id, by:'Legal Admin', date:nowStamp()});
+  showToast('Party tertaut ke Odoo Partner #'+h.id+' ('+odooLinkLabel(p.odooLink)+').');
+  closeModal('modal-link-odoo');
+  renderPartiesTable();
+  if(document.getElementById('view-party-detail').classList.contains('active')) renderPartyDetail(p.id);
+}
+
+function openAmdReviewFor(partyId, idx){
+  const p = getParty(partyId);
+  const a = p.amendments[idx];
+  if(!a) return;
+  document.getElementById('modal-amd-review').dataset.party = partyId;
+  document.getElementById('modal-amd-review').dataset.idx = String(idx);
+  document.getElementById('ar-title').textContent = a.title;
+  document.getElementById('ar-meta').textContent = 'Parent '+p.contractId+' · Effective '+a.date;
+  document.getElementById('ar-status').className = 'status-pill '+a.status;
+  document.getElementById('ar-status').textContent = a.statusText;
+  document.getElementById('ar-summary').textContent = a.summary || '—';
+  const st = a.status;
+  const actions = [];
+  if(st==='draft') actions.push(['submit_review','Submit Review','brass'], ['ready_for_sign','Ready for Signature','ghost']);
+  if(st==='under_review') actions.push(['ready_for_sign','Ready for Signature','brass'], ['back_to_draft','Back to Draft','ghost']);
+  if(st==='ready_for_sign' || st==='ready_sign') actions.push(['mark_fully_signed','Mark Fully Signed','brass'], ['back_to_draft','Back to Draft','ghost']);
+  if(st==='fully_signed') actions.push(['done','Sudah Fully Signed','ghost']);
+  if(st!=='fully_signed' && st!=='cancelled') actions.push(['cancel','Cancel Amendment','danger']);
+  document.getElementById('ar-actions').innerHTML = actions.map(x=>
+    '<button class="btn small '+x[2]+'" style="'+(x[2]==='ghost'||x[2]==='danger'?'background:#fff;':'')+'" onclick="runAmdReviewAction(\''+x[0]+'\')">'+x[1]+'</button>'
+  ).join('');
+  openModal('modal-amd-review');
+}
+function runAmdReviewAction(action){
+  const partyId = document.getElementById('modal-amd-review').dataset.party;
+  const idx = Number(document.getElementById('modal-amd-review').dataset.idx);
+  const p = getParty(partyId);
+  const a = p.amendments[idx];
+  if(!a || action==='done'){ closeModal('modal-amd-review'); return; }
+  const map = {
+    submit_review:['under_review','Under Review'],
+    ready_for_sign:['ready_sign','Ready for Signature'],
+    mark_fully_signed:['fully_signed','Fully Signed'],
+    back_to_draft:['draft','Draft'],
+    cancel:['cancelled','Cancelled']
+  };
+  const next = map[action];
+  if(!next) return;
+  if(action==='cancel' && !confirm('Batalkan amendment ini?')) return;
+  if(action==='mark_fully_signed' && !confirm('Tandai Fully Signed? Current Summary parent akan di-update (dokumen asli tetap).')) return;
+  a.status = next[0]; a.statusText = next[1];
+  if(action==='mark_fully_signed'){
+    p.auditLocal.unshift({text:'Amendment Fully Signed — '+a.title+' · Current Summary parent di-update', by:'Legal Admin', date:nowStamp()});
+    pushNotif({urgent:false, title:'Amendment/Addendum fully signed (NOTIF-CMS-009)', sub:a.title, party:p.id, date:nowStamp(), event:'Amendment fully signed'});
+  } else {
+    p.auditLocal.unshift({text:'Amendment status → '+next[1]+' — '+a.title, by:'Legal Admin', date:nowStamp()});
+  }
+  pushAudit({act:'Amendment '+a.title+' → '+next[1], type:'amend', party:p.id, by:'Legal Admin', date:nowStamp()});
+  showToast('Status amendment: '+next[1]);
+  openAmdReviewFor(partyId, idx);
   renderPartyDetail(p.id);
 }
 
+function openSoDetailFor(partyId, idx){
+  const p = getParty(partyId);
+  const s = (p.soRecords||[])[idx];
+  if(!s){ showToast('SO tidak ditemukan.'); return; }
+  document.getElementById('sd-body').innerHTML =
+    '<div class="info-grid">'
+    +'<div class="info-item"><span>SO Number</span><b class="mono">'+s.so+'</b></div>'
+    +'<div class="info-item"><span>Status</span><b><span class="status-pill '+s.status+'">'+s.statusText+'</span></b></div>'
+    +'<div class="info-item"><span>Periode</span><b>'+s.period+'</b></div>'
+    +'<div class="info-item"><span>Last Sync</span><b>'+s.sync+'</b></div>'
+    +'<div class="info-item"><span>Party</span><b>'+p.name+'</b></div>'
+    +'<div class="info-item"><span>Odoo Partner</span><b class="mono">'+(p.odooPartnerId||'—')+'</b></div>'
+    +'</div>'
+    +'<p style="font-size:12px;color:var(--muted);margin-top:14px;line-height:1.5;">Read-only dari Odoo (consume-only). CMS tidak mengubah SO master.</p>';
+  openModal('modal-so-detail');
+}
+function runSoSyncForParty(partyId){
+  const p = getParty(partyId);
+  if(!p.soRecords) p.soRecords = [];
+  if(!p.soRecords.length){
+    p.soRecords.push({so:'SO/DEMO/'+p.no, status:'synchronized', statusText:'Synchronized', period:'Aktif', sync:nowStamp()});
+  } else {
+    p.soRecords.forEach(s=>{ s.status='synchronized'; s.statusText='Synchronized'; s.sync=nowStamp(); });
+  }
+  if(p.status==='fully_signed' || p.reviewStatus==='fully_signed'){
+    p.status='active'; p.statusText='Active';
+  }
+  p.auditLocal.unshift({text:'SO Sync dijalankan untuk party ini', by:'Legal Admin', date:nowStamp()});
+  pushAudit({act:'SO Sync — '+p.id, type:'sync', party:p.id, by:'Legal Admin', date:nowStamp()});
+  pushNotif({urgent:false, title:'SO synchronization completed (NOTIF-CMS-013)', sub:p.id, party:p.id, date:nowStamp(), event:'SO sync completed'});
+  showToast('SO sync selesai untuk '+p.name);
+  closeModal('modal-so-sync-prompt');
+  renderPartyDetail(p.id);
+  renderSo();
+}
+function openSoSyncPrompt(partyId){
+  document.getElementById('modal-so-sync-prompt').dataset.party = partyId;
+  const p = getParty(partyId);
+  document.getElementById('ssp-text').innerHTML = 'Kontrak <b>'+p.contractId+'</b> Fully Signed. Jalankan SO Sync sekarang untuk cek Sales Order aktif di Odoo?';
+  openModal('modal-so-sync-prompt');
+}
+function confirmSoSyncPrompt(){
+  const partyId = document.getElementById('modal-so-sync-prompt').dataset.party;
+  runSoSyncForParty(partyId);
+}
+
+function toggleDemoPanel(){
+  document.getElementById('demo-panel').classList.toggle('open');
+}
+function demoGo(action){
+  document.getElementById('demo-panel').classList.remove('open');
+  const firstParty = state.parties[0] && state.parties[0].id;
+  switch(action){
+    case 'login': doLogout(); break;
+    case 'dash': showView('dashboard'); break;
+    case 'parties': showView('parties'); break;
+    case 'party': openPartyDetail(firstParty); break;
+    case 'renewal': showView('renewal'); break;
+    case 'so': showView('so'); break;
+    case 'audit': showView('audit'); break;
+    case 'notif': showView('notifications'); break;
+    case 'search': showView('search'); document.getElementById('page-search-q').value='Customer ABC'; runPageSmartSearch(); break;
+    case 'add-party': if(!isEditor()){ showToast('Login sebagai Legal untuk aksi ini.'); return; } openAddPartyModal(); break;
+    case 'add-contract': if(!isEditor()){ showToast('Login sebagai Legal.'); return; } openPartyDetail(firstParty); setTimeout(()=>openAddContractFor(firstParty),50); break;
+    case 'edit-contract': if(!isEditor()){ showToast('Login sebagai Legal.'); return; } openPartyDetail(firstParty); setTimeout(()=>openEditContractFor(firstParty),50); break;
+    case 'review': if(!isEditor()){ showToast('Login sebagai Legal.'); return; } openPartyDetail(firstParty); setTimeout(()=>openReviewStatusFor(firstParty),50); break;
+    case 'cp': if(!isEditor()){ showToast('Login sebagai Legal.'); return; } openPartyDetail(firstParty); setTimeout(()=>openChangeCpFor(firstParty),50); break;
+    case 'amd': if(!isEditor()){ showToast('Login sebagai Legal.'); return; } openPartyDetail(firstParty); setTimeout(()=>openAmendmentFor(firstParty),50); break;
+    case 'amd-review': {
+      if(!isEditor()){ showToast('Login sebagai Legal.'); return; }
+      openPartyDetail(firstParty);
+      setTimeout(()=>{
+        const p=getParty(firstParty);
+        if(!p.amendments.length){ p.amendments.unshift({title:'Amendment Demo', date:nowStamp(), status:'draft', statusText:'Draft', summary:'Contoh amendment untuk demo status.', _new:true}); }
+        openAmdReviewFor(firstParty, 0);
+      },50);
+      break;
+    }
+    case 'term': if(!isEditor()){ showToast('Login sebagai Legal.'); return; } openPartyDetail(firstParty); setTimeout(()=>openTerminationFor(firstParty),50); break;
+    case 'upload': if(!isEditor()){ showToast('Login sebagai Legal.'); return; } openPartyDetail(firstParty); setTimeout(()=>openUploadFor(firstParty),50); break;
+    case 'edit-party': if(!isEditor()){ showToast('Login sebagai Legal.'); return; } openPartyDetail(firstParty); setTimeout(()=>openEditPartyFor(firstParty),50); break;
+    case 'link-odoo': if(!isEditor()){ showToast('Login sebagai Legal.'); return; } openPartyDetail(firstParty); setTimeout(()=>openLinkOdooFor(firstParty),50); break;
+    case 'deactivate': if(!isEditor()){ showToast('Login sebagai Legal.'); return; } openPartyDetail(firstParty); setTimeout(()=>openDeactivatePartyFor(firstParty),50); break;
+    case 'so-detail': openPartyDetail(firstParty); setTimeout(()=>{ const p=getParty(firstParty); if(!p.soRecords.length) p.soRecords.push({so:'SO/DEMO/'+p.no,status:'synchronized',statusText:'Synchronized',period:'Aktif',sync:nowStamp()}); openSoDetailFor(firstParty,0); },50); break;
+    case 'so-prompt': openSoSyncPrompt(firstParty); break;
+    case 'profile': openUserProfile(); break;
+    case 'about': openModal('modal-about'); break;
+    case 'role-legal': selectRoleForDemo('legal'); break;
+    case 'role-business': selectRoleForDemo('business'); break;
+    case 'role-finance': selectRoleForDemo('finance'); break;
+    case 'role-management': selectRoleForDemo('management'); break;
+    case 'role-it': selectRoleForDemo('it'); break;
+    default: break;
+  }
+}
+function selectRoleForDemo(role){
+  selectRole(role);
+  if(document.getElementById('app-shell').style.display!=='none' && CURRENT_USER){
+    CURRENT_USER = { role, name: ROLES[role].defaultName };
+    applyRoleUI();
+    showView('dashboard');
+    showToast('Role diganti ke '+ROLES[role].label+' (demo).');
+  } else {
+    document.getElementById('login-screen').style.display = '';
+    document.getElementById('app-shell').style.display = 'none';
+    showToast('Role '+ROLES[role].label+' dipilih — klik Masuk.');
+  }
+}
+function applySessionChrome(){
+  applyRoleUI();
+}
 
 // =====================================================================
 // INIT
@@ -3111,22 +3702,28 @@ hydrateSoDemoFromOdoo().then(()=>{
 <div class="modal-overlay" id="modal-edit-party">
   <div class="modal">
     <div class="modal-head">
-      <div><h2>Edit Party</h2><p>BRD §6.13 / §8.13 — field sensitif memerlukan validasi/perbandingan Odoo.</p></div>
+      <div><h2>Edit Party</h2><p>BRD §6.13 / §8.13 — master fields + cek duplikat (demo).</p></div>
       <button class="modal-close" onclick="closeModal('modal-edit-party')">✕</button>
     </div>
     <div class="modal-body">
       <div class="field-row">
-        <div class="field"><label>Contact Person</label><input id="ep-contact" placeholder="Nama kontak"></div>
-        <div class="field"><label>Contact Details</label><input id="ep-contact-detail" placeholder="Email / telepon"></div>
+        <div class="field"><label>Legal Name</label><input id="ep-name" placeholder="Nama legal"></div>
+        <div class="field"><label>Party Type</label><select id="ep-type"><option>Customer</option><option>Vendor</option><option>Partner</option><option>Other</option></select></div>
       </div>
-      <div class="field"><label>Internal Classification / Remarks</label><textarea id="ep-remarks" placeholder="Catatan internal…"></textarea></div>
-      <div class="field locked-field">
-        <label>Legal Name, NPWP, Registered Address <span>(controlled data — BRL-CMS-004)</span></label>
-        <div class="info-item locked" style="padding:12px 14px;"><b id="ep-locked-name">—</b><div class="lock-tag">🔒 Perlu perbandingan/refresh data Odoo Partner untuk mengubah</div></div>
+      <div class="field-row">
+        <div class="field"><label>NPWP</label><input id="ep-npwp" placeholder="00.000.000.0-000.000"></div>
+        <div class="field"><label>PIC Legal</label><input id="ep-pic" placeholder="PIC"></div>
       </div>
+      <div class="field"><label>Alamat</label><input id="ep-address" placeholder="Alamat terdaftar"></div>
+      <div class="field-row">
+        <div class="field"><label>Contact Email</label><input id="ep-contact" placeholder="email@contoh.com"></div>
+        <div class="field"><label>Contact Phone</label><input id="ep-contact-detail" placeholder="+62…"></div>
+      </div>
+      <div class="field"><label>Internal Remarks</label><textarea id="ep-remarks" placeholder="Catatan internal…"></textarea></div>
       <div class="btn-row" style="margin-top:4px;">
-        <button class="btn small ghost" style="background:#fff" onclick="showToast('Perbandingan data CMS vs Odoo Partner ditampilkan (mockup).')">🔄 Refresh / Compare Odoo Data</button>
+        <button class="btn small ghost" style="background:#fff" onclick="comparePartyWithOdoo()">Refresh / Compare Odoo Data</button>
       </div>
+      <div id="ep-locked-name" style="display:none"></div>
     </div>
     <div class="modal-foot">
       <button class="btn ghost" style="background:#fff" onclick="closeModal('modal-edit-party')">Batal</button>
@@ -3267,5 +3864,139 @@ hydrateSoDemoFromOdoo().then(()=>{
   </div>
 </div>
 
+<!-- Link Odoo Partner -->
+<div class="modal-overlay" id="modal-link-odoo">
+  <div class="modal">
+    <div class="modal-head">
+      <div><h2>Link / Kelola Odoo Partner</h2><p>BRD §6.11 / INT-PTY — search, compare, link/relink (consume-only).</p></div>
+      <button class="modal-close" onclick="closeModal('modal-link-odoo')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Cari Partner Odoo</label>
+        <div class="btn-row" style="align-items:stretch;">
+          <input id="lo-query" placeholder="Nama partner…" style="flex:1">
+          <button class="btn ghost" style="background:#fff" onclick="searchLinkOdooCandidates()">Cari</button>
+        </div>
+      </div>
+      <div id="lo-candidates" style="margin-bottom:12px;"></div>
+      <div class="field"><label>Terpilih</label><div id="lo-selected" style="font-size:13px;">Belum dipilih</div></div>
+      <div id="lo-compare"></div>
+      <div class="field" style="margin-top:12px;"><label>Alasan link / relink</label><input id="lo-reason" placeholder="cth. Match nama + NPWP"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" style="background:#fff" onclick="closeModal('modal-link-odoo')">Batal</button>
+      <button class="btn primary" onclick="submitLinkOdoo()">Simpan Link</button>
+    </div>
+  </div>
+</div>
+
+<!-- Amendment Review -->
+<div class="modal-overlay" id="modal-amd-review">
+  <div class="modal">
+    <div class="modal-head">
+      <div><h2>Review Amendment Status</h2><p>Draft → Under Review → Ready → Fully Signed (tanpa e-sign envelope).</p></div>
+      <button class="modal-close" onclick="closeModal('modal-amd-review')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px;">
+        <div>
+          <b id="ar-title" style="font-family:var(--serif);font-size:16px;">—</b>
+          <div id="ar-meta" style="font-size:12px;color:var(--muted);margin-top:4px;">—</div>
+        </div>
+        <span class="status-pill draft" id="ar-status">Draft</span>
+      </div>
+      <div class="field"><label>Summary</label><div id="ar-summary" style="font-size:12.8px;line-height:1.5;color:var(--text);">—</div></div>
+      <div class="btn-row" id="ar-actions" style="margin-top:14px;flex-wrap:wrap;"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" style="background:#fff" onclick="closeModal('modal-amd-review')">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- SO Detail -->
+<div class="modal-overlay" id="modal-so-detail">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-head">
+      <div><h2>Sales Order Detail</h2><p>Mirror Odoo · read-only</p></div>
+      <button class="modal-close" onclick="closeModal('modal-so-detail')">✕</button>
+    </div>
+    <div class="modal-body" id="sd-body"></div>
+    <div class="modal-foot">
+      <button class="btn primary" onclick="closeModal('modal-so-detail')">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- SO Sync prompt after Fully Signed -->
+<div class="modal-overlay" id="modal-so-sync-prompt">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-head">
+      <div><h2>Jalankan SO Sync?</h2><p>Setelah Fully Signed — prompt sync (INT-SO-002).</p></div>
+      <button class="modal-close" onclick="closeModal('modal-so-sync-prompt')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p id="ssp-text" style="font-size:13px;line-height:1.55;margin:0;">Kontrak Fully Signed. Jalankan sync?</p>
+      <div class="notice" style="margin-top:14px;margin-bottom:0;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <div>CMS hanya membaca SO dari Odoo — tidak create/amend/cancel SO.</div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn ghost" style="background:#fff" onclick="closeModal('modal-so-sync-prompt')">Nanti</button>
+      <button class="btn primary" onclick="confirmSoSyncPrompt()">Run Sync Now</button>
+    </div>
+  </div>
+</div>
+
+<!-- Demo Fitur panel -->
+<button type="button" class="demo-fab" id="demo-fab" onclick="toggleDemoPanel()" title="Buka daftar fitur demo">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+  Demo Fitur
+</button>
+<div class="demo-panel" id="demo-panel">
+  <div class="demo-panel-head">
+    <div>
+      <h3>Demo Fitur CMS</h3>
+      <p>Klik item untuk buka halaman / popup. Login Legal dulu untuk aksi edit.</p>
+    </div>
+    <button type="button" class="demo-panel-close" onclick="toggleDemoPanel()">✕</button>
+  </div>
+  <div class="demo-sec">Ganti role</div>
+  <button type="button" class="demo-item" onclick="demoGo('role-legal')"><span class="di-ico">LG</span><div><b>Legal</b><span>Full edit</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('role-business')"><span class="di-ico">BU</span><div><b>Business</b><span>View-only + request</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('role-finance')"><span class="di-ico">FC</span><div><b>Finance</b><span>SO Health</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('role-management')"><span class="di-ico">MD</span><div><b>Management</b><span>Renewal + audit</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('role-it')"><span class="di-ico">IT</span><div><b>IT</b><span>Sync + integration</span></div></button>
+  <div class="demo-sec">Halaman</div>
+  <button type="button" class="demo-item" onclick="demoGo('login')"><span class="di-ico">1</span><div><b>Login</b><span>Pilih role lagi</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('dash')"><span class="di-ico">2</span><div><b>Dashboard</b><span>KPI per role</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('parties')"><span class="di-ico">3</span><div><b>Parties list</b><span>Filter + Add Party</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('party')"><span class="di-ico">4</span><div><b>Party Detail</b><span>Tabs lifecycle</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('search')"><span class="di-ico">5</span><div><b>Smart Search</b><span>Contoh hasil</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('renewal')"><span class="di-ico">6</span><div><b>Renewal Calendar</b><span>Agenda</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('so')"><span class="di-ico">7</span><div><b>SO Health</b><span>Run Sync</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('audit')"><span class="di-ico">8</span><div><b>Activity Log</b><span>Audit trail</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('notif')"><span class="di-ico">9</span><div><b>Notifikasi</b><span>In-app list</span></div></button>
+  <div class="demo-sec">Popup / aksi</div>
+  <button type="button" class="demo-item" onclick="demoGo('add-party')"><span class="di-ico">P</span><div><b>Add Party</b><span>+ cek duplikat NPWP</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('edit-party')"><span class="di-ico">P</span><div><b>Edit Party</b><span>Master fields</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('link-odoo')"><span class="di-ico">O</span><div><b>Link Odoo</b><span>Search + compare</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('deactivate')"><span class="di-ico">P</span><div><b>Deactivate Party</b><span>Soft deactivate</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('add-contract')"><span class="di-ico">C</span><div><b>Add Contract</b><span>Upload + extract</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('edit-contract')"><span class="di-ico">C</span><div><b>Edit Contract</b><span>Admin fields only</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('review')"><span class="di-ico">R</span><div><b>Review Status</b><span>Draft→FS + Revision</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('cp')"><span class="di-ico">N</span><div><b>Change Counterparty</b><span>Tanpa approval</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('amd')"><span class="di-ico">A</span><div><b>Create Amendment</b><span>Linked record</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('amd-review')"><span class="di-ico">A</span><div><b>Amendment Review</b><span>Ready / Fully Signed</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('term')"><span class="di-ico">T</span><div><b>Early Termination</b><span>Scheduled→Terminated</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('upload')"><span class="di-ico">U</span><div><b>Upload Supporting</b><span>+ Void</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('so-detail')"><span class="di-ico">S</span><div><b>SO Detail</b><span>Read-only mirror</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('so-prompt')"><span class="di-ico">S</span><div><b>SO Sync Prompt</b><span>Setelah Fully Signed</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('profile')"><span class="di-ico">i</span><div><b>Profil / About</b><span>Sesi + BRD summary</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('about')"><span class="di-ico">i</span><div><b>Tentang Sistem</b><span>In/Out of scope</span></div></button>
+</div>
+
 </body>
 </html>
+
