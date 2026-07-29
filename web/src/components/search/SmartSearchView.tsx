@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { runSearch } from '@/lib/search/api'
 import type { SearchScope } from '@/lib/search/server'
 import type { SmartSearchResult } from '@/lib/search/server'
@@ -48,47 +48,69 @@ export function SmartSearchView(_props: Props) {
   const [result, setResult] = useState<SmartSearchResult | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [lastQuery, setLastQuery] = useState('')
+  const reqIdRef = useRef(0)
+  const didInitialUrlSearch = useRef(false)
 
-  const execute = useCallback(async () => {
-    const term = q.trim()
+  async function execute(overrides?: {
+    q?: string
+    scope?: SearchScope
+    status?: string
+    docType?: string
+  }) {
+    const term = (overrides?.q ?? q).trim()
+    const nextScope = overrides?.scope ?? scope
+    const nextStatus = overrides?.status ?? status
+    const nextDocType = overrides?.docType ?? docType
+
     if (!term) {
       setResult(null)
+      setLastQuery('')
+      setError('')
+      router.replace('/search', { scroll: false })
       return
     }
+
+    const reqId = ++reqIdRef.current
     setBusy(true)
     setError('')
+
+    const params = new URLSearchParams()
+    params.set('q', term)
+    if (nextScope !== 'all') params.set('scope', nextScope)
+    if (nextStatus) params.set('status', nextStatus)
+    if (nextDocType.trim()) params.set('docType', nextDocType.trim())
+    router.replace(`/search?${params.toString()}`, { scroll: false })
+
     try {
-      setResult(
-        await runSearch({
-          q: term,
-          scope,
-          status: status || undefined,
-          docType: docType || undefined,
-          semantic: scope === 'content' || scope === 'all',
-        }),
-      )
+      const data = await runSearch({
+        q: term,
+        scope: nextScope,
+        status: nextStatus || undefined,
+        docType: nextDocType || undefined,
+        semantic: nextScope === 'content' || nextScope === 'all',
+      })
+      if (reqId !== reqIdRef.current) return
+      setResult(data)
+      setLastQuery(term)
     } catch (err) {
+      if (reqId !== reqIdRef.current) return
       setError(err instanceof Error ? err.message : 'Pencarian gagal')
       setResult(null)
+      setLastQuery('')
     } finally {
-      setBusy(false)
+      if (reqId === reqIdRef.current) setBusy(false)
     }
-  }, [q, scope, status, docType])
+  }
 
+  /** Deep-link /search?q=… — sekali saja saat mount, bukan tiap ketik. */
   useEffect(() => {
-    const params = new URLSearchParams()
-    if (q.trim()) params.set('q', q.trim())
-    if (scope !== 'all') params.set('scope', scope)
-    if (status) params.set('status', status)
-    if (docType.trim()) params.set('docType', docType.trim())
-    const qs = params.toString()
-    router.replace(qs ? `/search?${qs}` : '/search', { scroll: false })
-  }, [q, scope, status, docType, router])
-
-  useEffect(() => {
-    if (q.trim()) void execute()
-    else setResult(null)
-  }, [execute, q])
+    if (didInitialUrlSearch.current) return
+    didInitialUrlSearch.current = true
+    const initial = searchParams.get('q')?.trim()
+    if (initial) void execute()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only for URL bootstrap
+  }, [])
 
   function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -117,7 +139,7 @@ export function SmartSearchView(_props: Props) {
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Cari party, kontrak, atau isi dokumen…"
+            placeholder="Ketik kata kunci, lalu klik Cari…"
             aria-label="Kata kunci pencarian"
             autoFocus
           />
@@ -166,15 +188,19 @@ export function SmartSearchView(_props: Props) {
             </div>
           </div>
         )}
+
+        <p className="muted" style={{ margin: 0, fontSize: 12 }}>
+          Pencarian hanya dijalankan saat tombol <b>Cari</b> atau Enter — ubah filter lalu Cari lagi.
+        </p>
       </form>
 
       {error && <p className="error-text">{error}</p>}
 
-      {!q.trim() && !busy && !result && (
+      {!lastQuery && !busy && !result && (
         <div className="search-empty-state card stack">
           <h2>Cari di registry</h2>
           <div className="search-empty-examples">
-            <span className="muted">Contoh:</span>
+            <span className="muted">Contoh (isi kotak, lalu Cari):</span>
             {EXAMPLE_QUERIES.map((sample) => (
               <button
                 key={sample}
