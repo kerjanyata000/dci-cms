@@ -18,7 +18,7 @@ import type { AppRole } from '@/types/cms'
 function OdooModeChip({ mode }: { mode: string }) {
   const chip = mode === 'live' ? 'live' : 'dummy'
   return (
-    <span className={`odoo-mode-chip ${chip}`} title="Mode adapter Odoo">
+    <span className={`odoo-mode-chip ${chip}`} title="Mode koneksi Odoo">
       Odoo {chip}
     </span>
   )

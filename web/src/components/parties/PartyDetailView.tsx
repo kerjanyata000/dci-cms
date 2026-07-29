@@ -754,13 +754,13 @@ export function PartyDetailView({ partyId, role }: Props) {
           )}
           {contractDocs.length > 0 && (
             <>
-              <h3 style={{ marginTop: 16, fontSize: 14 }}>Contract documents (RAGFlow)</h3>
+              <h3 style={{ marginTop: 16, fontSize: 14 }}>Dokumen kontrak</h3>
               <table className="data-table">
                 <thead>
                   <tr>
                     <th>File</th>
                     <th>Status</th>
-                    <th>RAGFlow</th>
+                    <th>Indeks pencarian</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -819,7 +819,7 @@ export function PartyDetailView({ partyId, role }: Props) {
             <>
               <div className="row-actions">
                 <button type="button" className="btn ghost" disabled={soBusy} onClick={() => void loadSo()}>
-                  {soBusy ? 'Loading…' : 'Refresh dari Supabase'}
+                  {soBusy ? 'Loading…' : 'Muat ulang data'}
                 </button>
                 {canSync && (
                   <button

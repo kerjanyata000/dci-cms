@@ -36,10 +36,10 @@ async function ragflowFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const payload = (await response.json()) as RagflowEnvelope<T>
 
   if (!response.ok) {
-    throw new Error(payload.message ?? `RAGFlow HTTP ${response.status}`)
+    throw new Error(payload.message ?? `Layanan ekstraksi HTTP ${response.status}`)
   }
   if (payload.code != null && payload.code !== 0) {
-    throw new Error(payload.message ?? `RAGFlow error code ${payload.code}`)
+    throw new Error(payload.message ?? `Layanan ekstraksi error code ${payload.code}`)
   }
 
   return payload.data as T
@@ -51,10 +51,10 @@ async function ragflowHealthFetch(): Promise<Record<string, string>> {
   const payload = (await response.json()) as Record<string, string> & RagflowEnvelope<unknown>
 
   if (!response.ok) {
-    throw new Error(`RAGFlow health HTTP ${response.status}`)
+    throw new Error(`Layanan ekstraksi health HTTP ${response.status}`)
   }
   if (payload.code != null && payload.code !== 0) {
-    throw new Error(payload.message ?? `RAGFlow health error code ${payload.code}`)
+    throw new Error(payload.message ?? `Layanan ekstraksi health error code ${payload.code}`)
   }
 
   return payload
@@ -101,7 +101,7 @@ export async function uploadRagflowDocument(
   })
 
   const doc = data[0]
-  if (!doc?.id) throw new Error('RAGFlow upload returned no document id')
+  if (!doc?.id) throw new Error('Upload indeks tidak mengembalikan document id')
 
   return {
     datasetId: ds,
@@ -137,13 +137,13 @@ async function waitForDocumentParsed(datasetId: string, docId: string, timeoutMs
 
     if (run === 'DONE') return
     if (run === 'FAIL' || run === 'CANCEL') {
-      throw new Error(`RAGFlow parsing failed (${run ?? 'unknown'})`)
+      throw new Error(`Parsing dokumen gagal (${run ?? 'unknown'})`)
     }
 
     await new Promise((r) => setTimeout(r, 2500))
   }
 
-  throw new Error('RAGFlow parsing timed out')
+  throw new Error('Parsing dokumen timed out')
 }
 
 async function getDocumentChunkText(datasetId: string, docId: string, limit = 12) {

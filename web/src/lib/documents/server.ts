@@ -102,7 +102,7 @@ export async function extractAndPersistForContract(input: {
     ragflowDatasetId = pipeline.uploaded.datasetId
     docStatus = 'extracted'
   } catch (err) {
-    extractionError = err instanceof Error ? err.message : 'RAGFlow extraction failed'
+    extractionError = err instanceof Error ? err.message : 'Ekstraksi dokumen gagal'
     docStatus = 'failed'
   }
 

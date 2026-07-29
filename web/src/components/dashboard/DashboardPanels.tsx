@@ -188,9 +188,8 @@ export function IntegrationCard({
 }) {
   return (
     <p className="muted" style={{ margin: 0, lineHeight: 1.55 }}>
-      Partner/SO dari adapter <b>{odooMode.toUpperCase()}</b> · RAGFlow{' '}
-      <b>{ragflowMode.toUpperCase()}</b>. Run Sync di menu <Link href="/so">SO Health</Link> (BRD
-      §6.10).
+      Partner/SO dari Odoo (<b>{odooMode.toUpperCase()}</b>) · ekstraksi dokumen{' '}
+      <b>{ragflowMode.toUpperCase()}</b>. Run Sync di menu <Link href="/so">SO Health</Link>.
     </p>
   )
 }

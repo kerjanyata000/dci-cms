@@ -8,6 +8,6 @@ export async function GET() {
     const data = await ragflowHealthCheck()
     return jsonOk(data)
   } catch (err) {
-    return jsonError(err instanceof Error ? err.message : 'RAGFlow health check failed', 500)
+    return jsonError(err instanceof Error ? err.message : 'Pemeriksaan layanan ekstraksi gagal', 500)
   }
 }

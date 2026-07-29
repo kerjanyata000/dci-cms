@@ -81,7 +81,7 @@ export async function POST(request: Request) {
 
     if (AUTH_MODE === 'supabase' && body.accessToken) {
       user = await userFromAccessToken(body.accessToken)
-      if (!user) return jsonError('Invalid Supabase session', 401)
+      if (!user) return jsonError('Sesi tidak valid', 401)
     } else if (AUTH_MODE === 'mock' && body.user?.name && body.user?.role) {
       if (!isAppRole(body.user.role)) return jsonError('Invalid role', 400)
       user = { name: body.user.name, role: body.user.role }

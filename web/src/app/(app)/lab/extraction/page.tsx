@@ -24,7 +24,7 @@ export default function ExtractionLabPage() {
   const [file, setFile] = useState<File | null>(null)
   const [query, setQuery] = useState('perpanjangan otomatis')
   const [searchScope, setSearchScope] = useState<SearchScope>('cms')
-  const [log, setLog] = useState(`Siap uji RAGFlow (${RAGFLOW_MODE}).`)
+  const [log, setLog] = useState(`Siap uji ekstraksi dokumen (${RAGFLOW_MODE}).`)
   const [hits, setHits] = useState<RagflowSearchHit[]>([])
   const [extracted, setExtracted] = useState<ContractMetadata | null>(null)
   const [validationStatus, setValidationStatus] = useState<string | null>(null)
@@ -42,7 +42,7 @@ export default function ExtractionLabPage() {
       setExtracted(result.extracted)
       setValidationStatus(result.validationStatus)
       setLog(
-        `doc=${result.ragflowDocId} · validation=${result.validationStatus} · issues=${result.validationIssues.length}`,
+        `Dokumen terindeks · validasi=${result.validationStatus} · isu=${result.validationIssues.length}`,
       )
     } catch (err) {
       setLog(err instanceof Error ? err.message : 'Pipeline gagal')
@@ -68,17 +68,17 @@ export default function ExtractionLabPage() {
         setLog(
           cmsOnly
             ? 'Tidak ada hit dari kontrak CMS. Upload PDF lewat Add Contract (Party Detail) dulu, atau ganti scope ke "Seluruh dataset".'
-            : 'Tidak ada chunk relevan di dataset RAGFlow untuk query ini.',
+            : 'Tidak ada hasil relevan di indeks pencarian untuk query ini.',
         )
         return
       }
 
       if (!cmsOnly) {
         setLog(
-          `${result.length} hit dari seluruh dataset. Chunk BRD/requirements muncul jika dokumen BRD ikut terindeks di RAGFlow — bukan isi kontrak party.`,
+          `${result.length} hasil dari seluruh indeks. Dokumen non-kontrak (mis. BRD) bisa muncul jika ikut terindeks — bukan isi kontrak party.`,
         )
       } else {
-        setLog(`${result.length} hit dari dokumen kontrak CMS saja (filter document_ids).`)
+        setLog(`${result.length} hasil dari dokumen kontrak CMS saja.`)
       }
     } catch (err) {
       setLog(err instanceof Error ? err.message : 'Retrieve gagal')
@@ -160,7 +160,7 @@ export default function ExtractionLabPage() {
 
         <hr className="lab-divider" />
 
-        <h2 className="lab-section-title">RAGFlow retrieve</h2>
+        <h2 className="lab-section-title">Uji smart search</h2>
         <div className="field">
           <label htmlFor="q">Smart search query</label>
           <input id="q" value={query} onChange={(e) => setQuery(e.target.value)} />
@@ -179,12 +179,12 @@ export default function ExtractionLabPage() {
             className={`filter-chip clickable${searchScope === 'dataset' ? ' active' : ''}`}
             onClick={() => setSearchScope('dataset')}
           >
-            Seluruh dataset RAGFlow
+            Seluruh indeks pencarian
           </button>
         </div>
 
         <button className="btn ghost" type="button" disabled={busy || !query.trim()} onClick={runSearch}>
-          Retrieve (RAGFlow)
+          Cari di indeks
         </button>
 
         <p className="muted lab-log" aria-live="polite">

@@ -31,6 +31,6 @@ export async function POST(request: Request) {
     const result = await extractRagflowMetadata(body.docId, body.datasetId)
     return jsonOk({ result })
   } catch (err) {
-    return jsonError(err instanceof Error ? err.message : 'RAGFlow extract failed', 500)
+    return jsonError(err instanceof Error ? err.message : 'Ekstraksi dokumen gagal', 500)
   }
 }

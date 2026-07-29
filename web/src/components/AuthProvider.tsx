@@ -52,7 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data } = await withTimeout(
           supabase.auth.getSession(),
           SUPABASE_BOOT_MS,
-          'Supabase getSession',
+          'Auth getSession',
         )
         const session = data.session
         if (session?.user && !cancelled) {

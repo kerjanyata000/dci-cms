@@ -16,6 +16,6 @@ export async function POST(request: Request) {
     const result = await uploadRagflowDocument(file, file.name, datasetId || undefined)
     return jsonOk(result)
   } catch (err) {
-    return jsonError(err instanceof Error ? err.message : 'RAGFlow upload failed', 500)
+    return jsonError(err instanceof Error ? err.message : 'Upload dokumen indeks gagal', 500)
   }
 }

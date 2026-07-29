@@ -28,6 +28,6 @@ export async function POST(request: Request) {
     })
     return jsonOk({ hits })
   } catch (err) {
-    return jsonError(err instanceof Error ? err.message : 'RAGFlow retrieve failed', 500)
+    return jsonError(err instanceof Error ? err.message : 'Pencarian dokumen gagal', 500)
   }
 }

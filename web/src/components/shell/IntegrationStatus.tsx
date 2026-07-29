@@ -102,15 +102,15 @@ export function IntegrationStatus({ variant = 'sidebar', className }: Props) {
         }
       />
       <Badge
-        name="RAGFlow"
+        name="Ekstraksi"
         state={ragState}
         variant={variant}
         title={
           ragState === 'live'
-            ? 'RAGFlow terhubung'
+            ? 'Layanan ekstraksi dokumen terhubung'
             : ragState === 'dummy'
               ? 'Mode dummy — ekstraksi simulasi'
-              : 'RAGFlow tidak merespons'
+              : 'Layanan ekstraksi dokumen tidak merespons'
         }
       />
     </div>

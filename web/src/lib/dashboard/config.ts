@@ -150,7 +150,7 @@ export function buildKpisForRole(role: AppRole, data: DashboardPayload): KpiItem
   switch (role) {
     case 'legal':
       return [
-        { label: 'Total Party', value: String(s.totalParties), sub: 'Supabase register', tone: '' },
+        { label: 'Total Party', value: String(s.totalParties), sub: 'Register party', tone: '' },
         {
           label: 'Master Contracts',
           value: String(s.totalContracts),
@@ -284,9 +284,9 @@ export function buildKpisForRole(role: AppRole, data: DashboardPayload): KpiItem
           tone: 'red',
         },
         {
-          label: 'Adapter',
+          label: 'Koneksi Odoo',
           value: data.integration.odooMode.toUpperCase(),
-          sub: `RAGFlow ${data.integration.ragflowMode}`,
+          sub: `Ekstraksi ${data.integration.ragflowMode}`,
           tone: 'brass',
         },
       ]
