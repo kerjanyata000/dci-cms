@@ -2157,9 +2157,60 @@ a {
   align-items: start;
 }
 
+/* Dashboard: kolom sejajar + kartu per baris sama tinggi */
+.dashboard-page .grid-2,
+.dashboard-page .dashboard-panels {
+  grid-template-columns: 1fr 1fr;
+  align-items: stretch;
+}
+
+.dashboard-page .dashboard-panels {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.dashboard-page .grid-2 > .card,
+.dashboard-page .dashboard-panels > .card {
+  height: 100%;
+  margin-top: 0;
+  min-height: 0;
+}
+
+.dashboard-page .grid-2 > .card.stack,
+.dashboard-page .dashboard-panels > .card.stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-page .dashboard-panel-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-page .dashboard-panel-body.dashboard-panel-center {
+  justify-content: center;
+}
+
+.dashboard-page .dashboard-panel-body.dashboard-panel-scroll {
+  overflow: auto;
+  max-height: 280px;
+}
+
 @media (max-width: 900px) {
   .grid-2 {
     grid-template-columns: 1fr;
+  }
+
+  .dashboard-page .grid-2,
+  .dashboard-page .dashboard-panels {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-page .dashboard-panel-body.dashboard-panel-scroll {
+    max-height: none;
   }
 }
 
@@ -4388,11 +4439,16 @@ textarea {
   animation: rise-in 0.38s var(--ease-out) both;
 }
 
-.dashboard-page .grid-2 > .card {
+.dashboard-page .grid-2 > .card,
+.dashboard-page .dashboard-panels > .card {
   animation: rise-in var(--dur-slow) var(--ease-out) both;
 }
-.dashboard-page .grid-2 > .card:nth-child(1) { animation-delay: 120ms; }
-.dashboard-page .grid-2 > .card:nth-child(2) { animation-delay: 180ms; }
+.dashboard-page .grid-2 > .card:nth-child(1),
+.dashboard-page .dashboard-panels > .card:nth-child(1) { animation-delay: 120ms; }
+.dashboard-page .grid-2 > .card:nth-child(2),
+.dashboard-page .dashboard-panels > .card:nth-child(2) { animation-delay: 180ms; }
+.dashboard-page .dashboard-panels > .card:nth-child(3) { animation-delay: 240ms; }
+.dashboard-page .dashboard-panels > .card:nth-child(4) { animation-delay: 300ms; }
 
 @media (prefers-reduced-motion: reduce) {
   .login-brand-seal,
@@ -4407,7 +4463,8 @@ textarea {
   .search-content-hit,
   .search-form,
   .table-wrap,
-  .dashboard-page .grid-2 > .card {
+  .dashboard-page .grid-2 > .card,
+  .dashboard-page .dashboard-panels > .card {
     animation: none !important;
   }
 

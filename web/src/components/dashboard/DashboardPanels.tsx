@@ -205,39 +205,43 @@ export function DashboardRolePanels({
 }) {
   if (role === 'legal') {
     return (
-      <>
-        <div className="grid-2" style={{ marginTop: 0 }}>
-          <div className="card stack" style={{ marginTop: 0 }}>
-            <div className="card-head">
-              <h3>Antrian Legal (Pending Actions)</h3>
-            </div>
+      <div className="dashboard-panels">
+        <div className="card stack">
+          <div className="card-head">
+            <h3>Antrian Legal (Pending Actions)</h3>
+          </div>
+          <div className="dashboard-panel-body dashboard-panel-scroll">
             <PendingList items={pending} />
           </div>
-          <div className="card stack" style={{ marginTop: 0 }}>
-            <div className="card-head">
-              <h3>Contract Lifecycle</h3>
-            </div>
+        </div>
+        <div className="card stack">
+          <div className="card-head">
+            <h3>Contract Lifecycle</h3>
+          </div>
+          <div className="dashboard-panel-body dashboard-panel-center">
             <LifecycleDonut lifecycle={data.lifecycle} />
           </div>
         </div>
-        <div className="grid-2">
-          <div className="card stack" style={{ marginTop: 0 }}>
-            <div className="card-head">
-              <h3>PIC Workload</h3>
-            </div>
+        <div className="card stack">
+          <div className="card-head">
+            <h3>PIC Workload</h3>
+          </div>
+          <div className="dashboard-panel-body dashboard-panel-scroll">
             <PicWorkloadList rows={data.picWorkload} />
           </div>
-          <div className="card stack" style={{ marginTop: 0 }}>
-            <div className="card-head">
-              <h3>Renewal upcoming</h3>
-              <Link href="/renewal" className="link-tag">
-                Kalender →
-              </Link>
-            </div>
+        </div>
+        <div className="card stack">
+          <div className="card-head">
+            <h3>Renewal upcoming</h3>
+            <Link href="/renewal" className="link-tag">
+              Kalender →
+            </Link>
+          </div>
+          <div className="dashboard-panel-body dashboard-panel-scroll">
             <RenewalTimeline rows={data.renewalTimeline} />
           </div>
         </div>
-      </>
+      </div>
     )
   }
 
@@ -251,16 +255,20 @@ export function DashboardRolePanels({
               Kalender →
             </Link>
           </div>
-          <RenewalTimeline rows={data.renewalTimeline} />
+          <div className="dashboard-panel-body dashboard-panel-scroll">
+            <RenewalTimeline rows={data.renewalTimeline} />
+          </div>
         </div>
         <div className="card stack" style={{ marginTop: 0 }}>
           <div className="card-head">
             <h3>Portfolio composition</h3>
           </div>
-          <LifecycleDonut lifecycle={data.lifecycle} />
-          <p className="muted" style={{ marginTop: 14, marginBottom: 0 }}>
-            View-only — oversight via <Link href="/activity">Activity Log</Link>.
-          </p>
+          <div className="dashboard-panel-body dashboard-panel-center">
+            <LifecycleDonut lifecycle={data.lifecycle} />
+            <p className="muted" style={{ marginTop: 14, marginBottom: 0 }}>
+              View-only — oversight via <Link href="/activity">Activity Log</Link>.
+            </p>
+          </div>
         </div>
       </div>
     )
@@ -273,7 +281,9 @@ export function DashboardRolePanels({
           <div className="card-head">
             <h3>Commercial snapshot</h3>
           </div>
-          <CommercialBars bars={data.commercialBars} />
+          <div className="dashboard-panel-body dashboard-panel-center">
+            <CommercialBars bars={data.commercialBars} />
+          </div>
         </div>
         <div className="card stack" style={{ marginTop: 0 }}>
           <div className="card-head">
@@ -282,7 +292,9 @@ export function DashboardRolePanels({
               SO Monitor →
             </Link>
           </div>
-          <PendingList items={pending} />
+          <div className="dashboard-panel-body dashboard-panel-scroll">
+            <PendingList items={pending} />
+          </div>
         </div>
       </div>
     )
@@ -295,16 +307,20 @@ export function DashboardRolePanels({
           <div className="card-head">
             <h3>Integration exceptions</h3>
           </div>
-          <PendingList items={pending} />
+          <div className="dashboard-panel-body dashboard-panel-scroll">
+            <PendingList items={pending} />
+          </div>
         </div>
         <div className="card stack" style={{ marginTop: 0 }}>
           <div className="card-head">
             <h3>Integrasi</h3>
           </div>
-          <IntegrationCard
-            odooMode={data.integration.odooMode}
-            ragflowMode={data.integration.ragflowMode}
-          />
+          <div className="dashboard-panel-body dashboard-panel-center">
+            <IntegrationCard
+              odooMode={data.integration.odooMode}
+              ragflowMode={data.integration.ragflowMode}
+            />
+          </div>
         </div>
       </div>
     )
@@ -317,24 +333,28 @@ export function DashboardRolePanels({
         <div className="card-head">
           <h3>Status permintaan saya</h3>
         </div>
-        <PendingList
-          items={data.recentContracts.slice(0, 5).map((c) => ({
-            title: c.contract_code,
-            sub: `${c.party_code ?? 'Party'} · ${c.status_text}`,
-            href: `/parties/${c.party_id}`,
-            pill: c.status_text,
-            pillClass: c.status,
-          }))}
-        />
+        <div className="dashboard-panel-body dashboard-panel-scroll">
+          <PendingList
+            items={data.recentContracts.slice(0, 5).map((c) => ({
+              title: c.contract_code,
+              sub: `${c.party_code ?? 'Party'} · ${c.status_text}`,
+              href: `/parties/${c.party_id}`,
+              pill: c.status_text,
+              pillClass: c.status,
+            }))}
+          />
+        </div>
       </div>
       <div className="card stack" style={{ marginTop: 0 }}>
         <div className="card-head">
           <h3>Akses Requestor</h3>
         </div>
-        <p className="muted" style={{ margin: 0, lineHeight: 1.55 }}>
-          View-only pada lifecycle. Detail Party lewat menu <Link href="/parties">Parties</Link>.
-          Tidak ada CTA create di dashboard.
-        </p>
+        <div className="dashboard-panel-body dashboard-panel-center">
+          <p className="muted" style={{ margin: 0, lineHeight: 1.55 }}>
+            View-only pada lifecycle. Detail Party lewat menu <Link href="/parties">Parties</Link>.
+            Tidak ada CTA create di dashboard.
+          </p>
+        </div>
       </div>
     </div>
   )
