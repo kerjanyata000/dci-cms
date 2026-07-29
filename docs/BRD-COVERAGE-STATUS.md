@@ -25,7 +25,7 @@ Status implementasi vs `docs/BRD-Contract-Management-System-v1.3.md` (app Next.j
 | 11 | Parties Search and View | **Done** | `/parties` register + filter + Link Odoo + Party Detail |
 | 12 | Audit Trail and History | **Done** | `audit_logs` + Activity Log + tab Audit Party |
 | 13 | Notifications | **Partial** | In-app bell/list (renewal, SO, Odoo, audit); **email/Odoo activity belum** |
-| 14 | Parties - Add New Party | **Partial** | Create + kode party; cek duplikat / Odoo-at-create lemah |
+| 14 | Parties - Add New Party | **Done** | Create + kode party; cek duplikat nama/NPWP (live + server block); Odoo link setelah create |
 | 15 | Parties - Edit Party | **Done** | Edit NPWP/alamat/tipe/kontak + audit |
 | 16 | Parties - Delete / Deactivate | **Partial** | Deactivate/activate saja; **hard delete unused belum** |
 
@@ -79,7 +79,7 @@ Status implementasi vs `docs/BRD-Contract-Management-System-v1.3.md` (app Next.j
 | 6.9 Supporting | **Done** | Upload + void |
 | 6.10 SO Sync | **Partial** | Manual + prompt FS |
 | 6.11 Parties SV | **Done** | Primary inquiry |
-| 6.12 Add Party | **Partial** | Create; duplikat lemah |
+| 6.12 Add Party | **Done** | Create + block duplikat nama/NPWP |
 | 6.13 Edit Party | **Done** | EditPartyModal |
 | 6.14 Delete Party | **Partial** | Soft deactivate only |
 
@@ -159,7 +159,7 @@ Status implementasi vs `docs/BRD-Contract-Management-System-v1.3.md` (app Next.j
 | Domain | Status | Kenapa |
 | --- | --- | --- |
 | PTY-SV | **Done** | Inquiry + link/relink |
-| PTY-ADD | **Partial** | Create Done; duplicate check Missing |
+| PTY-ADD | **Done** | Create + duplicate check nama/NPWP (live UI + server) |
 | PTY-EDIT | **Done** | Master fields + audit |
 | PTY-DEL | **Partial** | Soft deactivate; hard delete Missing |
 
@@ -259,7 +259,8 @@ Delivery = **in-app**. Kode = cakupan event.
 | Could | E-sign provider adapter | INT-ESIGN, FR-CNT-RVW-007…011 |
 | Could | Email / Odoo activity delivery | INT-NOTIF, §13 |
 | Could | Batch SO + expiry cron | FR-CNT-SO-001, INT-SO-002 |
-| Should | Hard delete unused party + cek duplikat create | FR-PTY-ADD-004, FR-PTY-DEL |
+| Should | Hard delete unused party | FR-PTY-DEL |
+| Done | Cek duplikat Party saat create/edit | FR-PTY-ADD-004 |
 | Should | Auto Active saat SO ditemukan; update expiry dari SO | FR-CNT-SO-005/006 |
 | Nice | Version history dokumen; signing termination | FR-CNT-RVW-004, TERM-005 |
 
@@ -309,7 +310,6 @@ Ini **bisa dikerjakan sekarang** tanpa tunggu vendor; sengaja di belakang Must/S
 
 | Item | Kenapa belum | Estimasi sifat kerja |
 | --- | --- | --- |
-| Cek **duplikat** Party (nama/NPWP) saat create | Belum masuk sprint Must | Kecil — validasi + query |
 | **Hard delete** Party unused | Deactivate sudah cukup untuk BRL-030/031; delete jarang dipakai | Kecil–sedang + guard “masih dipakai?” |
 | Filter search lebih lengkap (NPWP, Odoo ID, SO) | Smart search & Parties filter dasar sudah ada | Sedang |
 | Doc **version history** | Satu dokumen per upload sudah jalan; versi formal belum | Sedang |
@@ -335,5 +335,5 @@ Ini **bisa dikerjakan sekarang** tanpa tunggu vendor; sengaja di belakang Must/S
 | **Out of scope** | Jangan dikerjakan kecuali BRD diubah |
 | **Missing + e-sign / email** | Tunggu **keputusan / prerequisite** (kategori B–C) |
 | **Partial + SO batch / auto Active** | Butuh **spek bisnis kecil** lalu baru code (C) |
-| **Partial + duplikat / hard delete / filter** | **Belum digarap** — bisa langsung (D) |
+| **Partial + hard delete / filter** | **Belum digarap** — bisa langsung (D) |
 | **Partial + review/AMD/term** | Fitur inti ada; kelengkapan BRD penuh ditunda sadar (E) |

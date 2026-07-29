@@ -790,6 +790,20 @@ export function PartyDetailView({ partyId, role }: Props) {
 
       {tab === 'so' && showSoTab && (
         <div className="tab-panel active card stack">
+          <div className="notice">
+            <div className="notice-body">
+              <b>Jejak Party → Odoo</b>
+              <p className="muted" style={{ margin: '0.35rem 0 0' }}>
+                Kontrak hidup di CMS di bawah party ini ({party.party_code}). Odoo tidak menyimpan
+                kontrak CMS — yang di-link adalah <em>Partner</em> (
+                {party.odoo_partner_id != null
+                  ? `res.partner #${party.odoo_partner_id}`
+                  : 'belum di-link'}
+                ). Sales Order Odoo dengan partner yang sama di-sync ke tab ini, jadi SO &amp;
+                kontrak saling terkait lewat Party yang sama.
+              </p>
+            </div>
+          </div>
           {soHealth.noActiveSo && (
             <div className="notice">
               <div>

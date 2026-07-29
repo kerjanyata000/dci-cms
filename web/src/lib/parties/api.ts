@@ -82,6 +82,29 @@ export async function fetchPartyDetail(id: string): Promise<PartyDetailPayload> 
   return parseJson<PartyDetailPayload>(await cmsFetch(`/api/parties/${id}`))
 }
 
+export type PartyDuplicateMatch = {
+  party: Pick<Party, 'id' | 'party_code' | 'name' | 'npwp' | 'party_status'>
+  match: 'name' | 'npwp' | 'both'
+}
+
+/** FR-PTY-ADD-004 — cek duplikat nama/NPWP sebelum simpan. */
+export async function checkPartyDuplicates(input: {
+  name?: string
+  npwp?: string
+  excludeId?: string
+}): Promise<PartyDuplicateMatch[]> {
+  const search = new URLSearchParams()
+  if (input.name?.trim()) search.set('name', input.name.trim())
+  if (input.npwp?.trim()) search.set('npwp', input.npwp.trim())
+  if (input.excludeId) search.set('excludeId', input.excludeId)
+  const qs = search.toString()
+  if (!qs) return []
+  const data = await parseJson<{ duplicates: PartyDuplicateMatch[] }>(
+    await cmsFetch(`/api/parties/duplicates?${qs}`),
+  )
+  return data.duplicates
+}
+
 export async function createParty(input: {
   name: string
   pic?: string

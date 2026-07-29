@@ -1,7 +1,8 @@
 import 'server-only'
 
 import { getSupabaseAdmin } from '@/lib/supabase/server'
-import { mapPartyRow, normalizePartyName, type PartyRow } from '@/lib/parties/types'
+import { mapPartyRow, normalizePartyNameKey, type PartyRow } from '@/lib/parties/types'
+import type { Party } from '@/types/cms'
 
 export type UpdatePartyInput = {
   name?: string
@@ -18,33 +19,76 @@ function normalizeNpwp(value: string | null | undefined): string {
   return (value ?? '').replace(/\D/g, '')
 }
 
+export type PartyDuplicateMatch = {
+  party: Pick<Party, 'id' | 'party_code' | 'name' | 'npwp' | 'party_status'>
+  match: 'name' | 'npwp' | 'both'
+}
+
+/** FR-PTY-ADD-004 — cari party yang bentrok nama (normalized) atau NPWP. */
+export async function findDuplicateParties(input: {
+  name: string
+  npwp?: string | null
+  excludeId?: string
+}): Promise<PartyDuplicateMatch[]> {
+  const db = getSupabaseAdmin()
+  const nameKey = normalizePartyNameKey(input.name)
+  if (!nameKey && !normalizeNpwp(input.npwp)) return []
+
+  const { data: rows, error } = await db
+    .from('parties')
+    .select('id, name, npwp, party_code, party_status')
+  if (error) throw new Error(error.message)
+
+  const npwpKey = normalizeNpwp(input.npwp)
+  const matches: PartyDuplicateMatch[] = []
+
+  for (const row of rows ?? []) {
+    if (input.excludeId && row.id === input.excludeId) continue
+    const nameHit =
+      Boolean(nameKey) && normalizePartyNameKey(String(row.name ?? '')) === nameKey
+    const npwpHit =
+      Boolean(npwpKey) && normalizeNpwp(row.npwp as string | null) === npwpKey
+    if (!nameHit && !npwpHit) continue
+    matches.push({
+      party: {
+        id: row.id as string,
+        party_code: row.party_code as string,
+        name: row.name as string,
+        npwp: (row.npwp as string | null) ?? null,
+        party_status: String(row.party_status ?? 'Active'),
+      },
+      match: nameHit && npwpHit ? 'both' : nameHit ? 'name' : 'npwp',
+    })
+  }
+
+  return matches
+}
+
 /** FR-PTY-ADD-004 / EDIT — block duplicate name (normalized) or NPWP. */
 export async function assertNoDuplicateParty(input: {
   name: string
   npwp?: string | null
   excludeId?: string
 }) {
-  const db = getSupabaseAdmin()
-  const nameKey = normalizePartyName(input.name)
+  const nameKey = normalizePartyNameKey(input.name)
   if (!nameKey) throw new Error('Nama party wajib diisi')
 
-  const { data: rows, error } = await db.from('parties').select('id, name, npwp, party_code')
-  if (error) throw new Error(error.message)
+  const matches = await findDuplicateParties(input)
+  if (matches.length === 0) return
 
-  const npwpKey = normalizeNpwp(input.npwp)
-  for (const row of rows ?? []) {
-    if (input.excludeId && row.id === input.excludeId) continue
-    if (normalizePartyName(String(row.name ?? '')) === nameKey) {
-      throw new Error(
-        `Party dengan nama serupa sudah ada (${row.party_code}). Periksa duplikat atau gunakan party yang ada.`,
-      )
-    }
-    if (npwpKey && normalizeNpwp(row.npwp as string | null) === npwpKey) {
-      throw new Error(
-        `NPWP sudah terpakai pada ${row.party_code}. Tidak boleh duplikat.`,
-      )
-    }
+  const first = matches[0]
+  const code = first.party.party_code
+  if (first.match === 'npwp') {
+    throw new Error(`NPWP sudah terpakai pada ${code}. Tidak boleh duplikat.`)
   }
+  if (first.match === 'both') {
+    throw new Error(
+      `Party duplikat: nama & NPWP sudah ada (${code}). Gunakan party yang ada.`,
+    )
+  }
+  throw new Error(
+    `Party dengan nama serupa sudah ada (${code}). Periksa duplikat atau gunakan party yang ada.`,
+  )
 }
 
 export type PartyUsage = {

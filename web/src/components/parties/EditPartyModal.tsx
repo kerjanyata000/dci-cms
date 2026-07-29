@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { ModalCloseButton } from '@/components/ui/icons'
-import { updateParty, setPartyActive, deleteParty } from '@/lib/parties/api'
+import {
+  checkPartyDuplicates,
+  updateParty,
+  setPartyActive,
+  deleteParty,
+  type PartyDuplicateMatch,
+} from '@/lib/parties/api'
 import type { Party } from '@/types/cms'
 
 type Props = {
@@ -33,6 +39,8 @@ export function EditPartyModal({
   const [phone, setPhone] = useState(party.contact_phone ?? '')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [duplicates, setDuplicates] = useState<PartyDuplicateMatch[]>([])
+  const [checkingDup, setCheckingDup] = useState(false)
 
   useEffect(() => {
     if (!open) return
@@ -44,13 +52,47 @@ export function EditPartyModal({
     setEmail(party.contact_email ?? '')
     setPhone(party.contact_phone ?? '')
     setError('')
+    setDuplicates([])
   }, [open, party])
+
+  useEffect(() => {
+    if (!open) return
+    const nameTrim = name.trim()
+    const npwpTrim = npwp.trim()
+    if (!nameTrim && !npwpTrim) {
+      setDuplicates([])
+      return
+    }
+
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        setCheckingDup(true)
+        try {
+          setDuplicates(
+            await checkPartyDuplicates({
+              name: nameTrim,
+              npwp: npwpTrim,
+              excludeId: party.id,
+            }),
+          )
+        } catch {
+          setDuplicates([])
+        } finally {
+          setCheckingDup(false)
+        }
+      })()
+    }, 350)
+
+    return () => window.clearTimeout(timer)
+  }, [open, name, npwp, party.id])
 
   if (!open) return null
 
+  const hasDuplicate = duplicates.length > 0
+
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!name.trim()) return
+    if (!name.trim() || hasDuplicate) return
     setBusy(true)
     setError('')
     try {
@@ -180,6 +222,21 @@ export function EditPartyModal({
           />
         </div>
 
+        {checkingDup && <p className="muted">Memeriksa duplikat…</p>}
+        {hasDuplicate && (
+          <div className="notice notice-warn" role="alert">
+            <div className="notice-body">
+              <b>Duplikat dengan party lain</b>
+              <p className="muted" style={{ margin: '0.35rem 0 0' }}>
+                {duplicates
+                  .slice(0, 3)
+                  .map((d) => `${d.party.party_code} (${d.party.name})`)
+                  .join(', ')}
+              </p>
+            </div>
+          </div>
+        )}
+
         {error && <p className="error-text">{error}</p>}
 
         <div className="modal-foot" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
@@ -197,7 +254,11 @@ export function EditPartyModal({
             <button type="button" className="btn ghost" onClick={onClose}>
               Batal
             </button>
-            <button type="submit" className="btn primary" disabled={busy || !name.trim()}>
+            <button
+              type="submit"
+              className="btn primary"
+              disabled={busy || !name.trim() || hasDuplicate || checkingDup}
+            >
               {busy ? 'Menyimpan…' : 'Simpan'}
             </button>
           </div>

@@ -38,6 +38,18 @@ export function normalizePartyName(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, ' ')
 }
 
+/**
+ * FR-PTY-ADD-004 — kunci banding duplikat:
+ * hilangkan tanda baca, bentuk badan usaha umum (PT/CV/TBK/…), spasi berlebih.
+ */
+export function normalizePartyNameKey(value: string): string {
+  let s = normalizePartyName(value)
+  s = s.replace(/[.,/#!$%^&*;:{}=\-_`~()'"[\]]+/g, ' ')
+  s = s.replace(/\b(perseroan\s+terbatas|persero)\b/g, ' ')
+  s = s.replace(/\b(pt|cv|ud|pd|tbk|ltd|inc|co|corp|corporation|company)\b\.?/g, ' ')
+  return s.replace(/\s+/g, ' ').trim()
+}
+
 /** BRD §9.5 — heuristic compare CMS party name vs Odoo partner name */
 export function evaluateOdooLinkStatus(
   partyName: string,
