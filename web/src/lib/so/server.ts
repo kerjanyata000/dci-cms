@@ -1,6 +1,7 @@
 import 'server-only'
 
-import { searchOdooOrders, searchOdooPartners } from '@/lib/odoo/server'
+import { readOdooSaleOrderDetail, searchOdooOrders, searchOdooPartners } from '@/lib/odoo/server'
+import type { OdooSaleOrderLine } from '@/lib/odoo/types'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 import { PARTY_ON_SALE_ORDER } from '@/lib/supabase/embeds'
 
@@ -16,6 +17,41 @@ export type SoSyncResult = {
   syncedAt: string
   errors: SoSyncError[]
   failedParties: number
+}
+
+export type SaleOrderDetailPayload = {
+  id: string
+  odooOrderId: number
+  name: string
+  state: string
+  documentLabel: 'Quotation' | 'Sales Order'
+  dateOrder: string | null
+  commitmentDate: string | null
+  paymentTerm: string | null
+  clientOrderRef: string | null
+  currency: string
+  amountUntaxed: number | null
+  amountTax: number | null
+  amountTotal: number | null
+  syncedAt: string
+  source: 'odoo' | 'mirror'
+  customer: {
+    name: string
+    addressLines: string[]
+    vat: string | null
+    email: string | null
+  }
+  party: { id: string; party_code: string; name: string } | null
+  lines: Array<{
+    id: string | number
+    product: string
+    description: string
+    qty: number
+    qtyDelivered: number
+    qtyInvoiced: number
+    unitPrice: number
+    subtotal: number
+  }>
 }
 
 async function logSyncError(
@@ -233,6 +269,152 @@ export async function loadSoHealthSummary(): Promise<SoHealthSummary> {
     inProgress,
     quotations,
     syncErrors: (errorsRes.data ?? []).length,
+  }
+}
+
+function many2oneName(value: unknown): string | null {
+  if (Array.isArray(value) && typeof value[1] === 'string') return value[1]
+  return null
+}
+
+function falseToNull(value: unknown): string | null {
+  if (value === false || value == null) return null
+  return String(value)
+}
+
+function documentLabel(state: string): 'Quotation' | 'Sales Order' {
+  if (state === 'draft' || state === 'sent' || state === 'cancel') return 'Quotation'
+  return 'Sales Order'
+}
+
+function mapLines(lines: OdooSaleOrderLine[]) {
+  return lines.map((line) => ({
+    id: line.id,
+    product: many2oneName(line.product_id) ?? '—',
+    description: line.name,
+    qty: Number(line.product_uom_qty ?? 0),
+    qtyDelivered: Number(line.qty_delivered ?? 0),
+    qtyInvoiced: Number(line.qty_invoiced ?? 0),
+    unitPrice: Number(line.price_unit ?? 0),
+    subtotal: Number(line.price_subtotal ?? line.price_total ?? 0),
+  }))
+}
+
+function syntheticLine(name: string, amount: number | null) {
+  const total = amount ?? 0
+  return [
+    {
+      id: 'mirror-1',
+      product: 'Produk / layanan',
+      description: name,
+      qty: 1,
+      qtyDelivered: 0,
+      qtyInvoiced: 0,
+      unitPrice: total,
+      subtotal: total,
+    },
+  ]
+}
+
+/** FR-CNT-SO view detail — consume-only, mirip form Quotation/SO Odoo. */
+export async function getSaleOrderDetail(cmsOrderId: string): Promise<SaleOrderDetailPayload> {
+  const db = getSupabaseAdmin()
+  const { data: row, error } = await db
+    .from('sale_orders')
+    .select(`*, ${PARTY_ON_SALE_ORDER}(id, party_code, name, npwp, address, contact_email)`)
+    .eq('id', cmsOrderId)
+    .single()
+
+  if (error || !row) throw new Error('SO tidak ditemukan di mirror CMS')
+
+  const partyEmbed = row.parties as
+    | {
+        id: string
+        party_code: string
+        name: string
+        npwp?: string | null
+        address?: string | null
+        contact_email?: string | null
+      }
+    | null
+    | undefined
+
+  const party =
+    partyEmbed != null
+      ? { id: partyEmbed.id, party_code: partyEmbed.party_code, name: partyEmbed.name }
+      : null
+
+  try {
+    const live = await readOdooSaleOrderDetail(row.odoo_order_id as number)
+    const partnerName =
+      live.partner?.name ??
+      many2oneName(live.order.partner_id) ??
+      partyEmbed?.name ??
+      'Customer'
+    const addressLines = [
+      falseToNull(live.partner?.street),
+      falseToNull(live.partner?.street2),
+      [falseToNull(live.partner?.city), falseToNull(live.partner?.zip)].filter(Boolean).join(' '),
+      many2oneName(live.partner?.country_id),
+    ].filter((x): x is string => Boolean(x?.trim()))
+
+    return {
+      id: row.id as string,
+      odooOrderId: row.odoo_order_id as number,
+      name: live.order.name,
+      state: live.order.state,
+      documentLabel: documentLabel(live.order.state),
+      dateOrder: live.order.date_order ?? (row.date_order as string | null),
+      commitmentDate: falseToNull(live.order.commitment_date),
+      paymentTerm: many2oneName(live.order.payment_term_id),
+      clientOrderRef: falseToNull(live.order.client_order_ref),
+      currency: many2oneName(live.order.currency_id) ?? 'IDR',
+      amountUntaxed: live.order.amount_untaxed ?? null,
+      amountTax: live.order.amount_tax ?? null,
+      amountTotal: live.order.amount_total ?? (row.amount_total as number | null),
+      syncedAt: row.synced_at as string,
+      source: 'odoo',
+      customer: {
+        name: partnerName,
+        addressLines,
+        vat: falseToNull(live.partner?.vat) ?? partyEmbed?.npwp ?? null,
+        email: falseToNull(live.partner?.email) ?? partyEmbed?.contact_email ?? null,
+      },
+      party,
+      lines: live.lines.length
+        ? mapLines(live.lines)
+        : syntheticLine(live.order.name, live.order.amount_total ?? null),
+    }
+  } catch {
+    const addressLines = partyEmbed?.address
+      ? partyEmbed.address.split(/\n+/).map((s) => s.trim()).filter(Boolean)
+      : []
+    const amount = row.amount_total as number | null
+    return {
+      id: row.id as string,
+      odooOrderId: row.odoo_order_id as number,
+      name: row.name as string,
+      state: row.state as string,
+      documentLabel: documentLabel(String(row.state)),
+      dateOrder: row.date_order as string | null,
+      commitmentDate: null,
+      paymentTerm: null,
+      clientOrderRef: null,
+      currency: 'IDR',
+      amountUntaxed: amount,
+      amountTax: null,
+      amountTotal: amount,
+      syncedAt: row.synced_at as string,
+      source: 'mirror',
+      customer: {
+        name: partyEmbed?.name ?? 'Customer',
+        addressLines,
+        vat: partyEmbed?.npwp ?? null,
+        email: partyEmbed?.contact_email ?? null,
+      },
+      party,
+      lines: syntheticLine(String(row.name), amount),
+    }
   }
 }
 

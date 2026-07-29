@@ -49,3 +49,45 @@ export async function runSoSync(partyId?: string): Promise<SyncSoResult> {
     }),
   )
 }
+
+export type SaleOrderDetail = {
+  id: string
+  odooOrderId: number
+  name: string
+  state: string
+  documentLabel: 'Quotation' | 'Sales Order'
+  dateOrder: string | null
+  commitmentDate: string | null
+  paymentTerm: string | null
+  clientOrderRef: string | null
+  currency: string
+  amountUntaxed: number | null
+  amountTax: number | null
+  amountTotal: number | null
+  syncedAt: string
+  source: 'odoo' | 'mirror'
+  customer: {
+    name: string
+    addressLines: string[]
+    vat: string | null
+    email: string | null
+  }
+  party: { id: string; party_code: string; name: string } | null
+  lines: Array<{
+    id: string | number
+    product: string
+    description: string
+    qty: number
+    qtyDelivered: number
+    qtyInvoiced: number
+    unitPrice: number
+    subtotal: number
+  }>
+}
+
+export async function fetchSaleOrderDetail(orderId: string): Promise<SaleOrderDetail> {
+  const data = await parseJson<{ order: SaleOrderDetail }>(
+    await cmsFetch(`/api/so/${encodeURIComponent(orderId)}`),
+  )
+  return data.order
+}

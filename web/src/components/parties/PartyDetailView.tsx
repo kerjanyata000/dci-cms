@@ -15,6 +15,7 @@ import { UploadSupportingModal } from '@/components/contracts/UploadSupportingMo
 import { ContractRowActions } from '@/components/parties/ContractRowActions'
 import { EditPartyModal } from '@/components/parties/EditPartyModal'
 import { LinkOdooModal } from '@/components/parties/LinkOdooModal'
+import { SaleOrderDetailModal } from '@/components/so/SaleOrderDetailModal'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorBanner } from '@/components/ui/ErrorBanner'
 import { TablePagination, paginateSlice } from '@/components/ui/TablePagination'
@@ -161,6 +162,7 @@ export function PartyDetailView({ partyId, role }: Props) {
   const [soBusy, setSoBusy] = useState(false)
   const [soSyncMsg, setSoSyncMsg] = useState('')
   const [soSyncError, setSoSyncError] = useState('')
+  const [soDetailId, setSoDetailId] = useState<string | null>(null)
   const [auditPage, setAuditPage] = useState(1)
 
   const load = useCallback(async () => {
@@ -853,7 +855,20 @@ export function PartyDetailView({ partyId, role }: Props) {
                     {soRows.map((o) => {
                       const st = soSyncClass(o.state)
                       return (
-                        <tr key={o.id}>
+                        <tr
+                          key={o.id}
+                          className="clickable-row"
+                          onClick={() => setSoDetailId(o.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault()
+                              setSoDetailId(o.id)
+                            }
+                          }}
+                          tabIndex={0}
+                          role="button"
+                          aria-label={`Buka detail ${o.name}`}
+                        >
                           <td className="mono">{o.name}</td>
                           <td>
                             <span className={`status-pill ${st.className}`}>{st.label}</span>
@@ -1057,6 +1072,12 @@ export function PartyDetailView({ partyId, role }: Props) {
         onDeleted={() => {
           router.push('/parties')
         }}
+      />
+
+      <SaleOrderDetailModal
+        open={Boolean(soDetailId)}
+        orderId={soDetailId}
+        onClose={() => setSoDetailId(null)}
       />
     </div>
   )

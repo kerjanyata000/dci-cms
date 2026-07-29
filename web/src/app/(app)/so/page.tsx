@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { TablePagination, paginateSlice } from '@/components/ui/TablePagination'
 import { TableSkeleton } from '@/components/ui/TableSkeleton'
+import { SaleOrderDetailModal } from '@/components/so/SaleOrderDetailModal'
 import { formatCurrency } from '@/lib/format/currency'
 import { fetchSyncedOrders, runSoSync, type SoHealthSummary, type SyncedOrderRow } from '@/lib/so/api'
 import { useAuth } from '@/components/AuthProvider'
@@ -21,7 +21,6 @@ function syncStatusLabel(state: string): { label: string; className: string } {
 const SO_PAGE_SIZE = 10
 
 export default function SoHealthPage() {
-  const router = useRouter()
   const { user } = useAuth()
   const [rows, setRows] = useState<SyncedOrderRow[]>([])
   const [summary, setSummary] = useState<SoHealthSummary | null>(null)
@@ -30,6 +29,7 @@ export default function SoHealthPage() {
   const [loading, setLoading] = useState(true)
   const [busy, setBusy] = useState(false)
   const [page, setPage] = useState(1)
+  const [detailId, setDetailId] = useState<string | null>(null)
 
   const canSync = user ? ROLES[user.role].canSync || ROLES[user.role].canEdit : false
   const pageRows = useMemo(() => paginateSlice(rows, page, SO_PAGE_SIZE), [rows, page])
@@ -139,6 +139,9 @@ export default function SoHealthPage() {
             </button>
           )}
         </div>
+        <p className="muted" style={{ margin: 0 }}>
+          Klik baris SO untuk melihat detail mirip Quotation / Sales Order (view-only).
+        </p>
         {syncMsg && <p className="muted">{syncMsg}</p>}
         {error && <p className="error-text">{error}</p>}
         <div className="table-wrap">
@@ -164,33 +167,41 @@ export default function SoHealthPage() {
               )}
               {!loading &&
                 pageRows.map((o) => {
-                const st = syncStatusLabel(o.state)
-                const partyHref = o.party_id ? `/parties/${o.party_id}` : null
-                return (
-                  <tr
-                    key={o.id}
-                    className={partyHref ? 'clickable-row' : undefined}
-                    onClick={partyHref ? () => router.push(partyHref) : undefined}
-                  >
-                    <td className="mono">{o.name}</td>
-                    <td onClick={(e) => e.stopPropagation()}>
-                      {o.parties?.party_code ? (
-                        <Link href={`/parties/${o.party_id}`} className="mono">
-                          {o.parties.party_code}
-                        </Link>
-                      ) : (
-                        '—'
-                      )}
-                    </td>
-                    <td>
-                      <span className={`status-pill ${st.className}`}>{st.label}</span>
-                    </td>
-                    <td>{o.state}</td>
-                    <td className="mono">{formatCurrency(o.amount_total)}</td>
-                    <td className="mono">{new Date(o.synced_at).toLocaleString('id-ID')}</td>
-                  </tr>
-                )
-              })}
+                  const st = syncStatusLabel(o.state)
+                  return (
+                    <tr
+                      key={o.id}
+                      className="clickable-row"
+                      onClick={() => setDetailId(o.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          setDetailId(o.id)
+                        }
+                      }}
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`Buka detail ${o.name}`}
+                    >
+                      <td className="mono">{o.name}</td>
+                      <td onClick={(e) => e.stopPropagation()}>
+                        {o.parties?.party_code ? (
+                          <Link href={`/parties/${o.party_id}`} className="mono">
+                            {o.parties.party_code}
+                          </Link>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+                      <td>
+                        <span className={`status-pill ${st.className}`}>{st.label}</span>
+                      </td>
+                      <td>{o.state}</td>
+                      <td className="mono">{formatCurrency(o.amount_total)}</td>
+                      <td className="mono">{new Date(o.synced_at).toLocaleString('id-ID')}</td>
+                    </tr>
+                  )
+                })}
             </tbody>
           </table>
         </div>
@@ -202,6 +213,12 @@ export default function SoHealthPage() {
           itemLabel="SO"
         />
       </div>
+
+      <SaleOrderDetailModal
+        open={Boolean(detailId)}
+        orderId={detailId}
+        onClose={() => setDetailId(null)}
+      />
     </div>
   )
 }
