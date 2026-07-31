@@ -443,21 +443,32 @@ export function RenewalCalendarView() {
       {(data) && (
         <>
       <div className="summary-strip">
-        <div className="summary-chip urgent">
-          <b>{data?.summary.urgent ?? 0}</b>
-          <span>Urgent · ≤30 hari</span>
+        <div className="summary-chip">
+          <div className="summary-chip-top">
+            <b>{data?.summary.urgent ?? 0}</b>
+            <span className="summary-chip-tag urgent">Urgent</span>
+          </div>
+          <span className="summary-chip-label">≤30 hari</span>
         </div>
-        <div className="summary-chip soon">
-          <b>{data?.summary.soon ?? 0}</b>
-          <span>Segera · 31–180 hari</span>
+        <div className="summary-chip">
+          <div className="summary-chip-top">
+            <b>{data?.summary.soon ?? 0}</b>
+            <span className="summary-chip-tag soon">Segera</span>
+          </div>
+          <span className="summary-chip-label">31–180 hari</span>
         </div>
-        <div className="summary-chip later">
-          <b>{data?.summary.later ?? 0}</b>
-          <span>Terjadwal · &gt;180 hari</span>
+        <div className="summary-chip">
+          <div className="summary-chip-top">
+            <b>{data?.summary.later ?? 0}</b>
+            <span className="summary-chip-tag later">Terjadwal</span>
+          </div>
+          <span className="summary-chip-label">&gt;180 hari</span>
         </div>
-        <div className="summary-chip month">
-          <b>{data?.summary.inMonth ?? 0}</b>
-          <span>Di bulan ini</span>
+        <div className="summary-chip">
+          <div className="summary-chip-top">
+            <b>{data?.summary.total ?? 0}</b>
+          </div>
+          <span className="summary-chip-label">Total</span>
         </div>
       </div>
 

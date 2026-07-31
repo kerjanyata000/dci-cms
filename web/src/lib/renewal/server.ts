@@ -147,5 +147,6 @@ export function summarizeRenewal(items: RenewalAgendaItem[]) {
       const d = new Date(`${i.eventDate}T00:00:00`)
       return d.getMonth() === month && d.getFullYear() === year
     }).length,
+    total: items.length,
   }
 }

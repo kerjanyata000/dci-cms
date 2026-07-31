@@ -3121,9 +3121,15 @@ textarea {
   min-width: 140px;
   background: var(--paper-2);
   border: 1px solid var(--line);
-  border-top: 3px solid var(--line);
   border-radius: 10px;
   padding: 12px 16px;
+}
+
+.summary-chip-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .summary-chip b {
@@ -3131,6 +3137,7 @@ textarea {
   font-family: var(--serif);
   font-size: 22px;
   line-height: 1.2;
+  color: var(--ink);
 }
 
 .summary-chip span {
@@ -3138,28 +3145,35 @@ textarea {
   color: var(--muted);
 }
 
-.summary-chip.urgent {
-  border-top-color: var(--red);
+.summary-chip-label {
+  display: block;
+  margin-top: 6px;
 }
 
-.summary-chip.urgent b {
+.summary-chip-tag {
+  flex: none;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--slate-light);
+  color: var(--muted);
+}
+
+.summary-chip-tag.urgent {
+  background: var(--red-light);
   color: var(--red);
 }
 
-.summary-chip.soon {
-  border-top-color: var(--amber);
-}
-
-.summary-chip.soon b {
+.summary-chip-tag.soon {
+  background: var(--amber-light);
   color: var(--amber);
 }
 
-.summary-chip.later {
-  border-top-color: var(--ink-2);
-}
-
-.summary-chip.month {
-  border-top-color: var(--brass);
+.summary-chip-tag.later {
+  background: var(--brass-light);
+  color: var(--ink-2);
 }
 
 .renewal-notice {

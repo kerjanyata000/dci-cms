@@ -21,4 +21,5 @@ export type RenewalSummary = {
   soon: number
   later: number
   inMonth: number
+  total: number
 }

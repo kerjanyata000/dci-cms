@@ -490,10 +490,14 @@ tbody tr.clickable:hover{background:#F7F8FA;cursor:pointer;}
 
 .summary-strip{display:flex;gap:14px;margin-bottom:18px;flex-wrap:wrap;}
 .summary-chip{flex:1;min-width:160px;background:var(--paper-2);border:1px solid var(--line);border-radius:10px;padding:13px 16px;}
-.summary-chip b{display:block;font-family:var(--serif);font-size:22px;}
+.summary-chip b{display:block;font-family:var(--serif);font-size:22px;color:var(--ink);}
 .summary-chip span{font-size:11px;color:var(--muted);}
-.summary-chip.urgent b{color:var(--red);}
-.summary-chip.soon b{color:var(--amber);}
+.summary-chip-top{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.summary-chip-label{display:block;margin-top:6px;}
+.summary-chip-tag{flex:none;font-size:10px;font-weight:600;letter-spacing:.02em;padding:3px 9px;border-radius:999px;background:var(--slate-light);color:var(--muted);}
+.summary-chip-tag.urgent{background:var(--red-light);color:var(--red);}
+.summary-chip-tag.soon{background:var(--amber-light);color:var(--amber);}
+.summary-chip-tag.later{background:var(--brass-light);color:var(--ink-2);}
 
 .audit-type-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;padding:3px 9px;border-radius:20px;}
 .audit-type-tag.create{background:var(--green-light);color:var(--green);}
@@ -1022,10 +1026,10 @@ tbody tr.clickable{transition:background .12s;}
         </div>
 
         <div class="summary-strip" id="renewal-summary">
-          <div class="summary-chip urgent"><b id="sum-urgent">0</b><span>Urgent · ≤30 hari</span></div>
-          <div class="summary-chip soon"><b id="sum-soon">0</b><span>Segera · 31–180 hari</span></div>
-          <div class="summary-chip"><b id="sum-later">0</b><span>Terjadwal · &gt;180 hari</span></div>
-          <div class="summary-chip"><b id="sum-month">0</b><span>Di bulan ini (terlihat)</span></div>
+          <div class="summary-chip"><div class="summary-chip-top"><b id="sum-urgent">0</b><span class="summary-chip-tag urgent">Urgent</span></div><span class="summary-chip-label">≤30 hari</span></div>
+          <div class="summary-chip"><div class="summary-chip-top"><b id="sum-soon">0</b><span class="summary-chip-tag soon">Segera</span></div><span class="summary-chip-label">31–180 hari</span></div>
+          <div class="summary-chip"><div class="summary-chip-top"><b id="sum-later">0</b><span class="summary-chip-tag later">Terjadwal</span></div><span class="summary-chip-label">&gt;180 hari</span></div>
+          <div class="summary-chip"><div class="summary-chip-top"><b id="sum-total">0</b></div><span class="summary-chip-label">Total</span></div>
         </div>
 
         <div class="cal-layout">
@@ -3180,11 +3184,10 @@ function renderCalGrid(rows){
   }
   grid.innerHTML = html;
 
-  const monthCount = eventsInMonth(rows, y, m).length;
   document.getElementById('sum-urgent').textContent = rows.filter(r=>r.bucket==='urgent').length;
   document.getElementById('sum-soon').textContent = rows.filter(r=>r.bucket==='soon').length;
   document.getElementById('sum-later').textContent = rows.filter(r=>r.bucket==='later').length;
-  document.getElementById('sum-month').textContent = monthCount;
+  document.getElementById('sum-total').textContent = rows.length;
 }
 
 function renderCalSide(rows){
