@@ -373,7 +373,7 @@ export function PartyDetailView({ partyId, role }: Props) {
                 }
                 onClick={() => setAddContractOpen(true)}
               >
-                + Upload Contract
+                + Upload ke Party ini
               </button>
               <button type="button" className="btn ghost dossier-btn-ghost" onClick={() => setEditPartyOpen(true)}>
                 Edit Party

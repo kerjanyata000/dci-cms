@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuth } from '@/components/AuthProvider'
 import { AddPartyModal } from '@/components/parties/AddPartyModal'
+import { AddContractModal } from '@/components/contracts/AddContractModal'
 import { LinkOdooModal } from '@/components/parties/LinkOdooModal'
 import { SortableTh } from '@/components/ui/SortableTh'
 import { ErrorBanner } from '@/components/ui/ErrorBanner'
@@ -122,6 +123,7 @@ export default function PartiesPage() {
   const [error, setError] = useState('')
 
   const [addOpen, setAddOpen] = useState(false)
+  const [uploadOpen, setUploadOpen] = useState(() => searchParams.get('upload') === '1')
   const [linkParty, setLinkParty] = useState<Party | null>(null)
 
   useEffect(() => {
@@ -205,9 +207,14 @@ export default function PartiesPage() {
           <h1>Parties — Search &amp; View</h1>
         </div>
         {canEdit && (
-          <button type="button" className="btn primary" onClick={() => setAddOpen(true)}>
-            + Add New Party
-          </button>
+          <div className="btn-row">
+            <button type="button" className="btn brass" onClick={() => setUploadOpen(true)}>
+              + Upload Contract
+            </button>
+            <button type="button" className="btn ghost" onClick={() => setAddOpen(true)}>
+              + Add New Party
+            </button>
+          </div>
         )}
       </div>
 
@@ -412,6 +419,15 @@ export default function PartiesPage() {
           if (party.pic && !allPics.includes(party.pic)) {
             setAllPics((prev) => [...prev, party.pic!].sort((a, b) => a.localeCompare(b)))
           }
+        }}
+      />
+
+      <AddContractModal
+        open={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+        onCreated={(_contract, party) => {
+          setUploadOpen(false)
+          router.push(`/parties/${party.id}`)
         }}
       />
 

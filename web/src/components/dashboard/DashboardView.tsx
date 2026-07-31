@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense, useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { ErrorBanner } from '@/components/ui/ErrorBanner'
 import { KpiCard } from '@/components/dashboard/KpiCard'
 import { DashboardRolePanels } from '@/components/dashboard/DashboardPanels'
@@ -13,6 +13,7 @@ import {
   type DashboardPayload,
 } from '@/lib/dashboard/config'
 import { ODOO_MODE } from '@/lib/odoo/client'
+import { ROLES } from '@/lib/roles'
 import type { AppRole } from '@/types/cms'
 
 function OdooModeChip({ mode }: { mode: string }) {
@@ -56,8 +57,10 @@ function ForbiddenBanner() {
 function DashboardInner({ role, userName }: Props) {
   const [data, setData] = useState<DashboardPayload | null>(null)
   const [error, setError] = useState('')
+  const router = useRouter()
 
   const copy = getDashboardCopy(role)
+  const canEdit = ROLES[role].canEdit
 
   useEffect(() => {
     setError('')
@@ -87,7 +90,18 @@ function DashboardInner({ role, userName }: Props) {
             {copy.titlePrefix} — {userName}
           </h1>
         </div>
-        <OdooModeChip mode={data?.integration.odooMode ?? ODOO_MODE} />
+        <div className="btn-row" style={{ alignItems: 'center' }}>
+          {canEdit && role === 'legal' && (
+            <button
+              type="button"
+              className="btn brass"
+              onClick={() => router.push('/parties?upload=1')}
+            >
+              + Upload Contract
+            </button>
+          )}
+          <OdooModeChip mode={data?.integration.odooMode ?? ODOO_MODE} />
+        </div>
       </div>
 
       {error && <ErrorBanner message={error} onRetry={retryLoad} />}

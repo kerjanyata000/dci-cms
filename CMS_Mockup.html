@@ -919,10 +919,11 @@ tbody tr.clickable{transition:background .12s;}
           <div>
             <div class="crumb">Parties</div>
             <h1>Parties — Search &amp; View</h1>
-            <p style="margin:4px 0 0;font-size:12.5px;color:var(--muted);">Register party-centric · filter status / Odoo link / PIC · Add Party (Legal)</p>
+            <p style="margin:4px 0 0;font-size:12.5px;color:var(--muted);">Upload Contract = pintu masuk AI (party baru/existing + guideline). Add Party untuk master saja.</p>
           </div>
-          <div class="btn-row">
-            <button class="btn primary" id="btn-parties-add-party" onclick="openAddPartyModal()">+ Add New Party</button>
+          <div className="btn-row">
+            <button class="btn brass" id="btn-parties-upload" onclick="openAddContractFor(null)">+ Upload Contract</button>
+            <button class="btn ghost" id="btn-parties-add-party" onclick="openAddPartyModal()">+ Add New Party</button>
           </div>
         </div>
 
@@ -1206,7 +1207,7 @@ tbody tr.clickable{transition:background .12s;}
       <div id="ac-panel-1">
         <div class="notice" style="margin-bottom:14px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-          <div>Upload dokumen dulu. AI mengisi metadata &amp; cek klausul vs guideline <b>Customer / Vendor / Loan</b>. Kontrak tersimpan di <b>Party saat ini</b>. Tidak ada yang auto-save — Anda konfirmasi di langkah berikutnya.</div>
+          <div>Upload dokumen dulu. AI mengisi metadata &amp; cek klausul vs guideline <b>Customer / Vendor / Loan</b>. Party bisa <b>baru atau existing</b> (konfirmasi di review). Tidak auto-save.</div>
         </div>
         <div class="field">
           <label>Dokumen kontrak <span>PDF / DOCX — pilih contoh demo di bawah</span></label>
@@ -2221,7 +2222,7 @@ function renderPartyDetail(id){
 
   const daEl = document.getElementById('dossier-actions');
   if(isEditor()){
-    daEl.innerHTML = '<button class="btn brass small" onclick="openAddContractFor(state.currentPartyId)">+ Upload Contract</button>'
+    daEl.innerHTML = '<button class="btn brass small" onclick="openAddContractFor(state.currentPartyId)">+ Upload ke Party ini</button>'
       + '<button class="btn ghost small" style="background:#fff" onclick="openEditPartyFor(\''+p.id+'\')">Edit Party</button>'
       + '<button class="btn ghost small" style="background:#fff" onclick="openLinkOdooFor(\''+p.id+'\')">'+((p.odooLink==='linked'||p.odooPartnerId)?'Kelola Link Odoo':'Link Odoo')+'</button>'
       + '<button class="btn ghost small" style="background:#fff" onclick="openDeactivatePartyFor(\''+p.id+'\')">Deactivate</button>';
@@ -3511,6 +3512,8 @@ function applyRoleUI(){
   }
 
   document.getElementById('btn-parties-add-party').classList.toggle('hidden-role', !r.canEdit);
+  const btnUpload = document.getElementById('btn-parties-upload');
+  if(btnUpload) btnUpload.classList.toggle('hidden-role', !r.canEdit);
 
   const soRun = document.querySelector('#view-so .btn.primary');
   if(soRun) soRun.classList.toggle('hidden-role', !r.canSync && !r.canEdit);
@@ -4140,7 +4143,7 @@ function demoGo(action){
     case 'notif': showView('notifications'); break;
     case 'search': showView('search'); document.getElementById('page-search-q').value='Customer ABC'; runPageSmartSearch(); break;
     case 'add-party': if(!isEditor()){ showToast('Login sebagai Legal untuk aksi ini.'); return; } openAddPartyModal(); break;
-    case 'add-contract': if(!isEditor()){ showToast('Login sebagai Legal.'); return; } openPartyDetail(firstParty); setTimeout(()=>openAddContractFor(firstParty),50); break;
+    case 'add-contract': if(!isEditor()){ showToast('Login sebagai Legal.'); return; } showView('parties'); setTimeout(()=>openAddContractFor(null),50); break;
     case 'edit-contract': if(!isEditor()){ showToast('Login sebagai Legal.'); return; } openPartyDetail(firstParty); setTimeout(()=>openEditContractFor(firstParty),50); break;
     case 'review': if(!isEditor()){ showToast('Login sebagai Legal.'); return; } openPartyDetail(firstParty); setTimeout(()=>openReviewStatusFor(firstParty),50); break;
     case 'cp': if(!isEditor()){ showToast('Login sebagai Legal.'); return; } openPartyDetail(firstParty); setTimeout(()=>openChangeCpFor(firstParty),50); break;
@@ -4538,7 +4541,7 @@ hydrateSoDemoFromOdoo().then(()=>{
   <button type="button" class="demo-item" onclick="demoGo('edit-party')"><span class="di-ico">P</span><div><b>Edit Party</b><span>Master fields</span></div></button>
   <button type="button" class="demo-item" onclick="demoGo('link-odoo')"><span class="di-ico">O</span><div><b>Link Odoo</b><span>Search + compare</span></div></button>
   <button type="button" class="demo-item" onclick="demoGo('deactivate')"><span class="di-ico">P</span><div><b>Deactivate Party</b><span>Soft deactivate</span></div></button>
-  <button type="button" class="demo-item" onclick="demoGo('add-contract')"><span class="di-ico">C</span><div><b>Upload Contract (AI)</b><span>Extract + guideline + Odoo cek</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('add-contract')"><span class="di-ico">C</span><div><b>Upload Contract (AI)</b><span>Dari Parties list</span></div></button>
   <button type="button" class="demo-item" onclick="demoGo('edit-contract')"><span class="di-ico">C</span><div><b>Edit Contract</b><span>Admin fields only</span></div></button>
   <button type="button" class="demo-item" onclick="demoGo('review')"><span class="di-ico">R</span><div><b>Review Status</b><span>Draft→FS + Revision</span></div></button>
   <button type="button" class="demo-item" onclick="demoGo('cp')"><span class="di-ico">N</span><div><b>Change Counterparty</b><span>Tanpa approval</span></div></button>

@@ -34,10 +34,10 @@ export type CreateContractInput = {
   confirm_odoo_link?: boolean
 }
 
-export async function previewContractAi(partyId: string, file: File) {
+export async function previewContractAi(file: File, partyId?: string | null) {
   const form = new FormData()
   form.set('file', file)
-  form.set('partyId', partyId)
+  if (partyId) form.set('partyId', partyId)
   const data = await parseJson<{
     mode: 'dummy' | 'live'
     fileName: string

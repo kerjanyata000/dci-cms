@@ -9,17 +9,20 @@ import {
   type GuidelineAlert,
   type GuidelineCategory,
 } from '@/lib/contracts/guidelines'
+import { createParty, fetchParties } from '@/lib/parties/api'
 import type { Contract, ContractMetadata, Party } from '@/types/cms'
 
 type Props = {
-  party: Party
+  /** Jika diisi (Party Detail), kontrak selalu ke party ini. */
+  party?: Party | null
   open: boolean
   onClose: () => void
-  onCreated: (contract: Contract) => void
+  onCreated: (contract: Contract, party: Party) => void
 }
 
 type Step = 1 | 2 | 3
 type OdooDecision = 'confirm' | 'skip'
+type PartyDecision = 'existing' | 'create_new'
 
 const CATEGORIES: GuidelineCategory[] = ['Customer', 'Vendor', 'Loan']
 
@@ -42,12 +45,22 @@ function pillClass(status: GuidelineAlert['status']) {
   return 'error'
 }
 
-export function AddContractModal({ party, open, onClose, onCreated }: Props) {
+function norm(s: string) {
+  return s.trim().toLowerCase().replace(/\s+/g, ' ')
+}
+
+export function AddContractModal({ party: fixedParty = null, open, onClose, onCreated }: Props) {
+  const lockedToParty = Boolean(fixedParty)
+
   const [step, setStep] = useState<Step>(1)
   const [file, setFile] = useState<File | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [analyzeMsg, setAnalyzeMsg] = useState('Membaca dokumen…')
+
+  const [partyOptions, setPartyOptions] = useState<Party[]>([])
+  const [partyDecision, setPartyDecision] = useState<PartyDecision>('create_new')
+  const [selectedPartyId, setSelectedPartyId] = useState('')
 
   const [contractTitle, setContractTitle] = useState('')
   const [docType, setDocType] = useState('MSA')
@@ -56,7 +69,7 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
   const [agreementDate, setAgreementDate] = useState(todayIso())
   const [durationMonths, setDurationMonths] = useState('12')
   const [contractValue, setContractValue] = useState('')
-  const [counterpartyName, setCounterpartyName] = useState(party.name)
+  const [counterpartyName, setCounterpartyName] = useState('')
   const [remarks, setRemarks] = useState('')
   const [guidelines, setGuidelines] = useState<GuidelineAlert[]>([])
   const [odooCandidates, setOdooCandidates] = useState<
@@ -79,7 +92,7 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
     setAgreementDate(todayIso())
     setDurationMonths('12')
     setContractValue('')
-    setCounterpartyName(party.name)
+    setCounterpartyName(fixedParty?.name ?? '')
     setRemarks('')
     setGuidelines([])
     setOdooCandidates([])
@@ -87,40 +100,64 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
     setSelectedOdooId(null)
     setPreviewMode(null)
     setRawPreview(null)
+    setPartyDecision(fixedParty ? 'existing' : 'create_new')
+    setSelectedPartyId(fixedParty?.id ?? '')
   }
 
   useEffect(() => {
-    if (open) {
-      resetAll()
-      setCounterpartyName(party.name)
+    if (!open) return
+    resetAll()
+    if (!lockedToParty) {
+      void fetchParties({ partyStatus: 'Active' })
+        .then((rows) => setPartyOptions(rows))
+        .catch(() => setPartyOptions([]))
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset only when opened / party changes
-  }, [open, party.id, party.name])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset when opened
+  }, [open, fixedParty?.id, lockedToParty])
 
   const guidelineSummary = useMemo(() => summarizeGuidelineAlerts(guidelines), [guidelines])
 
+  const nameMatches = useMemo(() => {
+    const q = norm(counterpartyName)
+    if (!q || lockedToParty) return []
+    return partyOptions.filter((p) => {
+      const n = norm(p.name)
+      return n === q || n.includes(q) || q.includes(n)
+    }).slice(0, 8)
+  }, [counterpartyName, partyOptions, lockedToParty])
+
+  const selectedExisting = useMemo(() => {
+    if (lockedToParty && fixedParty) return fixedParty
+    return partyOptions.find((p) => p.id === selectedPartyId) ?? null
+  }, [lockedToParty, fixedParty, partyOptions, selectedPartyId])
+
   if (!open) return null
 
-  function applyExtracted(extracted: ContractMetadata, suggested: GuidelineCategory, text?: string | null) {
+  function applyExtracted(
+    extracted: ContractMetadata,
+    suggested: GuidelineCategory,
+    text?: string | null,
+  ) {
+    const name = extracted.counterpartyName?.trim() || fixedParty?.name || ''
     setCategory(suggested)
-    setCounterpartyName(extracted.counterpartyName?.trim() || party.name)
+    setCounterpartyName(name)
     setAgreementNo(extracted.agreementNo ?? '')
     setContractValue(extracted.contractValue ?? '')
     setDurationMonths(parseDurationMonths(extracted.contractPeriod))
     setContractTitle(
       extracted.agreementNo
-        ? `${suggested === 'Loan' ? 'Facility' : suggested === 'Vendor' ? 'Vendor Supply' : 'MSA'} — ${extracted.counterpartyName ?? party.name}`
-        : `Contract — ${extracted.counterpartyName ?? party.name}`,
+        ? `${suggested === 'Loan' ? 'Facility' : suggested === 'Vendor' ? 'Vendor Supply' : 'MSA'} — ${name || 'Counterparty'}`
+        : `Contract — ${name || 'Counterparty'}`,
     )
-    if (suggested === 'Loan') setDocType('Other')
-    else if (suggested === 'Vendor') setDocType('Other')
+    if (suggested === 'Loan' || suggested === 'Vendor') setDocType('Other')
     else setDocType('MSA')
 
-    const alerts = evaluateGuidelines(suggested, {
-      extracted,
-      rawText: text ?? undefined,
-    })
-    setGuidelines(alerts)
+    setGuidelines(
+      evaluateGuidelines(suggested, {
+        extracted,
+        rawText: text ?? undefined,
+      }),
+    )
   }
 
   async function runAi() {
@@ -135,18 +172,32 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
     try {
       await new Promise((r) => setTimeout(r, 400))
       setAnalyzeMsg('Klasifikasi tipe & cek guideline…')
-      const preview = await previewContractAi(party.id, file)
+      const preview = await previewContractAi(file, fixedParty?.id ?? null)
       setPreviewMode(preview.mode)
       setRawPreview(preview.rawTextPreview)
       setOdooCandidates(preview.odooCandidates ?? [])
       const cat = (preview.suggestedCategory as GuidelineCategory) || 'Customer'
       applyExtracted(preview.extracted, cat, preview.rawTextPreview)
-      // Prefer server guidelines (same pack) if returned
       if (preview.guidelines?.length) setGuidelines(preview.guidelines)
+
+      const extractedName = preview.extracted.counterpartyName?.trim() || ''
+      if (!lockedToParty) {
+        const match = partyOptions.find((p) => norm(p.name) === norm(extractedName))
+        if (match) {
+          setPartyDecision('existing')
+          setSelectedPartyId(match.id)
+        } else {
+          setPartyDecision('create_new')
+          setSelectedPartyId('')
+        }
+      }
 
       if (preview.odooCandidates?.length) {
         setSelectedOdooId(preview.odooCandidates[0].id)
-        setOdooDecision(party.odoo_link_status === 'linked' ? 'skip' : 'confirm')
+        const alreadyLinked =
+          fixedParty?.odoo_link_status === 'linked' ||
+          (matchLinked(preview.odooCandidates[0].id) ?? false)
+        setOdooDecision(alreadyLinked ? 'skip' : 'confirm')
       } else {
         setSelectedOdooId(null)
         setOdooDecision('skip')
@@ -158,6 +209,11 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
     } finally {
       setBusy(false)
     }
+  }
+
+  function matchLinked(odooId: number) {
+    const p = lockedToParty ? fixedParty : partyOptions.find((x) => x.id === selectedPartyId)
+    return p?.odoo_partner_id === odooId && p?.odoo_link_status === 'linked'
   }
 
   function onCategoryChange(next: GuidelineCategory) {
@@ -175,6 +231,32 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
     )
   }
 
+  async function resolveTargetParty(): Promise<Party> {
+    if (lockedToParty && fixedParty) {
+      if (fixedParty.party_status === 'Inactive') {
+        throw new Error('Party Inactive tidak dapat dipilih untuk kontrak baru (BRL-CMS-031)')
+      }
+      return fixedParty
+    }
+
+    if (partyDecision === 'existing') {
+      if (!selectedPartyId) throw new Error('Pilih Party CMS yang sudah ada.')
+      const found = partyOptions.find((p) => p.id === selectedPartyId)
+      if (!found) throw new Error('Party tidak ditemukan.')
+      if (found.party_status === 'Inactive') {
+        throw new Error('Party Inactive tidak dapat dipilih untuk kontrak baru (BRL-CMS-031)')
+      }
+      return found
+    }
+
+    const name = counterpartyName.trim()
+    if (!name) throw new Error('Nama party wajib diisi untuk membuat Party baru.')
+    return createParty({
+      name,
+      party_type: category,
+    })
+  }
+
   async function submit(saveMode: 'draft' | 'review') {
     if (!contractTitle.trim()) {
       setError('Judul kontrak wajib diisi.')
@@ -187,7 +269,8 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
     setBusy(true)
     setError('')
     try {
-      const contract = await createContract(party.id, {
+      const target = await resolveTargetParty()
+      const contract = await createContract(target.id, {
         contract_title: contractTitle.trim(),
         doc_type: docType,
         agreement_no: agreementNo.trim() || undefined,
@@ -197,8 +280,11 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
         remarks:
           [
             remarks.trim(),
-            counterpartyName.trim() && counterpartyName.trim() !== party.name
+            counterpartyName.trim() && counterpartyName.trim() !== target.name
               ? `Extracted party name: ${counterpartyName.trim()}`
+              : '',
+            !lockedToParty && partyDecision === 'create_new'
+              ? 'Party dibuat via AI Contract Upload'
               : '',
           ]
             .filter(Boolean)
@@ -210,7 +296,7 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
         odoo_partner_id: odooDecision === 'confirm' ? selectedOdooId : null,
         confirm_odoo_link: odooDecision === 'confirm' && selectedOdooId != null,
       })
-      onCreated(contract)
+      onCreated(contract, target)
       resetAll()
       onClose()
     } catch (err) {
@@ -219,6 +305,10 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
       setBusy(false)
     }
   }
+
+  const subtitle = lockedToParty && fixedParty
+    ? `${fixedParty.party_code} — ${fixedParty.name}`
+    : 'Upload-first · Party bisa dipilih atau dibuat baru setelah AI'
 
   return (
     <div className="modal-overlay" role="presentation" onClick={onClose}>
@@ -229,7 +319,7 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
               {step === 1 ? 'Upload Contract' : step === 2 ? 'AI Analysis' : 'Review AI Result'}
             </h2>
             <p className="muted">
-              {party.party_code} — {party.name}
+              {subtitle}
               {previewMode ? ` · extract ${previewMode}` : ''}
             </p>
           </div>
@@ -246,9 +336,9 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
           <>
             <div className="notice" style={{ marginBottom: 14 }}>
               <div>
-                Upload dokumen dulu. AI mengisi metadata &amp; cek klausul vs guideline{' '}
-                <b>Customer / Vendor / Loan</b>. Tidak ada yang auto-save — Anda konfirmasi di
-                langkah berikutnya.
+                Mulai dari dokumen. AI mengisi metadata, usul Party/Odoo, dan cek guideline{' '}
+                <b>Customer / Vendor / Loan</b>. Anda konfirmasi sebelum simpan — termasuk Party baru
+                atau existing.
               </div>
             </div>
             <div className="field">
@@ -284,8 +374,8 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
           <>
             <div className="notice" style={{ marginBottom: 14 }}>
               <div>
-                Hasil AI di bawah. <b>Edit bebas</b> sebelum simpan. Link Odoo tidak otomatis —
-                pilih keputusan Anda.
+                Hasil AI di bawah. <b>Edit bebas</b> sebelum simpan. Tidak ada auto-link Odoo / auto-buat
+                Party tanpa konfirmasi Anda.
               </div>
             </div>
 
@@ -367,17 +457,74 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
                   />
                 </div>
               </div>
-              {counterpartyName.trim() &&
-                counterpartyName.trim().toLowerCase() !== party.name.trim().toLowerCase() && (
-                  <p className="muted" style={{ fontSize: 12, marginTop: 4 }}>
-                    Nama hasil ekstraksi berbeda dari Party ini (<b>{party.name}</b>). Kontrak tetap
-                    tersimpan di Party saat ini; koreksi nama di sini untuk catatan.
-                  </p>
-                )}
             </div>
 
             <div className="ai-section">
               <h4>2 · Party &amp; Odoo</h4>
+
+              {lockedToParty && fixedParty ? (
+                <div className="match-box" style={{ marginBottom: 10 }}>
+                  <div>
+                    Kontrak akan tersimpan di Party <b>{fixedParty.name}</b> (
+                    <span className="mono">{fixedParty.party_code}</span>).
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="odoo-choice" style={{ marginBottom: 10 }}>
+                    <label>
+                      <input
+                        type="radio"
+                        name="ac-party-dec"
+                        checked={partyDecision === 'create_new'}
+                        onChange={() => setPartyDecision('create_new')}
+                      />
+                      <span>
+                        <b>Buat Party baru di CMS</b> dari nama di atas (status Pending Odoo Link
+                        sampai di-link).
+                      </span>
+                    </label>
+                    <label>
+                      <input
+                        type="radio"
+                        name="ac-party-dec"
+                        checked={partyDecision === 'existing'}
+                        onChange={() => {
+                          setPartyDecision('existing')
+                          if (!selectedPartyId && nameMatches[0]) {
+                            setSelectedPartyId(nameMatches[0].id)
+                          }
+                        }}
+                      />
+                      <span>
+                        <b>Pakai Party CMS yang sudah ada</b>
+                        {nameMatches.length
+                          ? ` — ${nameMatches.length} kandidat mirip nama`
+                          : ''}
+                        .
+                      </span>
+                    </label>
+                  </div>
+                  {partyDecision === 'existing' && (
+                    <div className="field">
+                      <label htmlFor="ac-party-pick">Pilih Party</label>
+                      <select
+                        id="ac-party-pick"
+                        value={selectedPartyId}
+                        onChange={(e) => setSelectedPartyId(e.target.value)}
+                      >
+                        <option value="">— Pilih —</option>
+                        {(nameMatches.length ? nameMatches : partyOptions).map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name} — {p.party_code} ({p.odoo_link_status})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </>
+              )}
+
               {odooCandidates.length > 0 ? (
                 <div className="match-box">
                   <div>
@@ -388,12 +535,13 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
                     VAT {odooCandidates[0].vat || '—'}
                     {' · '}
                     ID <span className="mono">{odooCandidates[0].id}</span>
-                    {party.odoo_link_status === 'linked' && party.odoo_partner_id != null && (
-                      <>
-                        <br />
-                        Party ini sudah Linked ke #{party.odoo_partner_id}.
-                      </>
-                    )}
+                    {selectedExisting?.odoo_link_status === 'linked' &&
+                      selectedExisting.odoo_partner_id != null && (
+                        <>
+                          <br />
+                          Party terpilih sudah Linked ke #{selectedExisting.odoo_partner_id}.
+                        </>
+                      )}
                   </div>
                 </div>
               ) : (
@@ -401,12 +549,12 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
                   <div>
                     <b>Tidak ada kandidat Odoo Partner</b> untuk “{counterpartyName || '—'}”.
                     <br />
-                    Party tetap di CMS dengan status link saat ini (
-                    <span className="mono">{party.odoo_link_status}</span>). Link belakangan setelah
-                    Partner dibuat di Odoo.
+                    Party CMS bisa tetap dibuat/dipakai sebagai Pending / Unlinked; link belakangan
+                    setelah Partner ada di Odoo.
                   </div>
                 </div>
               )}
+
               <div className="odoo-choice">
                 {odooCandidates.length > 0 && (
                   <label>
@@ -433,8 +581,7 @@ export function AddContractModal({ party, open, onClose, onCreated }: Props) {
                     onChange={() => setOdooDecision('skip')}
                   />
                   <span>
-                    <b>Jangan link sekarang</b> — simpan kontrak di Party ini; Odoo link menyusul
-                    bila perlu.
+                    <b>Jangan link sekarang</b> — simpan dulu; Link Odoo bisa dari Party Detail.
                   </span>
                 </label>
               </div>
