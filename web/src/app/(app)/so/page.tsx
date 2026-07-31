@@ -7,6 +7,7 @@ import { TableSkeleton } from '@/components/ui/TableSkeleton'
 import { SaleOrderDetailModal } from '@/components/so/SaleOrderDetailModal'
 import { formatCurrency } from '@/lib/format/currency'
 import { fetchSyncedOrders, runSoSync, type SoHealthSummary, type SyncedOrderRow } from '@/lib/so/api'
+import { KpiCard } from '@/components/dashboard/KpiCard'
 import { useAuth } from '@/components/AuthProvider'
 import { ROLES } from '@/lib/roles'
 
@@ -97,34 +98,34 @@ export default function SoHealthPage() {
 
       {!loading && summary && (
         <div className="kpi-grid kpi-cols-4" style={{ marginBottom: 16 }}>
-          <div className="kpi-card kpi-green">
-            <div className="kpi-top">
-              <span className="kpi-label">Synchronized</span>
-            </div>
-            <div className="kpi-value">{summary.synchronized}</div>
-            <div className="kpi-sub up">Party aktif + SO sale/done</div>
-          </div>
-          <div className="kpi-card kpi-amber">
-            <div className="kpi-top">
-              <span className="kpi-label">No Active SO</span>
-            </div>
-            <div className="kpi-value">{summary.noActiveSo}</div>
-            <div className="kpi-sub warn">Perlu tindak lanjut</div>
-          </div>
-          <div className="kpi-card kpi-brass">
-            <div className="kpi-top">
-              <span className="kpi-label">Quotations</span>
-            </div>
-            <div className="kpi-value">{summary.quotations}</div>
-            <div className="kpi-sub">draft / sent</div>
-          </div>
-          <div className="kpi-card kpi-red">
-            <div className="kpi-top">
-              <span className="kpi-label">Sync Errors (7d)</span>
-            </div>
-            <div className="kpi-value">{summary.syncErrors}</div>
-            <div className="kpi-sub warn">Error sync</div>
-          </div>
+          <KpiCard
+            label="Synchronized"
+            value={String(summary.synchronized)}
+            sub="Party aktif + SO sale/done"
+            tone="green"
+            icon="sync"
+          />
+          <KpiCard
+            label="No Active SO"
+            value={String(summary.noActiveSo)}
+            sub="Perlu tindak lanjut"
+            tone="amber"
+            icon="alert"
+          />
+          <KpiCard
+            label="Quotations"
+            value={String(summary.quotations)}
+            sub="draft / sent"
+            tone="brass"
+            icon="quote"
+          />
+          <KpiCard
+            label="Sync Errors (7d)"
+            value={String(summary.syncErrors)}
+            sub="Error sync"
+            tone="red"
+            icon="alert"
+          />
         </div>
       )}
 

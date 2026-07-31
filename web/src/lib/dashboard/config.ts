@@ -1,10 +1,26 @@
 import type { AppRole } from '@/types/cms'
 
+export type KpiIconName =
+  | 'parties'
+  | 'contracts'
+  | 'active'
+  | 'review'
+  | 'renewal'
+  | 'sync'
+  | 'quote'
+  | 'alert'
+  | 'link'
+  | 'audit'
+  | 'sign'
+  | 'draft'
+  | 'calendar'
+
 export type KpiItem = {
   label: string
   value: string
   sub: string
   tone?: 'green' | 'amber' | 'red' | 'brass' | ''
+  icon?: KpiIconName
 }
 
 export type PendingItem = {
@@ -150,30 +166,40 @@ export function buildKpisForRole(role: AppRole, data: DashboardPayload): KpiItem
   switch (role) {
     case 'legal':
       return [
-        { label: 'Total Party', value: String(s.totalParties), sub: 'Register party', tone: '' },
+        {
+          label: 'Total Party',
+          value: String(s.totalParties),
+          sub: 'Register party',
+          tone: '',
+          icon: 'parties',
+        },
         {
           label: 'Master Contracts',
           value: String(s.totalContracts),
           sub: `${s.draftContracts} draft · ${s.reviewContracts} review`,
           tone: 'brass',
+          icon: 'contracts',
         },
         {
           label: 'Active / Signed',
           value: pctContracts(s.activeContracts, s.totalContracts),
           sub: `${s.activeContracts} dari ${s.totalContracts}`,
           tone: 'green',
+          icon: 'active',
         },
         {
           label: 'Under Review',
           value: String(s.reviewContracts),
           sub: 'Perlu tindak lanjut Legal',
           tone: 'amber',
+          icon: 'review',
         },
         {
           label: 'Auto-Renewal',
           value: pctContracts(s.autoRenewalContracts, s.totalContracts),
           sub: `${s.autoRenewalContracts} kontrak · metadata`,
           tone: '',
+          icon: 'renewal',
         },
       ]
     case 'business':
@@ -183,24 +209,28 @@ export function buildKpisForRole(role: AppRole, data: DashboardPayload): KpiItem
           value: String(s.totalParties),
           sub: 'Akses view-only',
           tone: 'brass',
+          icon: 'parties',
         },
         {
           label: 'Draft kontrak',
           value: String(s.draftContracts),
           sub: 'Menunggu proses Legal',
           tone: 'amber',
+          icon: 'draft',
         },
         {
           label: 'Under Review',
           value: String(s.reviewContracts),
           sub: 'Sedang direview Legal',
           tone: '',
+          icon: 'review',
         },
         {
           label: 'Aktif',
           value: String(s.activeContracts),
           sub: 'Fully Signed / Active',
           tone: 'green',
+          icon: 'active',
         },
       ]
     case 'finance': {
@@ -211,24 +241,28 @@ export function buildKpisForRole(role: AppRole, data: DashboardPayload): KpiItem
           value: String(so.synchronized),
           sub: 'Party aktif + sale/done',
           tone: 'green',
+          icon: 'sync',
         },
         {
           label: 'Quotations',
           value: String(so.quotations ?? 0),
           sub: 'draft/sent · belum Active SO',
           tone: 'brass',
+          icon: 'quote',
         },
         {
           label: 'No Active SO',
           value: String(so.noActiveSo),
           sub: 'Perlu tindak lanjut',
           tone: 'amber',
+          icon: 'alert',
         },
         {
           label: 'Sync Errors (7d)',
           value: String(so.syncErrors),
           sub: 'Error sync',
           tone: 'red',
+          icon: 'alert',
         },
       ]
     }
@@ -241,24 +275,28 @@ export function buildKpisForRole(role: AppRole, data: DashboardPayload): KpiItem
           value: pctContracts(s.activeContracts, s.totalContracts),
           sub: 'Fully Signed / Active',
           tone: 'green',
+          icon: 'active',
         },
         {
           label: 'Renewal ≤30 hari',
           value: String(urgent),
           sub: 'Urgent bucket',
           tone: 'red',
+          icon: 'calendar',
         },
         {
           label: 'Renewal 31–180 hari',
           value: String(soon),
           sub: 'Segera',
           tone: 'amber',
+          icon: 'renewal',
         },
         {
           label: 'Audit events',
           value: String(data.auditEventCount),
           sub: 'Activity Log',
           tone: '',
+          icon: 'audit',
         },
       ]
     }
@@ -270,24 +308,28 @@ export function buildKpisForRole(role: AppRole, data: DashboardPayload): KpiItem
           value: String(s.linkedParties),
           sub: pct(s.linkedParties, s.totalParties),
           tone: 'green',
+          icon: 'link',
         },
         {
           label: 'Pending / Mismatch',
           value: String(s.pendingOdooLink + s.mismatchOdooLink),
           sub: 'Perlu review link',
           tone: 'amber',
+          icon: 'alert',
         },
         {
           label: 'SO Sync Error',
           value: String(so.syncErrors),
           sub: '7 hari terakhir',
           tone: 'red',
+          icon: 'sync',
         },
         {
           label: 'Koneksi Odoo',
           value: data.integration.odooMode.toUpperCase(),
           sub: `Ekstraksi ${data.integration.ragflowMode}`,
           tone: 'brass',
+          icon: 'link',
         },
       ]
     }
