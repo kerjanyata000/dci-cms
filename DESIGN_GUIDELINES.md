@@ -34,7 +34,7 @@ Semua pekerjaan UI (halaman baru, polish, komponen) memakai **UI UX Pro Max** se
    ```
 
 4. **Terapkan override wajib** setelah saran skill:
-   - Warna: `--ink` / `--brass` / `--paper` — **bukan** palet generik skill (navy ungu, cream SaaS, dll.).
+   - Warna: `--brand-primary` (`#00A4DF`) / `--brand-secondary` / `--brand-accent` (`#312C2D`) — **bukan** palet generik skill (navy ungu, cream SaaS, brass lama).
    - Font: Source Serif 4 + IBM Plex Sans/Mono — **bukan** Plus Jakarta / Inter default skill.
    - Stack: `shell.css` + Next.js — **tanpa** Tailwind/shadcn kecuali keputusan arsitektur terpisah.
    - Pola: party-centric, status pill BRD §9, RBAC hide vs view-only.
@@ -72,26 +72,28 @@ Skill lokal: `.cursor/skills/ui-ux-pro-max/` (gitignored). Artefak **commit**: `
 
 ---
 
-## 2. Brand & tema — “Sealed Registry”
+## 2. Brand & tema — DCI Indonesia
 
-Nuansa **dokumen kontrak / stempel legal**, bukan SaaS ungu/cream generik.
+Nuansa **enterprise / data center DCI**, memakai warna logo resmi.
 
-| Role | Token | Hex (mockup) | Pemakaian |
+| Role | Token | Hex | Pemakaian |
 | --- | --- | --- | --- |
-| Ink (primary) | `--ink` | `#12203A` | Sidebar, header dossier, tombol primary |
-| Ink deep | `--ink-2` | `#1C2E4F` | Gradien / accent gelap |
-| Paper | `--paper` | `#EEF1F4` | Background halaman |
+| Primary | `--brand-primary` / `--brass` | `#00A4DF` | Accent, tab aktif, CTA primer, link |
+| Secondary | `--brand-secondary` / `--ink-2` | `#267DBF` | Hover CTA, gradien, secondary |
+| Accent / Tertiary | `--brand-accent` / `--ink` | `#312C2D` | Sidebar, teks kuat, chrome gelap |
+| Paper | `--paper` | `#EEF3F6` | Background halaman |
 | Surface | `--paper-2` | `#FFFFFF` | Card, tabel, modal |
-| Line | `--line` | `#D8DCE3` | Border, divider |
-| Text | `--text` | `#22293A` | Body |
-| Muted | `--muted` | `#5B6472` | Meta, caption |
-| Brass (accent) | `--brass` | `#A8783C` | Brand seal, CTA sekunder, tab aktif |
-| Brass soft | `--brass-light` | `#F1E4D0` | Chip, notice |
+| Line | `--line` | `#D5DDE3` | Border, divider |
+| Text | `--text` | `#312C2D` | Body |
+| Muted | `--muted` | `#5C656C` | Meta, caption |
+| Brass soft | `--brass-light` | `#D9F3FB` | Chip, notice (soft primary) |
 | Success | `--green` | `#2E7D5B` | Active, Linked, Synchronized |
 | Warning | `--amber` | `#C08A2E` | Pending, Under Review, In Progress |
 | Danger | `--red` | `#B84A3A` | Terminated, Error, Mismatch, Void |
 
-> Jangan ganti tema ke purple gradient / cream-terracotta generik. Pertahankan ink + brass.
+> Token `--brass` dipertahankan sebagai alias accent agar class CSS lama tetap jalan; nilai = primary biru DCI.
+
+**Logo:** `web/public/brand/dci-logo.png` (logo resmi DCI Indonesia). Pada chrome gelap, tampilkan di atas plate putih.
 
 ---
 

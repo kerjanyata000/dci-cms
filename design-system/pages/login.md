@@ -1,26 +1,25 @@
 # Page override: Login (Enterprise Gateway)
 
 Extends [`MASTER.md`](../MASTER.md).  
-Skill pattern: **Enterprise Gateway** + **Trust & Authority** (UI UX Pro Max), overridden to ink/brass.
+Skill pattern: **Enterprise Gateway** + **Trust & Authority** (UI UX Pro Max), overridden to DCI brand blues.
 
 ## Layout
 
-- Full viewport `--ink` + dot/grid subtle pattern
-- Card max ~960px, **brass top accent** 3px, entrance animation
-- Two columns: **login-side** (trust + features) + **login-form**
-- Mobile (&lt;720px): hide side, show **login-mobile-brand** header
+- Full viewport `--brand-accent` + blue ambient glow
+- Card max ~960px, **primary blue top accent** 3px, entrance animation
+- Two columns: **login-side** (logo DCI + product) + **login-form**
+- Mobile (&lt;720px): hide side, show **login-mobile-brand** with mark
 
-## Trust signals (left panel)
+## Brand
 
-- Feature checklist (BRD refs)
-- Trust chips: Party-centric · Odoo+RAGFlow · Audit trail
+- Logo: `/brand/dci-logo.png` (resmi) — plate putih di panel gelap / mobile
+- CTA: `--brand-primary` (`#00A4DF`)
 
 ## Form (right panel)
 
-- Eyebrow: "Enterprise gateway"
 - Role grid 2×2 with **left accent per role** (not dropdown)
-- CTA: "Masuk ke workspace" + arrow icon
-- Input focus ring brass
+- CTA: "Masuk" + arrow icon
+- Input focus ring primary blue
 
 ## Auth modes
 

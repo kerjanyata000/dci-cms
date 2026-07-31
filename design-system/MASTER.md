@@ -19,22 +19,25 @@
 - **Conversion:** Monitoring & pending actions — **no create CTA on dashboard**
 - **Sections:** Role dashboard → Parties list → Party Detail (tabs) → modals
 
-## Style — Sealed Registry
+## Style — DCI Brand Registry
 
-- **Keywords:** Legal dossier, ink/brass, status pills, audit trail, trustworthy
-- **Avoid:** Purple/pink AI gradients, playful UI, landing hero generik, Tailwind/shadcn tanpa keputusan
+- **Keywords:** DCI Indonesia, primary blue, party-centric, status pills, audit trail
+- **Avoid:** Purple/pink AI gradients, playful UI, brass/gold legacy, Tailwind/shadcn tanpa keputusan
 
 ## Colors (do NOT replace with skill defaults)
 
 | Role | Token | Hex |
 |------|-------|-----|
-| Primary | `--ink` | `#12203A` |
-| Accent | `--brass` | `#A8783C` |
-| Background | `--paper` | `#EEF1F4` |
+| Primary | `--brand-primary` | `#00A4DF` |
+| Secondary | `--brand-secondary` | `#267DBF` |
+| Accent | `--brand-accent` / `--ink` | `#312C2D` |
+| Background | `--paper` | `#EEF3F6` |
 | Surface | `--paper-2` | `#FFFFFF` |
 | Success | `--green` | `#2E7D5B` |
 | Warning | `--amber` | `#C08A2E` |
 | Danger | `--red` | `#B84A3A` |
+
+**Logo assets:** `web/public/brand/` — lihat [`brand/README.md`](../brand/README.md)
 
 ## Typography (keep)
 

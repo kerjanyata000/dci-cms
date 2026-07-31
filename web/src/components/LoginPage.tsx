@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { BrandLogo } from '@/components/brand/BrandLogo'
 import { signInWithSupabase } from '@/lib/auth/client'
 import { persistSupabaseSession } from '@/lib/auth/client-session'
 import { DEMO_AUTH_ACCOUNTS } from '@/lib/auth/demo-accounts'
@@ -102,17 +103,17 @@ export function LoginPage({ onLogin, authMode = AUTH_MODE, errorHint }: Props) {
       <div className="login-card">
         <aside className="login-side" aria-label="Brand">
           <div className="login-side-top">
-            <div className="brand-seal login-brand-seal">CM</div>
-            <p className="login-product-tag">DCI · Contract Management System</p>
+            <BrandLogo variant="full" className="brand-logo-login login-brand-seal" />
+            <p className="login-product-tag">Contract Management System</p>
           </div>
           <h2>Contract Management System</h2>
         </aside>
 
         <form className="login-form" onSubmit={submit}>
           <div className="login-mobile-brand" aria-hidden>
-            <div className="brand-seal login-brand-seal">CM</div>
+            <BrandLogo variant="mark" />
             <div>
-              <b>Contract MS</b>
+              <b>DCI CMS</b>
             </div>
           </div>
 

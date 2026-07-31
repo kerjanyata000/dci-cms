@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
+import { BrandLogo } from '@/components/brand/BrandLogo'
 import { GlobalSearch } from '@/components/shell/GlobalSearch'
 import { IntegrationStatus } from '@/components/shell/IntegrationStatus'
 import { NotificationsBell } from '@/components/shell/NotificationsBell'
@@ -132,10 +133,12 @@ export function AppShell({ user, onLogout, children }: Props) {
 
       <aside className="sidebar" aria-hidden={!drawerOpen && undefined}>
         <div className="brand">
-          <div className="brand-seal">CM</div>
+          <div className="brand-seal" aria-hidden>
+            <BrandLogo variant="mark" />
+          </div>
           <div className="brand-text">
-            <b>Contract MS</b>
-            <span>Party-Centric · Odoo</span>
+            <b>DCI CMS</b>
+            <span>Contract Management</span>
           </div>
         </div>
         <nav className="nav-group">{navLinks}</nav>
