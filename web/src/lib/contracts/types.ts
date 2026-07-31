@@ -1,5 +1,6 @@
 import type { Contract, ContractMetadata, ValidationStatus } from '@/types/cms'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { calendarDateIso, todayIso } from '@/lib/time'
 
 export type ContractRow = {
   id: string
@@ -52,7 +53,7 @@ export function mapContractRow(row: ContractRow): Contract {
 }
 
 export async function nextContractCode(db: SupabaseClient): Promise<string> {
-  const year = new Date().getFullYear()
+  const year = todayIso().slice(0, 4)
   const prefix = `CMS-${year}-`
   const { data } = await db
     .from('contracts')
@@ -74,6 +75,5 @@ export function computeLifecycleDates(agreementDate: string, durationMonths: num
   const renewal = new Date(expiry)
   renewal.setDate(renewal.getDate() - 90)
 
-  const toIso = (d: Date) => d.toISOString().slice(0, 10)
-  return { expiry_date: toIso(expiry), renewal_date: toIso(renewal) }
+  return { expiry_date: calendarDateIso(expiry), renewal_date: calendarDateIso(renewal) }
 }

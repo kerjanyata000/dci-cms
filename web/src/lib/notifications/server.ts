@@ -8,6 +8,7 @@ import {
 } from '@/lib/notifications/types'
 import { listRecentSyncErrors } from '@/lib/so/server'
 import { PARTY_ON_AMENDMENT, PARTY_ON_CONTRACT } from '@/lib/supabase/embeds'
+import { diffCalendarDays, todayIso } from '@/lib/time'
 
 export type { NotificationItem }
 
@@ -50,7 +51,7 @@ export async function loadNotifications(): Promise<NotificationItem[]> {
       .limit(5),
   ])
 
-  const today = startOfDay(new Date())
+  const today = todayIso()
 
   for (const row of renewalRes.data ?? []) {
     if (!row.renewal_date) continue
@@ -185,13 +186,8 @@ export async function loadNotifications(): Promise<NotificationItem[]> {
     .slice(0, 16)
 }
 
-function startOfDay(d: Date) {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate())
-}
-
-function daysUntil(from: Date, isoDate: string): number {
-  const target = startOfDay(new Date(`${isoDate}T00:00:00`))
-  return Math.round((target.getTime() - from.getTime()) / 86400000)
+function daysUntil(fromIso: string, isoDate: string): number {
+  return diffCalendarDays(fromIso, isoDate)
 }
 
 function unwrapParty(raw: unknown): { party_code: string; name: string } | null {

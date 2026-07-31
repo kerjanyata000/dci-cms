@@ -10,6 +10,7 @@ import {
   type GuidelineCategory,
 } from '@/lib/contracts/guidelines'
 import { createParty, fetchParties } from '@/lib/parties/api'
+import { todayIso } from '@/lib/time'
 import type { Contract, ContractMetadata, Party } from '@/types/cms'
 
 type Props = {
@@ -33,10 +34,6 @@ function parseDurationMonths(period?: string): string {
   const y = period.match(/(\d+)\s*tahun/i)
   if (y) return String(Number(y[1]) * 12)
   return '12'
-}
-
-function todayIso() {
-  return new Date().toISOString().slice(0, 10)
 }
 
 function pillClass(status: GuidelineAlert['status']) {

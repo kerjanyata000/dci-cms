@@ -9,6 +9,7 @@ import { TablePagination, paginateSlice } from '@/components/ui/TablePagination'
 import { fetchRenewalAgenda, type RenewalPayload } from '@/lib/renewal/api'
 import { downloadRenewalIcs } from '@/lib/renewal/ics'
 import type { RenewalAgendaItem } from '@/lib/renewal/types'
+import { calendarDateIso, todayIso } from '@/lib/time'
 
 type Filter = 'all' | 'urgent' | 'soon' | 'later' | 'month'
 
@@ -35,6 +36,17 @@ const MONTHS_ID = [
 
 function ymdKey(iso: string) {
   return iso.slice(0, 10)
+}
+
+/** Date pembawa komponen kalender dari tanggal WIB — tanpa konversi zona waktu. */
+function isoToCalendarDate(iso: string) {
+  const [y, m, d] = iso.slice(0, 10).split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
+function monthStartOf(iso: string) {
+  const d = isoToCalendarDate(iso)
+  return new Date(d.getFullYear(), d.getMonth(), 1)
 }
 
 function formatIdDate(iso: string) {
@@ -110,15 +122,12 @@ export function RenewalCalendarView() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<Filter>('all')
-  const [cursor, setCursor] = useState(() => {
-    const t = new Date()
-    return new Date(t.getFullYear(), t.getMonth(), 1)
-  })
-  const [selectedKey, setSelectedKey] = useState(() => ymdKey(new Date().toISOString()))
+  const [cursor, setCursor] = useState(() => monthStartOf(todayIso()))
+  const [selectedKey, setSelectedKey] = useState(() => todayIso())
   const [pickerOpen, setPickerOpen] = useState(false)
   const [pickerView, setPickerView] = useState<'month' | 'year'>('month')
   const [decadeStart, setDecadeStart] = useState(() => {
-    const y = new Date().getFullYear()
+    const y = Number(todayIso().slice(0, 4))
     return y - (y % 9)
   })
   const [tablePage, setTablePage] = useState(1)
@@ -190,24 +199,17 @@ export function RenewalCalendarView() {
 
   useEffect(() => {
     if (!data?.items.length) return
-    const today = startOfDay(new Date())
+    const today = todayIso()
     const upcoming =
       data.items
-        .filter((i) => {
-          const d = startOfDay(new Date(`${i.eventDate}T00:00:00`))
-          return d >= today || i.daysLeft >= -7
-        })
+        .filter((i) => ymdKey(i.eventDate) >= today || i.daysLeft >= -7)
         .sort((a, b) => a.eventDate.localeCompare(b.eventDate))[0] ?? data.items[0]
     if (!upcoming) return
-    const d = new Date(`${upcoming.eventDate}T00:00:00`)
+    const d = isoToCalendarDate(upcoming.eventDate)
     setCursor(new Date(d.getFullYear(), d.getMonth(), 1))
     setSelectedKey(ymdKey(upcoming.eventDate))
     setDecadeStart(d.getFullYear() - (d.getFullYear() % 9))
   }, [data])
-
-  function startOfDay(d: Date) {
-    return new Date(d.getFullYear(), d.getMonth(), d.getDate())
-  }
 
   const items = data?.items ?? []
 
@@ -260,20 +262,21 @@ export function RenewalCalendarView() {
         date,
         inMonth: date.getMonth() === m,
         weekend: date.getDay() === 0 || date.getDay() === 6,
-        key: ymdKey(date.toISOString()),
+        key: calendarDateIso(date),
       })
     }
     return cells
   }, [cursor])
 
-  const todayKey = ymdKey(new Date().toISOString())
+  const todayKey = todayIso()
   const sideEvents = eventsByKey.get(selectedKey) ?? []
 
   function goToday() {
-    const t = new Date()
-    setCursor(new Date(t.getFullYear(), t.getMonth(), 1))
-    setSelectedKey(ymdKey(t.toISOString()))
-    setDecadeStart(t.getFullYear() - (t.getFullYear() % 9))
+    const iso = todayIso()
+    const year = Number(iso.slice(0, 4))
+    setCursor(monthStartOf(iso))
+    setSelectedKey(iso)
+    setDecadeStart(year - (year % 9))
   }
 
   function closePicker() {
@@ -299,7 +302,7 @@ export function RenewalCalendarView() {
     setPickerView('month')
   }
 
-  const today = new Date()
+  const today = isoToCalendarDate(todayIso())
   const currentMonth = today.getMonth()
   const currentYear = today.getFullYear()
 

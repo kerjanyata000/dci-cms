@@ -14,6 +14,7 @@ import { evaluateOdooLinkStatus, mapPartyRow, type PartyRow } from '@/lib/partie
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 import { ACTIVE_FOR_TERM } from '@/lib/contracts/constants'
 import { validateContractMetadata } from '@/lib/validation/metadata'
+import { todayIso } from '@/lib/time'
 
 export type CreateContractInput = {
   contract_title: string
@@ -524,7 +525,7 @@ export async function createEarlyTermination(
   const effective_date = body.effective_date?.trim()
   if (!effective_date) throw new Error('effective_date is required')
 
-  const today = new Date().toISOString().slice(0, 10)
+  const today = todayIso()
   const isFuture = effective_date > today
 
   const { data, error } = await db

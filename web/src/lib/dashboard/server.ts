@@ -11,12 +11,10 @@ import type { ContractMetadata } from '@/types/cms'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 import { PARTY_ON_AMENDMENT, PARTY_ON_CONTRACT } from '@/lib/supabase/embeds'
 import { loadSoHealthSummary } from '@/lib/so/server'
+import { diffCalendarDays, todayIso } from '@/lib/time'
 
 function daysUntil(isoDate: string): number {
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const target = new Date(`${isoDate}T00:00:00`)
-  return Math.round((target.getTime() - today.getTime()) / 86400000)
+  return diffCalendarDays(todayIso(), isoDate)
 }
 
 function urgencyBucket(daysLeft: number): RenewalTimelineRow['bucket'] {

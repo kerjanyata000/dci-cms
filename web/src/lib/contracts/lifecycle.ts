@@ -1,9 +1,10 @@
 import 'server-only'
 
 import { getSupabaseAdmin } from '@/lib/supabase/server'
+import { todayIso } from '@/lib/time'
 
 function todayIsoDate() {
-  return new Date().toISOString().slice(0, 10)
+  return todayIso()
 }
 
 /**

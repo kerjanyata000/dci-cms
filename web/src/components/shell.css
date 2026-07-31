@@ -299,6 +299,50 @@ a {
   transform: scaleY(1);
 }
 
+.sidebar-exit {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.nav-exit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  color: #f08a7c;
+  cursor: pointer;
+  transition:
+    background-color var(--dur) var(--ease-soft),
+    color var(--dur) var(--ease-soft),
+    transform var(--dur-fast) var(--ease-soft);
+}
+
+.nav-exit svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  opacity: 0.85;
+}
+
+.nav-exit:hover {
+  background: rgba(224, 92, 74, 0.18);
+  color: #ffb3a7;
+  transform: translateX(2px);
+}
+
+.nav-exit:focus-visible {
+  outline: 2px solid #f08a7c;
+  outline-offset: 2px;
+}
+
 .sidebar-foot {
   margin-top: auto;
   padding-top: 12px;
@@ -3598,7 +3642,8 @@ textarea {
 }
 
 .cal-weekdays span.weekend {
-  background: #e9eef3;
+  background: #dde6ef;
+  color: #46586b;
 }
 
 .cal-grid {
@@ -3623,33 +3668,43 @@ textarea {
   background: #f7f8fa;
 }
 
-.cal-cell.out:hover {
-  background: #eef1f4;
-}
-
 .cal-cell:nth-child(7n) {
   border-right: none;
 }
 
+/* Luar bulan = pudar (bukan gelap), supaya tidak tertukar dengan kolom weekend. */
 .cal-cell.out {
-  background: #f4f6f8;
+  background: #fbfcfd;
   color: var(--muted);
 }
 
+.cal-cell.out:hover {
+  background: #f5f7f9;
+}
+
+.cal-cell.out .cal-daynum {
+  opacity: 0.4;
+}
+
+/* Weekend = kolom teduh biru dingin, penanda hari libur. */
 .cal-cell.weekend {
-  background: #e9eef3;
+  background: #dde6ef;
 }
 
 .cal-cell.weekend:hover {
-  background: #e1e8ee;
+  background: #d3dfea;
+}
+
+.cal-cell.weekend .cal-daynum {
+  color: #46586b;
 }
 
 .cal-cell.out.weekend {
-  background: #e2e8ee;
+  background: #eef2f7;
 }
 
 .cal-cell.out.weekend:hover {
-  background: #dae2e9;
+  background: #e6ecf3;
 }
 
 .cal-cell.today {
@@ -3658,8 +3713,8 @@ textarea {
 
 .cal-cell.today.weekend {
   background:
-    linear-gradient(180deg, rgba(0, 164, 223, 0.08), transparent 48%),
-    #e9eef3;
+    linear-gradient(180deg, rgba(0, 164, 223, 0.1), transparent 48%),
+    #dde6ef;
 }
 
 .cal-cell.selected {

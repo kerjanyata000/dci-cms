@@ -3,6 +3,7 @@ import 'server-only'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 import { PARTY_ON_CONTRACT, PARTY_ON_TERMINATION } from '@/lib/supabase/embeds'
 import type { RenewalAgendaItem, RenewalKind } from '@/lib/renewal/types'
+import { diffCalendarDays, isoMonth, todayIso } from '@/lib/time'
 
 export type { RenewalAgendaItem, RenewalKind } from '@/lib/renewal/types'
 
@@ -15,14 +16,6 @@ function unwrapParty(raw: unknown): { party_code: string; name: string; pic: str
   const p = row as { party_code?: string; name?: string; pic?: string | null }
   if (!p.party_code || !p.name) return null
   return { party_code: p.party_code, name: p.name, pic: p.pic ?? null }
-}
-
-function startOfDay(d: Date) {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate())
-}
-
-function daysBetween(from: Date, to: Date) {
-  return Math.round((to.getTime() - from.getTime()) / 86400000)
 }
 
 export function urgencyBucket(daysLeft: number): 'urgent' | 'soon' | 'later' {
@@ -39,7 +32,7 @@ function formatDuration(months: number | null): string {
 
 export async function loadRenewalAgenda(): Promise<RenewalAgendaItem[]> {
   const db = getSupabaseAdmin()
-  const today = startOfDay(new Date())
+  const today = todayIso()
 
   const [contractsRes, terminationsRes] = await Promise.all([
     db
@@ -79,8 +72,7 @@ export async function loadRenewalAgenda(): Promise<RenewalAgendaItem[]> {
     const isLifecycleRelevant = ACTIVE_STATUSES.includes(String(row.status))
 
     if (row.renewal_date && isLifecycleRelevant) {
-      const dt = startOfDay(new Date(`${row.renewal_date}T00:00:00`))
-      const daysLeft = daysBetween(today, dt)
+      const daysLeft = diffCalendarDays(today, row.renewal_date as string)
       items.push({
         ...base,
         id: `${row.id}-renewal`,
@@ -92,8 +84,7 @@ export async function loadRenewalAgenda(): Promise<RenewalAgendaItem[]> {
     }
 
     if (row.expiry_date && isLifecycleRelevant) {
-      const dt = startOfDay(new Date(`${row.expiry_date}T00:00:00`))
-      const daysLeft = daysBetween(today, dt)
+      const daysLeft = diffCalendarDays(today, row.expiry_date as string)
       items.push({
         ...base,
         id: `${row.id}-expiry`,
@@ -112,8 +103,7 @@ export async function loadRenewalAgenda(): Promise<RenewalAgendaItem[]> {
     const contractTyped = contract as { contract_code?: string; contract_title?: string | null } | null
     if (!party || !row.effective_date) continue
 
-    const dt = startOfDay(new Date(`${row.effective_date}T00:00:00`))
-    const daysLeft = daysBetween(today, dt)
+    const daysLeft = diffCalendarDays(today, row.effective_date as string)
     items.push({
       id: row.id as string,
       partyId: row.party_id as string,
@@ -135,18 +125,13 @@ export async function loadRenewalAgenda(): Promise<RenewalAgendaItem[]> {
 }
 
 export function summarizeRenewal(items: RenewalAgendaItem[]) {
-  const today = startOfDay(new Date())
-  const month = today.getMonth()
-  const year = today.getFullYear()
+  const currentMonth = isoMonth(todayIso())
 
   return {
     urgent: items.filter((i) => i.bucket === 'urgent').length,
     soon: items.filter((i) => i.bucket === 'soon').length,
     later: items.filter((i) => i.bucket === 'later').length,
-    inMonth: items.filter((i) => {
-      const d = new Date(`${i.eventDate}T00:00:00`)
-      return d.getMonth() === month && d.getFullYear() === year
-    }).length,
+    inMonth: items.filter((i) => isoMonth(i.eventDate) === currentMonth).length,
     total: items.length,
   }
 }

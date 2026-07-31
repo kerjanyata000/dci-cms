@@ -1,4 +1,5 @@
 import type { RenewalAgendaItem } from '@/lib/renewal/types'
+import { APP_TIME_ZONE, todayIso } from '@/lib/time'
 
 const KIND_LABEL: Record<string, string> = {
   renewal: 'Renewal',
@@ -42,9 +43,14 @@ export function buildRenewalIcs(items: RenewalAgendaItem[]): string {
     ].join('\r\n')
   })
 
-  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//DCI CMS//Renewal//EN', ...events, 'END:VCALENDAR'].join(
-    '\r\n',
-  )
+  return [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//DCI CMS//Renewal//EN',
+    `X-WR-TIMEZONE:${APP_TIME_ZONE}`,
+    ...events,
+    'END:VCALENDAR',
+  ].join('\r\n')
 }
 
 export function downloadRenewalIcs(items: RenewalAgendaItem[], filename?: string) {
@@ -53,7 +59,7 @@ export function downloadRenewalIcs(items: RenewalAgendaItem[], filename?: string
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = filename ?? `dci-renewal-${new Date().toISOString().slice(0, 10)}.ics`
+  a.download = filename ?? `dci-renewal-${todayIso()}.ics`
   a.click()
   URL.revokeObjectURL(url)
 }
