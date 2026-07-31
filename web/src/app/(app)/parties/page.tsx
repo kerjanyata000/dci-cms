@@ -406,8 +406,12 @@ export default function PartiesPage() {
       <AddPartyModal
         open={addOpen}
         onClose={() => setAddOpen(false)}
+        picOptions={allPics}
         onCreated={(party) => {
           setRows((prev) => [{ ...party, primary_contract: null }, ...prev])
+          if (party.pic && !allPics.includes(party.pic)) {
+            setAllPics((prev) => [...prev, party.pic!].sort((a, b) => a.localeCompare(b)))
+          }
         }}
       />
 

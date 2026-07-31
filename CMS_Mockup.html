@@ -399,6 +399,9 @@ tbody tr.clickable:hover{background:#F7F8FA;cursor:pointer;}
 .modal-close svg{width:14px;height:14px;}
 .modal-body{padding:22px 24px;max-height:60vh;overflow-y:auto;}
 .modal-foot{padding:16px 24px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;background:var(--paper);}
+.modal-head-plain{justify-content:center;text-align:center;}
+.modal-foot-fill{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.modal-foot-fill .btn{width:100%;justify-content:center;}
 .steps{display:flex;gap:6px;margin-bottom:20px;}
 .step{flex:1;height:4px;border-radius:3px;background:var(--slate-light);}
 .step.done{background:var(--brass);}
@@ -1194,22 +1197,21 @@ tbody tr.clickable{transition:background .12s;}
 
 <div class="modal-overlay" id="modal-add-party">
   <div class="modal">
-    <div class="modal-head">
+    <div class="modal-head modal-head-plain">
       <div><h2>Add New Party</h2><p>BRD §6.12 / §8.12 — validasi duplikasi &amp; pengecekan Odoo Partner.</p></div>
-      <button class="modal-close" onclick="closeModal('modal-add-party')">✕</button>
     </div>
     <div class="modal-body">
       <div class="field-row">
-        <div class="field"><label>Legal Name</label><input id="ap-name" placeholder="PT Nama Perusahaan" oninput="refreshAddPartyChecks()"></div>
+        <div class="field"><label>Legal Name</label><input id="ap-name" placeholder="Contoh: PT Nama Perusahaan" oninput="refreshAddPartyChecks()"></div>
         <div class="field"><label>Party Type</label><select id="ap-type"><option>Customer</option><option>Vendor</option><option>Counterparty</option></select></div>
       </div>
       <div class="field-row">
-        <div class="field"><label>NPWP</label><input id="ap-npwp" placeholder="00.000.000.0-000.000" oninput="refreshAddPartyChecks()"></div>
-        <div class="field"><label>PIC Legal</label><input id="ap-pic" placeholder="Nama PIC Legal"></div>
+        <div class="field"><label>NPWP</label><input id="ap-npwp" placeholder="Contoh: 01.234.567.8-901.000" oninput="refreshAddPartyChecks()"></div>
+        <div class="field"><label>Nama PIC</label><select id="ap-pic"><option value="">Pilih PIC</option></select></div>
       </div>
       <div class="field-row">
         <div class="field"><label>Agreement Date</label><input id="ap-date" type="date" value="2026-07-21"></div>
-        <div class="field"><label>Contact</label><input id="ap-contact" placeholder="Nama, email, telepon"></div>
+        <div class="field"><label>Contact</label><input id="ap-contact" placeholder="Contoh: nama@perusahaan.co.id · 021-1234-5678"></div>
       </div>
       <div class="notice" id="ap-dup-notice" style="display:none;margin-bottom:12px;"></div>
       <div class="match-box">
@@ -1217,9 +1219,9 @@ tbody tr.clickable{transition:background .12s;}
         <div id="ap-odoo-match"><b>Pengecekan Odoo Partner…</b><br>Menggunakan OdooClient (<span class="mono">dummy</span>).</div>
       </div>
     </div>
-    <div class="modal-foot">
+    <div class="modal-foot modal-foot-fill">
       <button class="btn ghost" style="background:#fff" onclick="closeModal('modal-add-party')">Batal</button>
-      <button class="btn primary" onclick="submitAddParty()">Simpan &amp; Tautkan ke Odoo</button>
+      <button class="btn primary" onclick="submitAddParty()">Simpan Party</button>
     </div>
   </div>
 </div>
@@ -2328,12 +2330,12 @@ function submitAddContract(mode){
 }
 
 async function openAddPartyModal(){
-  const overlay = document.getElementById('modal-add-party');
-  if(overlay && !overlay.classList.contains('open') && !overlay.classList.contains('show')){
-    openModal('modal-add-party');
-  } else {
-    openModal('modal-add-party');
+  const picSel = document.getElementById('ap-pic');
+  if(picSel){
+    const pics = [...new Set(state.parties.map(p=>p.pic).filter(Boolean))].sort();
+    picSel.innerHTML = '<option value="">Pilih PIC</option>' + pics.map(p=>'<option value="'+p+'">'+p+'</option>').join('');
   }
+  openModal('modal-add-party');
   await refreshAddPartyOdooMatch();
 }
 async function refreshAddPartyOdooMatch(){

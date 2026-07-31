@@ -1884,11 +1884,32 @@ a {
   font-size: 20px;
 }
 
+.modal-head-plain {
+  justify-content: center;
+  text-align: center;
+}
+
+.modal-head-plain h2 {
+  width: 100%;
+}
+
 .modal-foot {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
   margin-top: 16px;
+}
+
+.modal-foot-fill {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  justify-content: stretch;
+}
+
+.modal-foot-fill .btn {
+  width: 100%;
+  justify-content: center;
 }
 
 .modal-hint {

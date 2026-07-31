@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ModalCloseButton } from '@/components/ui/icons'
 import { checkPartyDuplicates, createParty, type PartyDuplicateMatch } from '@/lib/parties/api'
 import type { Party } from '@/types/cms'
 
@@ -10,6 +9,8 @@ type Props = {
   open: boolean
   onClose: () => void
   onCreated: (party: Party) => void
+  /** PIC Legal yang sudah terdaftar di register (dari dashboard / parties) */
+  picOptions?: string[]
 }
 
 const PARTY_TYPES = ['Customer', 'Vendor', 'Partner', 'Other']
@@ -20,7 +21,7 @@ function matchLabel(match: PartyDuplicateMatch['match']) {
   return 'nama'
 }
 
-export function AddPartyModal({ open, onClose, onCreated }: Props) {
+export function AddPartyModal({ open, onClose, onCreated, picOptions = [] }: Props) {
   const router = useRouter()
   const [name, setName] = useState('')
   const [pic, setPic] = useState('')
@@ -105,14 +106,16 @@ export function AddPartyModal({ open, onClose, onCreated }: Props) {
     router.push(`/parties/${partyId}`)
   }
 
+  function handleCancel() {
+    reset()
+    onClose()
+  }
+
   return (
-    <div className="modal-overlay" role="presentation" onClick={onClose}>
+    <div className="modal-overlay" role="presentation" onClick={handleCancel}>
       <form className="modal modal-wide" onClick={(e) => e.stopPropagation()} onSubmit={submit}>
-        <div className="modal-head">
-          <div>
-            <h2>Add New Party</h2>
-          </div>
-          <ModalCloseButton onClick={onClose} />
+        <div className="modal-head modal-head-plain">
+          <h2>Add New Party</h2>
         </div>
 
         <div className="grid-2">
@@ -123,7 +126,7 @@ export function AddPartyModal({ open, onClose, onCreated }: Props) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              placeholder="PT Contoh Nusantara"
+              placeholder="Contoh: PT Contoh Nusantara"
               aria-invalid={hasDuplicate}
             />
           </div>
@@ -138,13 +141,15 @@ export function AddPartyModal({ open, onClose, onCreated }: Props) {
             </select>
           </div>
           <div className="field">
-            <label htmlFor="party-pic">PIC</label>
-            <input
-              id="party-pic"
-              value={pic}
-              onChange={(e) => setPic(e.target.value)}
-              placeholder="Nama PIC"
-            />
+            <label htmlFor="party-pic">Nama PIC</label>
+            <select id="party-pic" value={pic} onChange={(e) => setPic(e.target.value)}>
+              <option value="">Pilih PIC</option>
+              {picOptions.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="field">
             <label htmlFor="party-npwp">NPWP</label>
@@ -152,6 +157,7 @@ export function AddPartyModal({ open, onClose, onCreated }: Props) {
               id="party-npwp"
               value={npwp}
               onChange={(e) => setNpwp(e.target.value)}
+              placeholder="Contoh: 01.234.567.8-901.000"
               aria-invalid={hasDuplicate}
             />
           </div>
@@ -162,11 +168,17 @@ export function AddPartyModal({ open, onClose, onCreated }: Props) {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="Contoh: legal@perusahaan.co.id"
             />
           </div>
           <div className="field">
             <label htmlFor="party-phone">Telepon</label>
-            <input id="party-phone" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <input
+              id="party-phone"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="Contoh: 021-1234-5678"
+            />
           </div>
         </div>
 
@@ -177,6 +189,7 @@ export function AddPartyModal({ open, onClose, onCreated }: Props) {
             rows={2}
             value={address}
             onChange={(e) => setAddress(e.target.value)}
+            placeholder="Contoh: Jl. Sudirman No. 1, Jakarta Selatan 12190"
           />
         </div>
 
@@ -212,8 +225,8 @@ export function AddPartyModal({ open, onClose, onCreated }: Props) {
 
         {error && <p className="error-text">{error}</p>}
 
-        <div className="modal-foot">
-          <button type="button" className="btn ghost" onClick={onClose}>
+        <div className="modal-foot modal-foot-fill">
+          <button type="button" className="btn ghost" onClick={handleCancel}>
             Batal
           </button>
           <button
