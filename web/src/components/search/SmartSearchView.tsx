@@ -23,11 +23,25 @@ const STATUS_FILTERS = [
   { value: 'terminated', label: 'Terminated' },
 ]
 
-const EXAMPLE_QUERIES = ['Customer ABC', 'MSA', 'perpanjangan otomatis', 'PTY-00006']
-
 function contractStatusClass(status: string): string {
   if (status === 'under_review') return 'under_review'
   return status
+}
+
+function partyStatusClass(status: string): string {
+  const s = status.toLowerCase().replace(/\s+/g, '_')
+  if (s === 'active') return 'active'
+  if (s === 'inactive') return 'draft'
+  return 'draft'
+}
+
+function initials(name: string): string {
+  return name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
 }
 
 function readScope(raw: string | null): SearchScope {
@@ -49,7 +63,6 @@ export function SmartSearchView(_props: Props) {
   const [result, setResult] = useState<SmartSearchResult | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const [lastQuery, setLastQuery] = useState('')
   const reqIdRef = useRef(0)
   const didInitialUrlSearch = useRef(false)
 
@@ -66,7 +79,6 @@ export function SmartSearchView(_props: Props) {
 
     if (!term) {
       setResult(null)
-      setLastQuery('')
       setError('')
       router.replace('/search', { scroll: false })
       return
@@ -93,12 +105,10 @@ export function SmartSearchView(_props: Props) {
       })
       if (reqId !== reqIdRef.current) return
       setResult(data)
-      setLastQuery(term)
     } catch (err) {
       if (reqId !== reqIdRef.current) return
       setError(err instanceof Error ? err.message : 'Pencarian gagal')
       setResult(null)
-      setLastQuery('')
     } finally {
       if (reqId === reqIdRef.current) setBusy(false)
     }
@@ -116,10 +126,6 @@ export function SmartSearchView(_props: Props) {
   function submit(e: React.FormEvent) {
     e.preventDefault()
     void execute()
-  }
-
-  function pickExample(sample: string) {
-    setQ(sample)
   }
 
   const total =
@@ -197,25 +203,6 @@ export function SmartSearchView(_props: Props) {
 
       {error && <p className="error-text">{error}</p>}
 
-      {!lastQuery && !busy && !result && (
-        <div className="search-empty-state card stack">
-          <h2>Cari di registry</h2>
-          <div className="search-empty-examples">
-            <span className="muted">Contoh (isi kotak, lalu Cari):</span>
-            {EXAMPLE_QUERIES.map((sample) => (
-              <button
-                key={sample}
-                type="button"
-                className="filter-chip clickable"
-                onClick={() => pickExample(sample)}
-              >
-                {sample}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {busy && (
         <div className="search-results-skeleton stack" aria-busy="true" aria-label="Mencari">
           <div className="skeleton-line" style={{ width: 180, height: 14 }} />
@@ -254,8 +241,21 @@ export function SmartSearchView(_props: Props) {
                     <tr key={p.id}>
                       <td className="mono">{p.party_code}</td>
                       <td>{p.name}</td>
-                      <td>{p.pic || '—'}</td>
-                      <td>{p.party_status}</td>
+                      <td>
+                        {p.pic ? (
+                          <span className="row-flex">
+                            <span className="avatar-sm">{initials(p.pic)}</span>
+                            {p.pic}
+                          </span>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+                      <td>
+                        <span className={`status-pill ${partyStatusClass(p.party_status)}`}>
+                          {p.party_status || '—'}
+                        </span>
+                      </td>
                       <td>
                         <Link href={`/parties/${p.id}`} className="btn ghost">
                           Detail

@@ -1935,14 +1935,25 @@ function renderPageSmartSearch(){
 
   let html = '';
   if(!term){
-    html = '<div style="padding:24px 18px;font-size:13px;color:var(--muted);">Masukkan kata kunci atau pilih contoh di atas.</div>';
+    html = '<div style="padding:24px 18px;font-size:13px;color:var(--muted);">Masukkan kata kunci lalu klik Cari.</div>';
   } else {
     if(scope==='all' || scope==='parties'){
-      parties.forEach(p=>{
-        html += '<button type="button" class="sr-row" onclick="openPartyDetail(\''+p.id+'\')">'
-          +'<div><b>'+p.name+'</b><div class="sr-meta">'+p.id+' · PIC '+p.pic+' · <span class="status-pill '+p.status+'">'+p.statusText+'</span></div></div>'
-          +'<span class="status-pill '+(p.odooLink==='linked'?'closed':'process')+'">'+odooLinkLabel(p.odooLink)+'</span></button>';
-      });
+      if(parties.length){
+        html += '<div style="padding:12px 16px 8px;font-size:13px;font-weight:600;">Parties ('+parties.length+')</div>';
+        html += '<table class="data-table" style="margin:0;"><thead><tr><th>Code</th><th>Nama</th><th>PIC</th><th>Status</th><th></th></tr></thead><tbody>';
+        parties.forEach(p=>{
+          const partyStatus = (p.partyStatus||'Active');
+          const statusCls = partyStatus==='Active' ? 'active' : 'draft';
+          html += '<tr class="clickable" onclick="openPartyDetail(\''+p.id+'\')">'
+            +'<td class="mono">'+p.id+'</td>'
+            +'<td>'+p.name+'</td>'
+            +'<td><span class="row-flex"><span class="avatar-sm">'+initials(p.pic)+'</span>'+p.pic+'</span></td>'
+            +'<td><span class="status-pill '+statusCls+'">'+partyStatus+'</span></td>'
+            +'<td><button type="button" class="btn small ghost" style="background:#fff" onclick="event.stopPropagation();openPartyDetail(\''+p.id+'\')">Detail</button></td>'
+            +'</tr>';
+        });
+        html += '</tbody></table>';
+      }
     }
     if(scope==='all' || scope==='contracts'){
       parties.slice(0,4).forEach(p=>{
