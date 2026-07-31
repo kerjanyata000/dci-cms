@@ -117,7 +117,7 @@ export function NotificationsBell() {
     <div className="notif-wrap" ref={ref}>
       <button
         type="button"
-        className="btn ghost notif-btn"
+        className={`btn ghost notif-btn${open ? ' open' : ''}`}
         aria-label="Notifikasi"
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
