@@ -256,15 +256,21 @@ a{color:inherit;}
 .cal-nav .btn{min-width:34px;padding:6px 10px;}
 .cal-weekdays{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--line);background:var(--paper);}
 .cal-weekdays span{text-align:center;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:8px 4px;}
+.cal-weekdays span.weekend{background:#E9EEF3;}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:minmax(88px,auto);}
 .cal-cell{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:8px;min-height:88px;background:var(--paper-2);cursor:pointer;vertical-align:top;}
 .cal-cell:nth-child(7n){border-right:none;}
 .cal-cell.out{background:#F4F6F8;color:var(--muted);}
 .cal-cell.out .cal-daynum{opacity:.45;}
+.cal-cell.weekend{background:#E9EEF3;}
+.cal-cell.out.weekend{background:#E2E8EE;}
 .cal-cell.today{background:linear-gradient(180deg, rgba(0,164,223,.08), transparent 48%);}
+.cal-cell.today.weekend{background:linear-gradient(180deg, rgba(0,164,223,.08), transparent 48%), #E9EEF3;}
 .cal-cell.selected{outline:2px solid var(--brass);outline-offset:-2px;z-index:1;}
 .cal-cell:hover{background:#F7F8FA;}
 .cal-cell.out:hover{background:#EEF1F4;}
+.cal-cell.weekend:hover{background:#E1E8EE;}
+.cal-cell.out.weekend:hover{background:#DAE2E9;}
 .cal-daynum{font-family:var(--serif);font-size:15px;font-weight:600;line-height:1;margin-bottom:6px;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;}
 .cal-cell.today .cal-daynum{background:var(--ink);color:#fff;}
 .cal-events{display:flex;flex-direction:column;gap:3px;}
@@ -1078,7 +1084,7 @@ tbody tr.clickable{transition:background .12s;}
               </div>
             </div>
             <div class="cal-weekdays">
-              <span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span><span>Min</span>
+              <span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span class="weekend">Sab</span><span class="weekend">Min</span>
             </div>
             <div class="cal-grid" id="cal-grid"></div>
             <div class="cal-legend">
@@ -3170,6 +3176,7 @@ function renderCalGrid(rows){
       : evts.filter(e => e.bucket === renewalFilter);
     const cls = ['cal-cell'];
     if(!inMonth) cls.push('out');
+    if(d.getDay()===0 || d.getDay()===6) cls.push('weekend');
     if(key === todayKey) cls.push('today');
     if(key === calSelectedKey) cls.push('selected');
     const maxShow = 3;

@@ -3597,6 +3597,10 @@ textarea {
   padding: 8px 4px;
 }
 
+.cal-weekdays span.weekend {
+  background: #e9eef3;
+}
+
 .cal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -3632,8 +3636,30 @@ textarea {
   color: var(--muted);
 }
 
+.cal-cell.weekend {
+  background: #e9eef3;
+}
+
+.cal-cell.weekend:hover {
+  background: #e1e8ee;
+}
+
+.cal-cell.out.weekend {
+  background: #e2e8ee;
+}
+
+.cal-cell.out.weekend:hover {
+  background: #dae2e9;
+}
+
 .cal-cell.today {
   background: linear-gradient(180deg, rgba(0, 164, 223, 0.08), transparent 48%);
+}
+
+.cal-cell.today.weekend {
+  background:
+    linear-gradient(180deg, rgba(0, 164, 223, 0.08), transparent 48%),
+    #e9eef3;
 }
 
 .cal-cell.selected {

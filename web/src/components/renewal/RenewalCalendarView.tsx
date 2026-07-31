@@ -252,13 +252,14 @@ export function RenewalCalendarView() {
     const first = new Date(y, m, 1)
     const startOffset = (first.getDay() + 6) % 7
     const start = new Date(y, m, 1 - startOffset)
-    const cells: Array<{ date: Date; inMonth: boolean; key: string }> = []
+    const cells: Array<{ date: Date; inMonth: boolean; weekend: boolean; key: string }> = []
     for (let i = 0; i < 42; i++) {
       const date = new Date(start)
       date.setDate(start.getDate() + i)
       cells.push({
         date,
         inMonth: date.getMonth() === m,
+        weekend: date.getDay() === 0 || date.getDay() === 6,
         key: ymdKey(date.toISOString()),
       })
     }
@@ -525,7 +526,9 @@ export function RenewalCalendarView() {
 
           <div className="cal-weekdays">
             {['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'].map((d) => (
-              <span key={d}>{d}</span>
+              <span key={d} className={d === 'Sab' || d === 'Min' ? 'weekend' : undefined}>
+                {d}
+              </span>
             ))}
           </div>
 
@@ -538,7 +541,7 @@ export function RenewalCalendarView() {
                   role="button"
                   tabIndex={0}
                   aria-pressed={cell.key === selectedKey}
-                  className={`cal-cell${cell.inMonth ? '' : ' out'}${cell.key === todayKey ? ' today' : ''}${cell.key === selectedKey ? ' selected' : ''}`}
+                  className={`cal-cell${cell.inMonth ? '' : ' out'}${cell.weekend ? ' weekend' : ''}${cell.key === todayKey ? ' today' : ''}${cell.key === selectedKey ? ' selected' : ''}`}
                   onClick={() => setSelectedKey(cell.key)}
                   onKeyDown={(ev) => {
                     if (ev.key === 'Enter' || ev.key === ' ') {
