@@ -4,17 +4,12 @@ import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { cmsFetch } from '@/lib/api/http'
 import { useNotificationReadState } from '@/lib/notifications/useNotificationReadState'
+import {
+  resolveNotificationLevel,
+  type NotificationItem,
+  type NotificationLevel,
+} from '@/lib/notifications/types'
 import { TablePagination, paginateSlice } from '@/components/ui/TablePagination'
-
-type NotificationItem = {
-  id: string
-  code: string
-  title: string
-  sub: string
-  urgent: boolean
-  href?: string
-  created_at: string
-}
 
 const NOTIF_PAGE_SIZE = 10
 
@@ -25,6 +20,10 @@ function sortNotifications(items: NotificationItem[], mode: 'date' | 'urgent'): 
     }
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
   })
+}
+
+function levelOf(n: NotificationItem): NotificationLevel {
+  return n.level ?? resolveNotificationLevel({ urgent: n.urgent, code: n.code })
 }
 
 export default function NotificationsPage() {
@@ -122,36 +121,34 @@ export default function NotificationsPage() {
         )}
         {!loading && pageItems.length > 0 && (
           <ul className="notif-list notif-list-page">
-            {pageItems.map((n) => (
-              <li
-                key={n.id}
-                className={`${n.urgent ? 'urgent' : ''}${isRead(n.id) ? ' notif-read' : ''}`}
-              >
-                {n.href ? (
-                  <Link href={n.href} onClick={() => markRead(n.id)}>
-                    <div className="notif-row-head">
-                      <b>{n.title}</b>
-                      <span className="mono notif-code">{n.code}</span>
-                    </div>
-                    <span>{n.sub}</span>
-                    <span className="muted mono notif-time">
-                      {new Date(n.created_at).toLocaleString('id-ID')}
-                    </span>
-                  </Link>
-                ) : (
-                  <div>
-                    <div className="notif-row-head">
-                      <b>{n.title}</b>
-                      <span className="mono notif-code">{n.code}</span>
-                    </div>
-                    <span>{n.sub}</span>
-                    <span className="muted mono notif-time">
-                      {new Date(n.created_at).toLocaleString('id-ID')}
+            {pageItems.map((n) => {
+              const level = levelOf(n)
+              const body = (
+                <>
+                  <div className="notif-item-main">
+                    <p className="notif-desc">
+                      <strong>{n.title}</strong>
+                      {n.sub ? ` ${n.sub}` : ''}
+                    </p>
+                    <span className="notif-meta mono">
+                      {n.code} · {new Date(n.created_at).toLocaleString('id-ID')}
                     </span>
                   </div>
-                )}
-              </li>
-            ))}
+                  <span className={`notif-dot notif-dot-${level}`} aria-hidden />
+                </>
+              )
+              return (
+                <li key={n.id} className={`notif-row${isRead(n.id) ? ' notif-read' : ''}`}>
+                  {n.href ? (
+                    <Link href={n.href} className="notif-item" onClick={() => markRead(n.id)}>
+                      {body}
+                    </Link>
+                  ) : (
+                    <div className="notif-item">{body}</div>
+                  )}
+                </li>
+              )
+            })}
           </ul>
         )}
 

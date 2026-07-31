@@ -390,20 +390,31 @@ tbody tr.clickable:hover{background:#F7F8FA;cursor:pointer;}
 
 .popover-wrap{position:relative;}
 .as-btn{border:none;padding-left:12px;border-left:1px solid var(--line);background:transparent;cursor:pointer;}
-.popover{display:none;position:absolute;top:calc(100% + 10px);right:0;width:290px;background:var(--paper-2);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 28px rgba(18,32,58,.14);z-index:60;overflow:hidden;}
+.popover{display:none;position:absolute;top:calc(100% + 10px);right:0;width:340px;background:var(--paper-2);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 28px rgba(18,32,58,.14);z-index:60;overflow:hidden;}
 .popover.active{display:block;}
-.pop-head{padding:12px 16px;font-size:12.5px;font-weight:600;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+.pop-head{padding:12px 16px;font-size:12.5px;font-weight:600;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px;}
 .pop-head-sub{font-size:10.5px;color:var(--brass);font-weight:600;background:var(--brass-light);padding:2px 8px;border-radius:20px;}
-.pop-item{display:flex;gap:9px;align-items:flex-start;padding:10px 16px;font-size:12px;border-bottom:1px solid var(--line);width:100%;border-left:none;border-right:none;border-top:none;background:transparent;text-align:left;color:inherit;font-family:inherit;}
+.pop-head-actions{display:flex;align-items:center;gap:10px;}
+.pop-text-btn{border:none;background:none;padding:0;font:inherit;font-size:11.5px;font-weight:600;color:var(--brass);cursor:pointer;text-decoration:none;white-space:nowrap;}
+.pop-text-btn:hover{color:var(--ink);text-decoration:underline;}
+.pop-text-btn:disabled{opacity:.45;cursor:default;text-decoration:none;}
+#notif-list{background:var(--paper);max-height:300px;overflow:auto;}
+.pop-item{display:flex;gap:12px;align-items:flex-start;padding:12px 16px;font-size:12px;border-bottom:1px solid var(--line);width:100%;border-left:none;border-right:none;border-top:none;background:var(--paper);text-align:left;color:inherit;font-family:inherit;cursor:pointer;box-sizing:border-box;}
+.pop-item:hover{background:#e4e8ed;}
 .pop-item:last-of-type{border-bottom:none;}
-.pop-item div b{display:block;font-size:12px;}
-.pop-item div span{font-size:11px;color:var(--muted);}
-.pop-item.plain{cursor:pointer;font-size:12.5px;}
+.pop-item-main{flex:1;min-width:0;}
+.pop-item-main .notif-desc{margin:0;font-size:12.5px;line-height:1.45;color:var(--muted);}
+.pop-item-main .notif-desc strong{color:var(--ink);font-weight:600;}
+.pop-item-main .notif-meta{display:block;margin-top:4px;font-size:11px;color:var(--muted);opacity:.85;}
+.pop-item.plain{cursor:default;font-size:12.5px;color:var(--muted);}
 .pop-item.plain:hover{background:var(--paper);}
-.pop-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);margin-top:4px;flex:none;}
-.pop-dot.urgent{background:var(--red);}
-.pop-dot.warn{background:var(--amber);}
-.pop-foot{width:100%;border:none;background:var(--paper);padding:10px;font-size:11.5px;font-weight:600;color:var(--ink);border-top:1px solid var(--line);cursor:pointer;}
+.pop-dot{width:8px;height:8px;border-radius:50%;background:var(--brass);margin-top:5px;flex:none;}
+.pop-dot.urgent,.pop-dot.danger{background:var(--red);}
+.pop-dot.warn,.pop-dot.warning{background:var(--amber);}
+.pop-dot.normal{background:var(--brass);}
+.pop-foot{width:100%;border:none;background:var(--paper-2);padding:10px 16px;font-size:11.5px;font-weight:600;color:var(--brass);border-top:1px solid var(--line);cursor:pointer;text-align:left;}
+.pop-foot:hover{color:var(--ink);text-decoration:underline;}
+.pop-item.read{opacity:.62;}
 .search-hit{margin:8px 28px 0;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--paper-2);font-size:12.5px;display:none;align-items:center;justify-content:space-between;gap:12px;}
 .search-hit.show{display:flex;}
 .search-hit b{color:var(--ink);}
@@ -727,9 +738,14 @@ tbody tr.clickable{transition:background .12s;}
         <div class="popover-wrap">
           <button class="icon-btn" onclick="togglePop('pop-notif', event)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="badge-dot" id="notif-count">7</span></button>
           <div class="popover" id="pop-notif" onclick="event.stopPropagation()">
-            <div class="pop-head">Notifikasi <span class="pop-head-sub" id="notif-count-label">7 baru</span></div>
+            <div class="pop-head">
+              <span>Notifikasi</span>
+              <div class="pop-head-actions">
+                <button type="button" class="pop-text-btn" id="notif-mark-all" onclick="markAllNotifRead(); event.stopPropagation();">Tandai semua dibaca</button>
+              </div>
+            </div>
             <div id="notif-list"></div>
-            <button class="pop-foot" onclick="showView('notifications'); closeAllPop();">Lihat semua notifikasi →</button>
+            <button class="pop-foot" onclick="showView('notifications'); closeAllPop();">Lihat semua notifikasi</button>
           </div>
         </div>
         <div class="profile-wrap" id="profile-wrap">
@@ -2880,16 +2896,30 @@ function filterAudit(type, el){
 // NOTIFICATIONS
 // =====================================================================
 function unreadNotifs(){ return state.notifications.filter(n=>!n.read); }
+function notifLevel(n){
+  if(n.urgent) return 'danger';
+  if(n.warn) return 'warning';
+  return 'normal';
+}
 function renderNotifications(){
   const unread = unreadNotifs();
   const badge = document.getElementById('notif-count');
   badge.textContent = unread.length;
   badge.style.display = unread.length ? '' : 'none';
-  document.getElementById('notif-count-label').textContent = unread.length ? (unread.length+' baru') : 'Semua dibaca';
+  const markAll = document.getElementById('notif-mark-all');
+  if(markAll) markAll.disabled = unread.length === 0;
   const listSrc = unread.length ? unread : state.notifications;
-  document.getElementById('notif-list').innerHTML = listSrc.slice(0,6).map(n=>
-    '<div class="pop-item"><span class="pop-dot '+(n.urgent?'urgent':(n.warn?'warn':''))+'"></span><div><b>'+n.title+'</b><span>'+n.sub+'</span></div></div>'
-  ).join('') || '<div class="pop-item plain" style="color:var(--muted);font-size:12px;">Tidak ada notifikasi.</div>';
+  document.getElementById('notif-list').innerHTML = listSrc.slice(0,6).map(n=>{
+    const level = notifLevel(n);
+    const readCls = n.read ? ' read' : '';
+    return '<button type="button" class="pop-item'+readCls+'" onclick="showView(\'notifications\'); closeAllPop();">'
+      +'<div class="pop-item-main">'
+      +'<p class="notif-desc"><strong>'+n.title+'</strong> '+n.sub+'</p>'
+      +'<span class="notif-meta">'+(n.date||'')+(n.party?(' · '+n.party):'')+'</span>'
+      +'</div>'
+      +'<span class="pop-dot '+level+'" title="'+level+'" aria-hidden="true"></span>'
+      +'</button>';
+  }).join('') || '<div class="pop-item plain">Tidak ada notifikasi.</div>';
 }
 
 // =====================================================================

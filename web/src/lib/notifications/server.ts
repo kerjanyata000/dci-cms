@@ -2,18 +2,14 @@ import 'server-only'
 
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 import { ODOO_LINK_LABELS } from '@/lib/parties/types'
+import {
+  resolveNotificationLevel,
+  type NotificationItem,
+} from '@/lib/notifications/types'
 import { listRecentSyncErrors } from '@/lib/so/server'
 import { PARTY_ON_AMENDMENT, PARTY_ON_CONTRACT } from '@/lib/supabase/embeds'
 
-export type NotificationItem = {
-  id: string
-  code: string
-  title: string
-  sub: string
-  urgent: boolean
-  href?: string
-  created_at: string
-}
+export type { NotificationItem }
 
 export async function loadNotifications(): Promise<NotificationItem[]> {
   const db = getSupabaseAdmin()
@@ -62,15 +58,18 @@ export async function loadNotifications(): Promise<NotificationItem[]> {
     if (daysLeft < 0 || daysLeft > 180) continue
     const party = unwrapParty(row.parties)
     if (!party) continue
+    const urgent = daysLeft <= 14
+    const code = 'NOTIF-CMS-017'
     items.push({
       id: `renewal-${row.id}`,
-      code: daysLeft <= 14 ? 'NOTIF-CMS-017' : 'NOTIF-CMS-017',
+      code,
       title:
         daysLeft <= 14
           ? `Renewal H-${daysLeft} — ${party.party_code}`
           : `Renewal reminder — ${party.party_code}`,
       sub: `${row.contract_code} · jatuh tempo ${row.renewal_date}`,
-      urgent: daysLeft <= 14,
+      urgent,
+      level: resolveNotificationLevel({ urgent, code }),
       href: `/parties/${row.party_id}`,
       created_at: new Date().toISOString(),
     })
@@ -82,12 +81,15 @@ export async function loadNotifications(): Promise<NotificationItem[]> {
     if (daysLeft < 0 || daysLeft > 60) continue
     const party = unwrapParty(row.parties)
     if (!party) continue
+    const urgent = daysLeft <= 30
+    const code = 'NOTIF-CMS-018'
     items.push({
       id: `expiry-${row.id}`,
-      code: 'NOTIF-CMS-018',
+      code,
       title: `Contract expiry reminder — ${party.party_code}`,
       sub: `${row.contract_code} · expiry ${row.expiry_date} (${daysLeft} hari lagi)`,
-      urgent: daysLeft <= 30,
+      urgent,
+      level: resolveNotificationLevel({ urgent, code }),
       href: `/parties/${row.party_id}`,
       created_at: new Date().toISOString(),
     })
@@ -95,24 +97,28 @@ export async function loadNotifications(): Promise<NotificationItem[]> {
 
   for (const row of readyAmendRes.data ?? []) {
     const partyCode = unwrapParty(row.parties)?.party_code
+    const code = 'NOTIF-CMS-004'
     items.push({
       id: `amd-${row.id}`,
-      code: 'NOTIF-CMS-004',
+      code,
       title: `Ready for signature — ${row.amendment_code}`,
       sub: `${partyCode ?? 'Party'} · ${row.title}`,
       urgent: false,
+      level: resolveNotificationLevel({ warning: true, code }),
       href: `/parties/${row.party_id}`,
       created_at: new Date().toISOString(),
     })
   }
 
   for (const row of syncErrors) {
+    const code = 'NOTIF-CMS-015'
     items.push({
       id: `sync-${row.id}`,
-      code: 'NOTIF-CMS-SYNC',
+      code,
       title: 'SO Sync Error',
       sub: String(row.action).replace(/^SO Sync gagal — /, ''),
       urgent: true,
+      level: resolveNotificationLevel({ urgent: true, code }),
       href: row.party_id ? `/parties/${row.party_id}` : '/so',
       created_at: row.created_at,
     })
@@ -127,6 +133,11 @@ export async function loadNotifications(): Promise<NotificationItem[]> {
       title: mapped.title,
       sub: mapped.sub,
       urgent: mapped.urgent,
+      level: resolveNotificationLevel({
+        urgent: mapped.urgent,
+        warning: mapped.warning,
+        code: mapped.code,
+      }),
       href: row.party_id ? `/parties/${row.party_id}` : undefined,
       created_at: row.created_at,
     })
@@ -134,24 +145,33 @@ export async function loadNotifications(): Promise<NotificationItem[]> {
 
   for (const p of mismatchRes.data ?? []) {
     const label = ODOO_LINK_LABELS[p.odoo_link_status as keyof typeof ODOO_LINK_LABELS]
+    const urgent = p.odoo_link_status === 'mismatch'
+    const code = urgent ? 'NOTIF-CMS-016' : 'NOTIF-CMS-019'
     items.push({
       id: `odoo-${p.id}`,
-      code: p.odoo_link_status === 'mismatch' ? 'NOTIF-CMS-016' : 'NOTIF-CMS-019',
+      code,
       title: `Odoo Link — ${label}`,
       sub: `${p.party_code} · ${p.name}`,
-      urgent: p.odoo_link_status === 'mismatch',
+      urgent,
+      level: resolveNotificationLevel({
+        urgent,
+        warning: !urgent,
+        code,
+      }),
       href: `/parties/${p.id}`,
       created_at: new Date().toISOString(),
     })
   }
 
   for (const p of noSoParties) {
+    const code = 'NOTIF-CMS-014'
     items.push({
       id: `so-${p.id}`,
-      code: 'NOTIF-CMS-014',
+      code,
       title: 'No Active SO / Renewal Not Found',
       sub: `${p.party_code} · kontrak aktif tanpa SO sale/done`,
-      urgent: true,
+      urgent: false,
+      level: resolveNotificationLevel({ warning: true, code }),
       href: `/parties/${p.id}`,
       created_at: new Date().toISOString(),
     })
@@ -187,7 +207,7 @@ function mapAuditNotification(row: {
   action: string
   action_type: string | null
   actor_name: string | null
-}): { code: string; title: string; sub: string; urgent: boolean } {
+}): { code: string; title: string; sub: string; urgent: boolean; warning?: boolean } {
   const action = String(row.action)
   const type = row.action_type ?? ''
   const actor = row.actor_name ?? 'CMS'
@@ -198,16 +218,16 @@ function mapAuditNotification(row: {
     return { code: 'NOTIF-CMS-011', title, sub, urgent: true }
   }
   if (/counterparty|change cp|novation/i.test(action) || type === 'counterparty') {
-    return { code: 'NOTIF-CMS-009', title, sub, urgent: true }
+    return { code: 'NOTIF-CMS-008', title, sub, urgent: false, warning: true }
   }
   if (/amendment|amd-/i.test(action) || type === 'amendment') {
     if (/fully signed/i.test(action)) {
       return { code: 'NOTIF-CMS-009', title, sub, urgent: false }
     }
-    return { code: 'NOTIF-CMS-004', title, sub, urgent: false }
+    return { code: 'NOTIF-CMS-004', title, sub, urgent: false, warning: true }
   }
   if (/revision required/i.test(action) || type === 'revision_required') {
-    return { code: 'NOTIF-CMS-003', title, sub, urgent: true }
+    return { code: 'NOTIF-CMS-003', title, sub, urgent: false, warning: true }
   }
   if (/fully signed|ready for sign|waiting for signature/i.test(action)) {
     return { code: 'NOTIF-CMS-005', title, sub, urgent: false }
@@ -225,7 +245,7 @@ function mapAuditNotification(row: {
     return { code: 'NOTIF-CMS-018', title, sub, urgent: true }
   }
   if (/party|edit party|nonaktif|aktifkan/i.test(action) || type === 'party') {
-    return { code: 'NOTIF-CMS-019', title, sub, urgent: false }
+    return { code: 'NOTIF-CMS-020', title, sub, urgent: false }
   }
 
   return { code: 'NOTIF-CMS-AUDIT', title, sub, urgent: type === 'termination' }
