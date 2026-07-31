@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useCallback, useMemo, useState } from 'react'
 import type {
   DashboardPayload,
   LifecycleBreakdown,
@@ -20,21 +21,163 @@ function initials(name: string): string {
     .toUpperCase()
 }
 
-function lifecycleGradient(l: LifecycleBreakdown): string {
-  if (l.total === 0) return 'conic-gradient(var(--slate-light) 0 100%)'
-  const a = (l.active / l.total) * 100
-  const r = a + (l.review / l.total) * 100
-  return `conic-gradient(var(--green) 0 ${a}%, var(--amber) ${a}% ${r}%, var(--slate-light) ${r}% 100%)`
+type DonutSegment = {
+  key: string
+  label: string
+  value: number
+  color: string
+  labelColor: string
 }
 
+function polar(cx: number, cy: number, r: number, angleDeg: number) {
+  const rad = ((angleDeg - 90) * Math.PI) / 180
+  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) }
+}
+
+function donutSlicePath(
+  cx: number,
+  cy: number,
+  rOut: number,
+  rIn: number,
+  startAngle: number,
+  endAngle: number,
+) {
+  const sweep = endAngle - startAngle
+  if (sweep <= 0) return ''
+  if (sweep >= 359.999) {
+    return [
+      `M ${cx} ${cy - rOut}`,
+      `A ${rOut} ${rOut} 0 1 1 ${cx - 0.001} ${cy - rOut}`,
+      `L ${cx - 0.001} ${cy - rIn}`,
+      `A ${rIn} ${rIn} 0 1 0 ${cx} ${cy - rIn}`,
+      'Z',
+    ].join(' ')
+  }
+  const p1 = polar(cx, cy, rOut, startAngle)
+  const p2 = polar(cx, cy, rOut, endAngle)
+  const p3 = polar(cx, cy, rIn, endAngle)
+  const p4 = polar(cx, cy, rIn, startAngle)
+  const large = sweep > 180 ? 1 : 0
+  return [
+    `M ${p1.x} ${p1.y}`,
+    `A ${rOut} ${rOut} 0 ${large} 1 ${p2.x} ${p2.y}`,
+    `L ${p3.x} ${p3.y}`,
+    `A ${rIn} ${rIn} 0 ${large} 0 ${p4.x} ${p4.y}`,
+    'Z',
+  ].join(' ')
+}
+
+function buildLifecycleSegments(lifecycle: LifecycleBreakdown): DonutSegment[] {
+  const remainder = Math.max(0, lifecycle.total - lifecycle.active - lifecycle.review)
+  return [
+    {
+      key: 'active',
+      label: 'Active / Fully Signed',
+      value: lifecycle.active,
+      color: 'var(--green)',
+      labelColor: 'var(--green)',
+    },
+    {
+      key: 'review',
+      label: 'Under Review',
+      value: lifecycle.review,
+      color: 'var(--amber)',
+      labelColor: 'var(--amber)',
+    },
+    {
+      key: 'draft',
+      label: 'Draft',
+      value: remainder,
+      color: 'var(--slate-light)',
+      labelColor: 'var(--muted)',
+    },
+  ].filter((s) => s.value > 0)
+}
+
+type TipState = {
+  label: string
+  value: number
+  labelColor: string
+  x: number
+  y: number
+} | null
+
 export function LifecycleDonut({ lifecycle }: { lifecycle: LifecycleBreakdown }) {
+  const [tip, setTip] = useState<TipState>(null)
+  const segments = useMemo(() => buildLifecycleSegments(lifecycle), [lifecycle])
+  const total = lifecycle.total
+
+  const arcs = useMemo(() => {
+    if (total <= 0) return []
+    let angle = 0
+    return segments.map((seg) => {
+      const sweep = (seg.value / total) * 360
+      const start = angle
+      const end = angle + sweep
+      angle = end
+      return {
+        ...seg,
+        d: donutSlicePath(75, 75, 72, 49, start, end),
+      }
+    })
+  }, [segments, total])
+
+  const onMove = useCallback(
+    (e: React.MouseEvent<SVGPathElement>, seg: DonutSegment) => {
+      const wrap = e.currentTarget.closest('.donut-chart') as HTMLElement | null
+      if (!wrap) return
+      const rect = wrap.getBoundingClientRect()
+      setTip({
+        label: seg.label,
+        value: seg.value,
+        labelColor: seg.labelColor,
+        x: e.clientX - rect.left + 12,
+        y: e.clientY - rect.top - 10,
+      })
+    },
+    [],
+  )
+
   return (
     <div className="donut-wrap">
-      <div className="donut" style={{ background: lifecycleGradient(lifecycle) }}>
+      <div className="donut-chart">
+        <svg className="donut-svg" viewBox="0 0 150 150" role="img" aria-label="Contract lifecycle">
+          {total === 0 ? (
+            <circle cx="75" cy="75" r="60.5" fill="var(--slate-light)" />
+          ) : (
+            arcs.map((arc) => (
+              <path
+                key={arc.key}
+                d={arc.d}
+                fill={arc.color}
+                className="donut-seg"
+                stroke="var(--paper-2)"
+                strokeWidth={1}
+                onMouseMove={(e) => onMove(e, arc)}
+                onMouseLeave={() => setTip(null)}
+              />
+            ))
+          )}
+        </svg>
         <div className="donut-center">
           <b>{lifecycle.total}</b>
           <span>Kontrak</span>
         </div>
+        {tip && (
+          <div
+            className="donut-tip"
+            style={{
+              left: Math.min(tip.x, 118),
+              top: Math.max(tip.y, 28),
+            }}
+            role="tooltip"
+          >
+            <span className="donut-tip-label" style={{ color: tip.labelColor }}>
+              {tip.label}
+            </span>
+            <span className="donut-tip-value">{tip.value}</span>
+          </div>
+        )}
       </div>
       <div className="legend">
         <div className="legend-row">

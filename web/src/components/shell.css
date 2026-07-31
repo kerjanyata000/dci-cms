@@ -4063,6 +4063,85 @@ mark.search-hit-mark {
   flex-wrap: wrap;
 }
 
+.donut-chart {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  flex: none;
+}
+
+.donut-svg {
+  width: 150px;
+  height: 150px;
+  display: block;
+}
+
+.donut-seg {
+  cursor: pointer;
+  transition: opacity var(--dur-fast) var(--ease-soft);
+}
+
+.donut-seg:hover {
+  opacity: 0.88;
+  filter: brightness(0.96);
+}
+
+.donut-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  text-align: center;
+  z-index: 1;
+}
+
+.donut-center b {
+  display: block;
+  font-family: var(--serif);
+  font-size: 22px;
+  color: var(--ink);
+  line-height: 1.1;
+}
+
+.donut-center span {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.donut-tip {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(18, 32, 58, 0.14);
+  pointer-events: none;
+  white-space: nowrap;
+  transform: translateY(-100%);
+}
+
+.donut-tip-label {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.donut-tip-value {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* legacy donut class (mockup / fallback) */
 .donut {
   width: 150px;
   height: 150px;
@@ -4081,25 +4160,6 @@ mark.search-hit-mark {
   height: 98px;
   background: var(--paper-2);
   border-radius: 50%;
-}
-
-.donut-center {
-  position: relative;
-  z-index: 2;
-  text-align: center;
-}
-
-.donut-center b {
-  display: block;
-  font-family: var(--serif);
-  font-size: 22px;
-}
-
-.donut-center span {
-  font-size: 10px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .legend {
