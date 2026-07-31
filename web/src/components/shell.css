@@ -494,8 +494,22 @@ a {
 
 .global-search {
   flex: 1;
-  max-width: 520px;
+  max-width: 720px;
   min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.global-search svg {
+  width: 15px;
+  height: 15px;
+  color: var(--muted);
+  flex: none;
 }
 
 .top-right {
@@ -3611,34 +3625,22 @@ textarea {
 }
 
 .global-search input {
-  min-width: 220px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 8px 12px;
-  font: inherit;
-  background: var(--paper);
-}
-
-.global-search {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   flex: 1;
-  max-width: 520px;
+  min-width: 0;
+  width: 100%;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  font: inherit;
+  font-size: 13.5px;
+  background: transparent;
+  color: var(--text);
+  outline: none;
 }
 
-.search-advanced-link {
-  font-size: 11px;
-  color: var(--brass);
-  white-space: nowrap;
-  padding: 6px 8px;
-  border-radius: 6px;
-  border: 1px solid var(--brass-light);
-  background: var(--brass-light);
-}
-
-.search-advanced-link:hover {
-  background: #e8d4b8;
+.global-search input::-webkit-search-decoration,
+.global-search input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
 }
 
 .sidebar-toggle {
@@ -3759,13 +3761,8 @@ mark.search-hit-mark {
 }
 
 @media (max-width: 640px) {
-  .search-advanced-link {
-    display: none;
-  }
-
-  .global-search input {
-    min-width: 0;
-    width: 100%;
+  .global-search {
+    max-width: none;
   }
 }
 
