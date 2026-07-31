@@ -306,6 +306,9 @@ a{color:inherit;}
 
 /* ===== Table ===== */
 .table-toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+.toolbar-search{display:flex;align-items:center;gap:8px;flex:1 1 220px;min-width:200px;max-width:420px;border:1px solid var(--line);border-radius:8px;padding:8px 12px;background:var(--paper-2);}
+.toolbar-search svg{width:15px;height:15px;color:var(--muted);flex:none;}
+.toolbar-search input{border:none;background:transparent;outline:none;font:inherit;font-size:13px;width:100%;color:var(--text);}
 .filter-chip{font-size:12px;border:1px solid var(--line);background:var(--paper-2);border-radius:20px;padding:6px 12px;display:flex;align-items:center;gap:6px;color:var(--muted);}
 .filter-chip svg{width:11px;height:11px;}
 table{width:100%;border-collapse:collapse;background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
@@ -894,6 +897,10 @@ tbody tr.clickable{transition:background .12s;}
         </div>
 
         <div class="table-toolbar">
+          <label class="toolbar-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input id="parties-q" type="search" placeholder="Cari nama / kode / NPWP / Odoo ID…" aria-label="Cari party" oninput="onPartiesLocalSearch(this.value)">
+          </label>
           <select class="status-select" id="filter-party-status" onchange="renderPartiesTable()">
             <option value="all">Party: Semua</option>
             <option value="Active">Party Active</option>
@@ -920,7 +927,6 @@ tbody tr.clickable{transition:background .12s;}
           <select class="status-select" id="filter-pic" onchange="renderPartiesTable()">
             <option value="all">PIC: Semua</option>
           </select>
-          <span class="filter-chip" id="parties-count-chip">Menampilkan 17 dari 17 party demo</span>
         </div>
 
         <table>
@@ -1834,7 +1840,14 @@ function nowStamp(){
 // PARTIES TABLE (dynamic, filter + search + pagination)
 // =====================================================================
 let partiesPage = 1;
+let partiesLocalQuery = '';
 const PARTIES_PAGE_SIZE = 8;
+
+function onPartiesLocalSearch(v){
+  partiesLocalQuery = (v||'').trim().toLowerCase();
+  partiesPage = 1;
+  renderPartiesTable();
+}
 let searchQuery = '';
 
 function initPicFilterOptions(){
@@ -2023,9 +2036,10 @@ function filteredParties(){
     if(statusF!=='all' && p.status!==statusF) return false;
     if(linkF!=='all' && p.odooLink!==linkF) return false;
     if(picF!=='all' && p.pic!==picF) return false;
-    if(searchQuery){
+    const q = partiesLocalQuery || searchQuery;
+    if(q){
       const hay = (p.id+' '+p.pic+' '+p.doc+' '+p.agreementNo+' '+p.name+' '+(p.statusText||'')+' '+(p.status||'')+' '+(p.contractId||'')+' '+(p.format||'')+' '+(p.npwp||'')+' '+(p.odooPartnerId||'')).toLowerCase();
-      if(!hay.includes(searchQuery)) return false;
+      if(!hay.includes(q)) return false;
     }
     return true;
   });
@@ -2057,7 +2071,6 @@ function renderPartiesTable(){
     }).join('');
   }
 
-  document.getElementById('parties-count-chip').textContent = 'Menampilkan '+pageRows.length+' dari '+rows.length+' party (total demo: '+state.parties.length+')';
   document.getElementById('pagination-label').textContent = rows.length ? ('Party '+(start+1)+'–'+Math.min(start+PARTIES_PAGE_SIZE,rows.length)+' dari '+rows.length) : 'Tidak ada hasil';
   const pbtns = document.getElementById('pagination-btns');
   let html = '';

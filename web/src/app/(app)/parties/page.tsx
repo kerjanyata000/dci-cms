@@ -218,6 +218,19 @@ export default function PartiesPage() {
       )}
 
       <div className="table-toolbar">
+        <label className="toolbar-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            id="party-q"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Cari nama / kode / NPWP / Odoo ID…"
+            aria-label="Cari party"
+          />
+        </label>
         <select
           id="party-status-filter"
           className="status-select"
@@ -267,21 +280,6 @@ export default function PartiesPage() {
             </option>
           ))}
         </select>
-        <input
-          id="party-q"
-          className="status-select"
-          style={{ flex: '1 1 180px', minWidth: 160 }}
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Cari nama / kode / NPWP / Odoo ID…"
-          aria-label="Cari party"
-        />
-        <button type="button" className="btn ghost" disabled={busy} onClick={() => void load()}>
-          Refresh
-        </button>
-        <span className="filter-count-chip">
-          Menampilkan {pageRows.length} dari {rows.length} party
-        </span>
       </div>
 
       {error && <ErrorBanner message={error} onRetry={() => void load()} />}
