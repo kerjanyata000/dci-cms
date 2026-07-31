@@ -28,6 +28,37 @@ export type CreateContractInput = {
   remarks?: string
   save_mode?: 'draft' | 'review'
   file?: File | null
+  guideline_category?: string
+  guideline_summary?: string
+  odoo_partner_id?: number | null
+  confirm_odoo_link?: boolean
+}
+
+export async function previewContractAi(partyId: string, file: File) {
+  const form = new FormData()
+  form.set('file', file)
+  form.set('partyId', partyId)
+  const data = await parseJson<{
+    mode: 'dummy' | 'live'
+    fileName: string
+    confidence: number | null
+    rawTextPreview: string | null
+    extracted: ContractMetadata
+    suggestedCategory: string
+    guidelines: Array<{
+      clause: string
+      status: 'ok' | 'warn' | 'bad'
+      label: string
+      detail: string
+    }>
+    odooCandidates: Array<{
+      id: number
+      name: string
+      vat?: string | false
+      ref?: string
+    }>
+  }>(await cmsFetch('/api/contracts/ai-preview', { method: 'POST', body: form }))
+  return data
 }
 
 export async function createContract(partyId: string, input: CreateContractInput): Promise<Contract> {
@@ -44,6 +75,10 @@ export async function createContract(partyId: string, input: CreateContractInput
     if (input.remarks) form.set('remarks', input.remarks)
     form.set('save_mode', input.save_mode ?? 'draft')
     form.set('file', input.file)
+    if (input.guideline_category) form.set('guideline_category', input.guideline_category)
+    if (input.guideline_summary) form.set('guideline_summary', input.guideline_summary)
+    if (input.odoo_partner_id != null) form.set('odoo_partner_id', String(input.odoo_partner_id))
+    if (input.confirm_odoo_link) form.set('confirm_odoo_link', '1')
 
     const data = await parseJson<{ contract: Contract }>(
       await cmsFetch(`/api/parties/${partyId}/contracts`, { method: 'POST', body: form }),

@@ -373,7 +373,7 @@ export function PartyDetailView({ partyId, role }: Props) {
                 }
                 onClick={() => setAddContractOpen(true)}
               >
-                + Add Contract
+                + Upload Contract
               </button>
               <button type="button" className="btn ghost dossier-btn-ghost" onClick={() => setEditPartyOpen(true)}>
                 Edit Party
@@ -584,7 +584,19 @@ export function PartyDetailView({ partyId, role }: Props) {
                 {contracts.map((c) => (
                   <tr key={c.id}>
                     <td className="mono">{c.contract_code}</td>
-                    <td>{c.contract_title || '—'}</td>
+                    <td>
+                      {c.contract_title || '—'}
+                      {c.confirmed_metadata?.guidelineCategory && (
+                        <div className="muted" style={{ fontSize: 11, marginTop: 4 }}>
+                          Guideline: {c.confirmed_metadata.guidelineCategory}
+                          {c.confirmed_metadata.guidelineSummary
+                            ? ` · ${String(c.confirmed_metadata.guidelineSummary).slice(0, 80)}${
+                                String(c.confirmed_metadata.guidelineSummary).length > 80 ? '…' : ''
+                              }`
+                            : ''}
+                        </div>
+                      )}
+                    </td>
                     <td>{c.agreement_no || '—'}</td>
                     <td>{c.doc_type || '—'}</td>
                     <td>{c.expiry_date ? new Date(c.expiry_date).toLocaleDateString('id-ID') : '—'}</td>

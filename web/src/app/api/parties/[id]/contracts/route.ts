@@ -7,6 +7,8 @@ export const runtime = 'nodejs'
 function parseCreateBody(form: FormData) {
   const durationRaw = String(form.get('duration_months') ?? '')
   const duration_months = durationRaw ? Number.parseInt(durationRaw, 10) : undefined
+  const odooRaw = String(form.get('odoo_partner_id') ?? '')
+  const odoo_partner_id = odooRaw ? Number.parseInt(odooRaw, 10) : undefined
 
   return {
     contract_title: String(form.get('contract_title') ?? ''),
@@ -20,6 +22,10 @@ function parseCreateBody(form: FormData) {
     remarks: String(form.get('remarks') ?? '') || undefined,
     save_mode: (String(form.get('save_mode') ?? 'draft') as 'draft' | 'review') || 'draft',
     file: form.get('file') instanceof File ? (form.get('file') as File) : null,
+    guideline_category: String(form.get('guideline_category') ?? '') || undefined,
+    guideline_summary: String(form.get('guideline_summary') ?? '') || undefined,
+    odoo_partner_id: Number.isFinite(odoo_partner_id) ? odoo_partner_id : undefined,
+    confirm_odoo_link: String(form.get('confirm_odoo_link') ?? '') === '1',
   }
 }
 

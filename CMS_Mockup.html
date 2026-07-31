@@ -392,6 +392,7 @@ tbody tr.clickable:hover{background:#F7F8FA;cursor:pointer;}
 .modal-overlay{position:fixed;inset:0;background:rgba(18,32,58,.55);display:none;align-items:flex-start;justify-content:center;z-index:100;padding:5vh 20px;overflow-y:auto;}
 .modal-overlay.active{display:flex;}
 .modal{background:var(--paper-2);border-radius:14px;width:100%;max-width:640px;overflow:hidden;}
+.modal.wide{max-width:760px;}
 .modal-head{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;}
 .modal-head h2{font-family:var(--serif);font-size:18px;margin:0 0 4px;}
 .modal-head p{margin:0;font-size:12px;color:var(--muted);}
@@ -413,13 +414,39 @@ tbody tr.clickable:hover{background:#F7F8FA;cursor:pointer;}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .upload-box{border:1.5px dashed var(--line);border-radius:10px;padding:22px;text-align:center;color:var(--muted);font-size:12.5px;background:var(--paper);}
 .upload-box svg{width:22px;height:22px;margin-bottom:8px;color:var(--brass);}
+.upload-box.is-clickable{cursor:pointer;transition:border-color .15s, background .15s;}
+.upload-box.is-clickable:hover,.upload-box.is-selected{border-color:var(--brass);background:var(--brass-light);color:var(--ink);}
+.upload-demo-list{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
+.upload-demo-item{border:1px solid var(--line);border-radius:9px;padding:10px 12px;background:var(--paper-2);cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%;}
+.upload-demo-item:hover,.upload-demo-item.is-selected{border-color:var(--brass);background:var(--brass-light);}
+.upload-demo-item b{display:block;font-size:12.5px;margin-bottom:2px;}
+.upload-demo-item span{font-size:11px;color:var(--muted);}
 .match-box{border:1px solid #C9E3D5;background:var(--green-light);border-radius:9px;padding:12px 14px;font-size:12.3px;color:#204F3A;display:flex;gap:9px;margin-top:8px;}
 .match-box svg{width:15px;height:15px;flex:none;margin-top:1px;}
+.match-box.warn{border-color:#EBD6A4;background:var(--amber-light);color:#0B5F82;}
 .extract-table{width:100%;font-size:12.3px;border-collapse:collapse;margin-top:6px;}
 .extract-table td{padding:7px 0;border-bottom:1px solid var(--line);}
 .extract-table td:first-child{color:var(--muted);width:38%;}
 .match-ok{color:var(--green);font-weight:600;}
 .match-warn{color:var(--amber);font-weight:600;}
+.match-bad{color:var(--red);font-weight:600;}
+.ai-section{border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px;background:var(--paper);}
+.ai-section h4{margin:0 0 10px;font-size:12.5px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);}
+.ai-alert{border:1px solid var(--line);border-radius:9px;padding:11px 13px;margin-bottom:8px;background:var(--paper-2);font-size:12.3px;line-height:1.45;}
+.ai-alert:last-child{margin-bottom:0;}
+.ai-alert .ai-alert-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:4px;}
+.ai-alert .ai-alert-top b{font-size:12.5px;}
+.ai-analyzing{text-align:center;padding:28px 12px;color:var(--muted);font-size:13px;}
+.ai-analyzing .ai-spin{width:28px;height:28px;border:2px solid var(--line);border-top-color:var(--brass);border-radius:50%;margin:0 auto 14px;animation:ai-spin .8s linear infinite;}
+@keyframes ai-spin{to{transform:rotate(360deg);}}
+.odoo-choice{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+.odoo-choice label{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:9px;padding:10px 12px;cursor:pointer;background:var(--paper-2);font-size:12.3px;line-height:1.4;}
+.odoo-choice label:has(input:checked){border-color:var(--brass);background:var(--brass-light);}
+.odoo-choice input{margin-top:2px;}
+.conf-tag{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--slate-light);color:var(--muted);}
+.conf-tag.hi{background:var(--green-light);color:var(--green);}
+.conf-tag.mid{background:var(--amber-light);color:var(--amber);}
+.conf-tag.lo{background:var(--red-light);color:var(--red);}
 
 .footer-note{margin-top:30px;padding-top:18px;border-top:1px solid var(--line);font-size:11px;color:var(--muted);line-height:1.7;}
 
@@ -1160,37 +1187,113 @@ tbody tr.clickable{transition:background .12s;}
 <!-- ===================== MODALS ===================== -->
 
 <div class="modal-overlay" id="modal-add-contract">
-  <div class="modal">
+  <div class="modal wide">
     <div class="modal-head">
-      <div><h2>Add New Contract</h2><p>BRD §6.3 / §8.3 — mockup alur CMS. Produksi bisa tetap di CMS atau sebagian di Odoo; UI ini tetap jadi acuan.</p></div>
+      <div>
+        <h2 id="ac-modal-title">Upload Contract</h2>
+        <p id="ac-modal-sub">Fase 1 mockup — AI ekstrak metadata + guideline alert. Legal tetap cek &amp; edit sebelum simpan.</p>
+      </div>
       <button class="modal-close" onclick="closeModal('modal-add-contract')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="steps"><div class="step done"></div><div class="step done"></div><div class="step"></div><div class="step"></div></div>
-      <div class="field"><label>Party <span>terpilih dari Party detail</span></label><select id="ac-party"></select></div>
-      <div class="field-row">
-        <div class="field"><label>Contract Title</label><input id="ac-title" placeholder="cth. Perjanjian Layanan Colocation Rack Tambahan"></div>
-        <div class="field"><label>Contract Type</label><select id="ac-type"><option>Master Services Agreement</option><option>Perjanjian Layanan Induk</option><option>Amendment</option><option>NDA</option><option>SOW</option></select></div>
+      <div class="steps" id="ac-steps">
+        <div class="step" data-ac-step="1"></div>
+        <div class="step" data-ac-step="2"></div>
+        <div class="step" data-ac-step="3"></div>
       </div>
-      <div class="field-row">
-        <div class="field"><label>Contract Period</label><input id="ac-date" type="date" value="2026-08-01"></div>
-        <div class="field"><label>Contract Value</label><input id="ac-value" placeholder="IDR / USD ..."></div>
+
+      <!-- Step 1: Upload -->
+      <div id="ac-panel-1">
+        <div class="notice" style="margin-bottom:14px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <div>Upload dokumen dulu. AI mengisi metadata &amp; cek klausul vs guideline <b>Customer / Vendor / Loan</b>. Kontrak tersimpan di <b>Party saat ini</b>. Tidak ada yang auto-save — Anda konfirmasi di langkah berikutnya.</div>
+        </div>
+        <div class="field">
+          <label>Dokumen kontrak <span>PDF / DOCX — pilih contoh demo di bawah</span></label>
+          <div class="upload-box is-clickable" id="ac-upload-box" onclick="acPickDemo('customer')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><br>
+            <span id="ac-upload-label">Tarik file ke sini atau pilih contoh demo</span>
+          </div>
+          <div class="upload-demo-list" role="list">
+            <button type="button" class="upload-demo-item" id="ac-demo-customer" onclick="acPickDemo('customer')">
+              <b>MSA_Customer_ABC_2026.pdf</b>
+              <span>Customer · party sudah ada di Odoo (usulan Linked)</span>
+            </button>
+            <button type="button" class="upload-demo-item" id="ac-demo-vendor" onclick="acPickDemo('vendor')">
+              <b>Vendor_Supply_Agreement_PT_Baru.pdf</b>
+              <span>Vendor · belum ada di Odoo (Party CMS Unlinked)</span>
+            </button>
+            <button type="button" class="upload-demo-item" id="ac-demo-loan" onclick="acPickDemo('loan')">
+              <b>Facility_Loan_Agreement_BankX.pdf</b>
+              <span>Loan · belum ada di Odoo (Party CMS Unlinked)</span>
+            </button>
+          </div>
+        </div>
       </div>
-      <div class="field"><label>Upload Contract Document</label>
-        <div class="upload-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg><br>Tarik file ke sini atau klik untuk unggah (PDF/DOCX)</div>
+
+      <!-- Step 2: Analyzing -->
+      <div id="ac-panel-2" style="display:none;">
+        <div class="ai-analyzing">
+          <div class="ai-spin" aria-hidden="true"></div>
+          <b style="display:block;color:var(--ink);margin-bottom:6px;">AI sedang membaca dokumen…</b>
+          <span id="ac-analyzing-msg">Ekstraksi metadata · klasifikasi tipe · cek guideline</span>
+        </div>
       </div>
-      <div class="field">
-        <label>Hasil Ekstraksi Metadata <span>otomatis, dibandingkan dengan Party Master</span></label>
-        <table class="extract-table">
-          <tr><td>Extracted Counterparty</td><td id="ac-extract-cp">—<span class="match-ok"> ✓ cocok</span></td></tr>
-          <tr><td>Extracted Contract Number</td><td>—<span class="match-warn"> ⚠ belum terdeteksi, isi manual</span></td></tr>
-          <tr><td>Extracted Period</td><td>Sesuai tanggal di atas <span class="match-ok">✓ cocok</span></td></tr>
-        </table>
+
+      <!-- Step 3: Review -->
+      <div id="ac-panel-3" style="display:none;">
+        <div class="notice" style="margin-bottom:14px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+          <div>Hasil AI di bawah. <b>Edit bebas</b> sebelum simpan. Link Odoo &amp; Party tidak otomatis — pilih keputusan Anda.</div>
+        </div>
+
+        <div class="ai-section">
+          <h4>1 · Metadata <span class="conf-tag hi" id="ac-meta-conf">AI · edit OK</span></h4>
+          <div class="field-row">
+            <div class="field"><label>Contract Title</label><input id="ac-title" placeholder="Judul kontrak"></div>
+            <div class="field"><label>Doc type <span>MSA / NDA / dll.</span></label><input id="ac-type" placeholder="Master Services Agreement"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Category guideline <span>AI usul — boleh diganti</span></label>
+              <select id="ac-category" onchange="acOnCategoryChange()">
+                <option value="Customer">Customer</option>
+                <option value="Vendor">Vendor</option>
+                <option value="Loan">Loan</option>
+              </select>
+            </div>
+            <div class="field"><label>Contract Number</label><input id="ac-number" placeholder="Nomor kontrak"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Period start</label><input id="ac-date" type="date"></div>
+            <div class="field"><label>Period end</label><input id="ac-date-end" type="date"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Contract Value</label><input id="ac-value" placeholder="IDR / USD …"></div>
+            <div class="field"><label>Party name (extracted)</label><input id="ac-party-name" placeholder="Nama counterparty" oninput="acRefreshOdooBox()"></div>
+          </div>
+        </div>
+
+        <div class="ai-section">
+          <h4>2 · Party &amp; Odoo <span class="conf-tag mid">perlu konfirmasi</span></h4>
+          <div id="ac-odoo-box" class="match-box"></div>
+          <div class="odoo-choice" id="ac-odoo-choices"></div>
+          <div class="field" id="ac-existing-party-wrap" style="margin-top:12px;margin-bottom:0;display:none;">
+            <label>Atau pilih Party CMS yang sudah ada</label>
+            <select id="ac-party"></select>
+          </div>
+        </div>
+
+        <div class="ai-section">
+          <h4>3 · Guideline alerts <span class="conf-tag" id="ac-guide-pack-label">Pack Customer</span></h4>
+          <div id="ac-guideline-list"></div>
+        </div>
       </div>
     </div>
     <div class="modal-foot">
-      <button class="btn ghost" style="background:#fff" onclick="closeModal('modal-add-contract')">Batal</button>
-      <div class="btn-row"><button class="btn ghost" style="background:#fff" onclick="submitAddContract('draft')">Simpan sebagai Draft</button><button class="btn primary" onclick="submitAddContract('review')">Lanjutkan Review →</button></div>
+      <button class="btn ghost" style="background:#fff" id="ac-btn-left" onclick="acNavLeft()">Batal</button>
+      <div class="btn-row" id="ac-btn-right">
+        <button class="btn primary" id="ac-btn-primary" onclick="acNavPrimary()">Jalankan AI →</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2118,7 +2221,7 @@ function renderPartyDetail(id){
 
   const daEl = document.getElementById('dossier-actions');
   if(isEditor()){
-    daEl.innerHTML = '<button class="btn brass small" onclick="openAddContractFor(state.currentPartyId)">+ Add Contract</button>'
+    daEl.innerHTML = '<button class="btn brass small" onclick="openAddContractFor(state.currentPartyId)">+ Upload Contract</button>'
       + '<button class="btn ghost small" style="background:#fff" onclick="openEditPartyFor(\''+p.id+'\')">Edit Party</button>'
       + '<button class="btn ghost small" style="background:#fff" onclick="openLinkOdooFor(\''+p.id+'\')">'+((p.odooLink==='linked'||p.odooPartnerId)?'Kelola Link Odoo':'Link Odoo')+'</button>'
       + '<button class="btn ghost small" style="background:#fff" onclick="openDeactivatePartyFor(\''+p.id+'\')">Deactivate</button>';
@@ -2168,8 +2271,11 @@ function renderPartyDetail(id){
   if(p.contracts && p.contracts.length){
     cHtml += '<div class="card" style="margin-top:16px;"><div class="card-head"><h3>Additional Contract Records</h3><span class="link">'+p.contracts.length+' record</span></div>';
     p.contracts.forEach(c=>{
-      cHtml += '<div class="doc-item" style="margin-bottom:10px;"><div class="doc-top"><div class="doc-title">'+c.title+(c._new?' <span class="new-flag">Baru</span>':'')+'<small>'+c.type+' · '+c.id+'</small></div><span class="status-pill '+c.status+'">'+c.statusText+'</span></div>'
-        +'<div class="doc-meta-row"><div><span>Date</span><b>'+c.date+'</b></div><div><span>Value</span><b>'+c.value+'</b></div></div></div>';
+      cHtml += '<div class="doc-item" style="margin-bottom:10px;"><div class="doc-top"><div class="doc-title">'+c.title+(c._new?' <span class="new-flag">Baru</span>':'')+'<small>'+c.type+' · '+c.id+(c.aiFile?' · '+c.aiFile:'')+'</small></div><span class="status-pill '+c.status+'">'+c.statusText+'</span></div>'
+        +'<div class="doc-meta-row"><div><span>Date</span><b>'+c.date+'</b></div><div><span>Value</span><b>'+c.value+'</b></div>'
+        +(c.aiCategory?'<div><span>Guideline</span><b>'+c.aiCategory+'</b></div>':'')+'</div>'
+        +(c.aiGuide?'<div class="doc-summary" style="margin-top:8px;font-size:11.5px;color:var(--muted)">AI checklist: '+c.aiGuide+'</div>':'')
+        +'</div>';
     });
     cHtml += '</div>';
   }
@@ -2271,15 +2377,325 @@ function renderPartyDetail(id){
 // MODAL OPEN HELPERS (pre-fill party context)
 // =====================================================================
 function openAddContractFor(partyId){
-  const sel = document.getElementById('ac-party');
-  const eligible = state.parties.filter(p=>p.partyStatus!=='Inactive');
-  if(!eligible.length){ showToast('Tidak ada Party Active untuk dipilih (BRL-CMS-031).'); return; }
-  sel.innerHTML = eligible.map(p=>'<option value="'+p.id+'"'+(p.id===partyId?' selected':'')+'>'+p.name+' — '+p.id+'</option>').join('');
-  if(partyId && eligible.some(p=>p.id===partyId)) sel.value = partyId;
-  document.getElementById('ac-extract-cp').innerHTML = (getParty(sel.value)||eligible[0]).name + '<span class="match-ok"> ✓ cocok</span>';
-  sel.onchange = ()=>{ document.getElementById('ac-extract-cp').innerHTML = getParty(sel.value).name + '<span class="match-ok"> ✓ cocok</span>'; };
+  if(!isEditor()){ showToast('Login sebagai Legal.'); return; }
+  aiIntakeReset(partyId || null);
   openModal('modal-add-contract');
 }
+
+const AI_DEMO_FILES = {
+  customer: {
+    key:'customer', file:'MSA_Customer_ABC_2026.pdf',
+    title:'Master Services Agreement — Customer ABC',
+    docType:'Master Services Agreement', category:'Customer',
+    number:'MSA/ABC/2026/001', partyName:'Customer ABC',
+    start:'2026-08-01', end:'2029-07-31', value:'IDR 125.000.000 / tahun',
+    odooSuggest:true, odooPartnerId:101, cmsPartyId:'PTY-00001'
+  },
+  vendor: {
+    key:'vendor', file:'Vendor_Supply_Agreement_PT_Baru.pdf',
+    title:'Perjanjian Pengadaan Barang &amp; Jasa',
+    docType:'Vendor Supply Agreement', category:'Vendor',
+    number:'VND/2026/044', partyName:'PT Sumber Daya Baru',
+    start:'2026-09-01', end:'2027-08-31', value:'IDR 48.000.000',
+    odooSuggest:false, odooPartnerId:null, cmsPartyId:null
+  },
+  loan: {
+    key:'loan', file:'Facility_Loan_Agreement_BankX.pdf',
+    title:'Facility Agreement — Working Capital',
+    docType:'Loan / Facility Agreement', category:'Loan',
+    number:'FA/BANKX/2026/07', partyName:'Bank X Indonesia',
+    start:'2026-07-15', end:'2029-07-14', value:'IDR 5.000.000.000',
+    odooSuggest:false, odooPartnerId:null, cmsPartyId:null
+  }
+};
+
+const AI_GUIDELINES = {
+  Customer: [
+    {clause:'Validity / Term', status:'ok', label:'Sesuai', detail:'Ada start–end date + auto-renewal notice H-30 sesuai guide Customer.'},
+    {clause:'Termination', status:'warn', label:'Ambigu', detail:'Notice period disebut “reasonable time” — guide minta minimal 30 hari tertulis. Perlu dipertajam.'},
+    {clause:'Penalty / Late payment', status:'ok', label:'Sesuai', detail:'Denda keterlambatan 1,5%/bulan tercantum dan selaras guide.'},
+    {clause:'Liability cap', status:'bad', label:'Tidak sesuai', detail:'Tidak ada liability cap. Guide Customer mewajibkan cap ≤ 12 bulan fee.'}
+  ],
+  Vendor: [
+    {clause:'Scope & deliverables', status:'ok', label:'Sesuai', detail:'Lingkup pekerjaan dan SLA terdefinisi.'},
+    {clause:'Payment terms', status:'warn', label:'Ambigu', detail:'Net 45 vs guide Vendor (maks Net 30) — perlu negosiasi atau exception note.'},
+    {clause:'Indemnity', status:'ok', label:'Sesuai', detail:'Indemnity vendor → DCI untuk IP infringement ada.'},
+    {clause:'Termination for convenience', status:'bad', label:'Tidak sesuai', detail:'Hanya termination for cause. Guide Vendor minta convenience dengan notice 60 hari.'}
+  ],
+  Loan: [
+    {clause:'Facility amount & tenor', status:'ok', label:'Sesuai', detail:'Plafond dan tenor teridentifikasi.'},
+    {clause:'Security / collateral', status:'warn', label:'Ambigu', detail:'Agunan disebut “to be agreed” — belum final per guide Loan.'},
+    {clause:'Covenant & reporting', status:'ok', label:'Sesuai', detail:'Financial covenant + reporting quarterly ada.'},
+    {clause:'Event of default', status:'ok', label:'Sesuai', detail:'EoD standar tercantum; cure period 15 hari.'}
+  ]
+};
+
+let aiIntake = { step:1, demoKey:null, contextPartyId:null, odooDecision:'confirm', analyzeTimer:null };
+
+function aiIntakeReset(contextPartyId){
+  if(aiIntake.analyzeTimer){ clearTimeout(aiIntake.analyzeTimer); aiIntake.analyzeTimer=null; }
+  aiIntake = { step:1, demoKey:null, contextPartyId: contextPartyId||null, odooDecision:'confirm', analyzeTimer:null };
+  document.getElementById('ac-upload-label').textContent = 'Tarik file ke sini atau pilih contoh demo';
+  document.getElementById('ac-upload-box').classList.remove('is-selected');
+  ['customer','vendor','loan'].forEach(k=>{
+    const el = document.getElementById('ac-demo-'+k);
+    if(el) el.classList.remove('is-selected');
+  });
+  const eligible = state.parties.filter(p=>p.partyStatus!=='Inactive');
+  const sel = document.getElementById('ac-party');
+  sel.innerHTML = '<option value="">— Tidak pakai Party existing —</option>'
+    + eligible.map(p=>'<option value="'+p.id+'"'+(contextPartyId&&p.id===contextPartyId?' selected':'')+'>'+p.name+' — '+p.id+'</option>').join('');
+  acShowStep(1);
+}
+
+function acPickDemo(key){
+  aiIntake.demoKey = key;
+  const d = AI_DEMO_FILES[key];
+  document.getElementById('ac-upload-label').innerHTML = '<b style="color:var(--ink)">'+d.file+'</b><br><span style="font-size:11px">Siap dianalisis AI</span>';
+  document.getElementById('ac-upload-box').classList.add('is-selected');
+  ['customer','vendor','loan'].forEach(k=>{
+    const el = document.getElementById('ac-demo-'+k);
+    if(el) el.classList.toggle('is-selected', k===key);
+  });
+}
+
+function acShowStep(step){
+  aiIntake.step = step;
+  [1,2,3].forEach(n=>{
+    const panel = document.getElementById('ac-panel-'+n);
+    if(panel) panel.style.display = n===step ? '' : 'none';
+  });
+  document.querySelectorAll('#ac-steps .step').forEach(el=>{
+    const n = Number(el.getAttribute('data-ac-step'));
+    el.classList.toggle('done', n <= step);
+  });
+  const left = document.getElementById('ac-btn-left');
+  const right = document.getElementById('ac-btn-right');
+  if(step===1){
+    document.getElementById('ac-modal-title').textContent = 'Upload Contract';
+    left.textContent = 'Batal';
+    right.innerHTML = '<button class="btn primary" id="ac-btn-primary" onclick="acNavPrimary()">Jalankan AI →</button>';
+  } else if(step===2){
+    document.getElementById('ac-modal-title').textContent = 'AI Analysis';
+    left.textContent = 'Batal';
+    right.innerHTML = '';
+  } else {
+    document.getElementById('ac-modal-title').textContent = 'Review AI Result';
+    left.textContent = '← Upload ulang';
+    right.innerHTML =
+      '<button class="btn ghost" style="background:#fff" onclick="submitAiIntake(\'review\')">Simpan & Under Review →</button>'
+      +'<button class="btn primary" id="ac-btn-primary" onclick="submitAiIntake(\'draft\')">Konfirmasi & Simpan Draft</button>';
+  }
+}
+
+function acNavLeft(){
+  if(aiIntake.step===1){ closeModal('modal-add-contract'); return; }
+  if(aiIntake.step===2){
+    if(aiIntake.analyzeTimer){ clearTimeout(aiIntake.analyzeTimer); aiIntake.analyzeTimer=null; }
+    closeModal('modal-add-contract');
+    return;
+  }
+  acShowStep(1);
+}
+
+function acNavPrimary(){
+  if(aiIntake.step===1){
+    if(!aiIntake.demoKey){ showToast('Pilih dokumen demo dulu.'); return; }
+    acRunAnalysis();
+  }
+}
+
+function acRunAnalysis(){
+  acShowStep(2);
+  const d = AI_DEMO_FILES[aiIntake.demoKey];
+  const msgs = [
+    'Membaca teks dokumen…',
+    'Ekstraksi metadata: party, nomor, periode, nilai…',
+    'Klasifikasi tipe → '+d.category+'…',
+    'Mencocokkan Odoo Partner…',
+    'Cek guideline pack '+d.category+'…'
+  ];
+  let i = 0;
+  document.getElementById('ac-analyzing-msg').textContent = msgs[0];
+  const tick = setInterval(()=>{
+    i++;
+    if(i < msgs.length) document.getElementById('ac-analyzing-msg').textContent = msgs[i];
+  }, 380);
+  aiIntake.analyzeTimer = setTimeout(()=>{
+    clearInterval(tick);
+    aiIntake.analyzeTimer = null;
+    acFillReviewFromDemo();
+    acShowStep(3);
+  }, 1700);
+}
+
+function acFillReviewFromDemo(){
+  const d = AI_DEMO_FILES[aiIntake.demoKey];
+  document.getElementById('ac-title').value = d.title.replace(/&amp;/g,'&');
+  document.getElementById('ac-type').value = d.docType;
+  document.getElementById('ac-category').value = d.category;
+  document.getElementById('ac-number').value = d.number;
+  document.getElementById('ac-date').value = d.start;
+  document.getElementById('ac-date-end').value = d.end;
+  document.getElementById('ac-value').value = d.value;
+  document.getElementById('ac-party-name').value = d.partyName;
+  if(d.cmsPartyId){
+    const sel = document.getElementById('ac-party');
+    if([...sel.options].some(o=>o.value===d.cmsPartyId)) sel.value = d.cmsPartyId;
+  } else if(aiIntake.contextPartyId){
+    document.getElementById('ac-party').value = aiIntake.contextPartyId;
+  } else {
+    document.getElementById('ac-party').value = '';
+  }
+  aiIntake.odooDecision = d.odooSuggest ? 'confirm' : 'create_unlinked';
+  acRefreshOdooBox();
+  acRenderGuidelines(d.category);
+}
+
+async function acRefreshOdooBox(){
+  const box = document.getElementById('ac-odoo-box');
+  const choices = document.getElementById('ac-odoo-choices');
+  const wrap = document.getElementById('ac-existing-party-wrap');
+  const name = (document.getElementById('ac-party-name').value || '').trim();
+  const d = aiIntake.demoKey ? AI_DEMO_FILES[aiIntake.demoKey] : null;
+  wrap.style.display = '';
+
+  let hits = [];
+  if(name){
+    hits = await OdooClient.searchPartners([['name','ilike',name]], ['name','vat','ref','id'], 3);
+  }
+  // Prefer demo hint if analysis just ran for customer
+  if(d && d.odooSuggest && d.odooPartnerId && !hits.some(h=>h.id===d.odooPartnerId)){
+    const exact = await OdooClient.searchPartners([['id','=',d.odooPartnerId]], ['name','vat','ref','id'], 1);
+    hits = exact.concat(hits);
+  }
+
+  if(hits.length){
+    const h = hits[0];
+    box.className = 'match-box';
+    box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>'
+      +'<div><b>Usulan Odoo Partner ditemukan</b> (belum Linked — tunggu konfirmasi Anda)<br>'
+      +'<b>'+h.name+'</b> · VAT '+(h.vat||'—')+' · ID <span class="mono">'+h.id+'</span> · mode <span class="mono">'+OdooClient.mode()+'</span></div>';
+    if(!aiIntake.odooDecision || aiIntake.odooDecision==='create_unlinked') aiIntake.odooDecision = 'confirm';
+    choices.innerHTML =
+      '<label><input type="radio" name="ac-odoo-dec" value="confirm" '+(aiIntake.odooDecision==='confirm'?'checked':'')+' onchange="aiIntake.odooDecision=this.value">'
+      +'<span><b>Konfirmasi link</b> ke Partner di atas setelah simpan (status Linked). CMS tidak membuat Partner di Odoo.</span></label>'
+      +'<label><input type="radio" name="ac-odoo-dec" value="create_unlinked" '+(aiIntake.odooDecision==='create_unlinked'?'checked':'')+' onchange="aiIntake.odooDecision=this.value">'
+      +'<span><b>Jangan link dulu</b> — buat/ pakai Party CMS dengan status <span class="mono">Unlinked / Pending</span> sampai Partner ada di Odoo.</span></label>'
+      +'<label><input type="radio" name="ac-odoo-dec" value="use_existing" '+(aiIntake.odooDecision==='use_existing'?'checked':'')+' onchange="aiIntake.odooDecision=this.value">'
+      +'<span><b>Pakai Party CMS dari dropdown</b> di bawah (abaikan usulan Odoo untuk sekarang).</span></label>';
+  } else {
+    box.className = 'match-box warn';
+    box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+      +'<div><b>Tidak ada kandidat Odoo Partner</b> untuk “'+(name||'—')+'”.<br>'
+      +'Party bisa dibuat di CMS sebagai <span class="mono">Unlinked</span>. Link belakangan setelah Partner dibuat di Odoo.</div>';
+    aiIntake.odooDecision = 'create_unlinked';
+    choices.innerHTML =
+      '<label><input type="radio" name="ac-odoo-dec" value="create_unlinked" checked onchange="aiIntake.odooDecision=this.value">'
+      +'<span><b>Buat Party baru di CMS</b> (Unlinked / Pending Odoo Link).</span></label>'
+      +'<label><input type="radio" name="ac-odoo-dec" value="use_existing" onchange="aiIntake.odooDecision=this.value">'
+      +'<span><b>Pakai Party CMS yang sudah ada</b> dari dropdown.</span></label>';
+  }
+}
+
+function acOnCategoryChange(){
+  acRenderGuidelines(document.getElementById('ac-category').value);
+}
+
+function acRenderGuidelines(category){
+  const list = AI_GUIDELINES[category] || AI_GUIDELINES.Customer;
+  document.getElementById('ac-guide-pack-label').textContent = 'Pack '+category;
+  document.getElementById('ac-guideline-list').innerHTML = list.map(a=>
+    '<div class="ai-alert">'
+    +'<div class="ai-alert-top"><b>'+a.clause+'</b><span class="status-pill '+pillCls[a.status]+'">'+a.label+'</span></div>'
+    +'<div style="color:var(--muted)">'+a.detail+'</div>'
+    +'</div>'
+  ).join('');
+}
+
+function submitAiIntake(mode){
+  const title = document.getElementById('ac-title').value.trim() || 'Kontrak Baru Tanpa Judul';
+  const ctype = document.getElementById('ac-type').value.trim() || 'Contract';
+  const category = document.getElementById('ac-category').value;
+  const value = document.getElementById('ac-value').value || '—';
+  const date = document.getElementById('ac-date').value;
+  const dateEnd = document.getElementById('ac-date-end').value;
+  const partyName = document.getElementById('ac-party-name').value.trim() || 'Party Baru';
+  const number = document.getElementById('ac-number').value.trim();
+  const dateFmt = date ? new Date(date).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : nowStamp();
+  const endFmt = dateEnd ? new Date(dateEnd).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+  const st = mode==='review' ? 'under_review' : 'draft';
+  const stText = mode==='review' ? 'Under Review' : 'Draft';
+  const newId = 'CMS-'+new Date().getFullYear()+'-'+String(9000+Math.floor(Math.random()*900)).padStart(4,'0');
+
+  const dec = (document.querySelector('input[name="ac-odoo-dec"]:checked')||{}).value || aiIntake.odooDecision || 'create_unlinked';
+  const d = aiIntake.demoKey ? AI_DEMO_FILES[aiIntake.demoKey] : null;
+  let p = null;
+
+  // Party-centric (selaras app web): selalu ke Party konteks / dropdown; jangan auto-buat Party baru dari sini
+  const preferId = aiIntake.contextPartyId || document.getElementById('ac-party').value || (d && d.cmsPartyId) || '';
+  if(preferId) p = getParty(preferId);
+  if(!p && dec==='use_existing'){
+    showToast('Pilih Party CMS di dropdown dulu.');
+    return;
+  }
+  if(!p){
+    // Fallback demo saja jika dibuka tanpa konteks party
+    const nextNo = String(state.parties.length + 1).padStart(3,'0');
+    const id = 'PTY-'+String(9100 + state.parties.length);
+    const linkStatus = (dec==='confirm' && d && d.odooPartnerId) ? 'linked' : 'pending';
+    const newParty = {
+      partyStatus:'Active', _deletable:true, reviewStatus:st,
+      no: nextNo, id:id, name:partyName, pic:(CURRENT_USER&&CURRENT_USER.name)||'Legal Admin',
+      doc:title, agreementNo:number||'—', date:dateFmt,
+      dur: endFmt!=='—' ? (dateFmt+' – '+endFmt) : '—',
+      format: category+' (AI intake)', status:st, statusText:stText, value:value,
+      payment:'—', latePct:'—', earlyTerm:'—', autoRenewal:'—',
+      odooLink:linkStatus, odooPartnerId: (linkStatus==='linked' && d ? d.odooPartnerId : null),
+      contractId:newId, contracts:[], amendments:[], novations:[], terminations:[], supportingDocs:[], soRecords:[],
+      auditLocal:[{text:'Party dibuat via AI Contract Upload — '+partyName+' · '+odooLinkLabel(linkStatus), by:'Legal Admin', date:nowStamp()}]
+    };
+    state.parties.push(newParty);
+    p = newParty;
+    pushAudit({act:'Party dibuat via AI Upload — '+partyName+' ['+id+'] · Odoo '+odooLinkLabel(linkStatus), type:'create', party:id, by:'Legal Admin', date:nowStamp()});
+    initPicFilterOptions();
+  }
+
+  if(p.partyStatus==='Inactive'){ showToast('Party Inactive tidak dapat dipilih (BRL-CMS-031).'); return; }
+  if(dec==='confirm' && d && d.odooPartnerId && p.odooLink!=='linked'){
+    p.odooLink = 'linked';
+    p.odooPartnerId = d.odooPartnerId;
+    p.auditLocal.unshift({text:'Odoo Partner di-link setelah konfirmasi AI Upload — #'+d.odooPartnerId, by:'Legal Admin', date:nowStamp()});
+    pushAudit({act:'Odoo Partner di-link setelah konfirmasi AI Upload — #'+d.odooPartnerId, type:'link', party:p.id, by:'Legal Admin', date:nowStamp()});
+  }
+
+  if(!p.contracts) p.contracts = [];
+  const guideSummary = (AI_GUIDELINES[category]||[]).map(a=>a.clause+': '+a.label).join('; ');
+  p.contracts.unshift({
+    id:newId, title:title, type:ctype+' · '+category, date:dateFmt, value:value,
+    status:st, statusText:stText, _new:true,
+    aiCategory:category, aiFile: d ? d.file : '—', aiGuide:guideSummary, number:number||'—'
+  });
+  // New party / empty dossier: sync header. Existing Active party: keep master status, only append contract.
+  if(p.status==='draft' || !p.doc || p.doc==='—'){
+    p.doc = title; p.contractId = newId; p.date = dateFmt; p.value = value;
+    p.status = st; p.statusText = stText; p.reviewStatus = st;
+  }
+  p.auditLocal.unshift({text:'Contract AI Upload dikonfirmasi — '+title+' ['+newId+'] ('+stText+') · Guideline '+category, by:'Legal Admin', date:nowStamp()});
+  pushAudit({act:'Contract AI Upload dikonfirmasi — '+title+' ['+newId+']', type:'create', party:p.id, by:'Legal Admin', date:nowStamp()});
+  pushNotif({urgent:false, title:'New contract created (NOTIF-CMS-001)', sub:title+' — '+stText+' · AI '+category, party:p.id, date:nowStamp(), event:'New contract created'});
+  showToast(mode==='review'
+    ? 'Kontrak '+newId+' tersimpan Under Review di '+p.name+'.'
+    : 'Draft '+newId+' tersimpan di '+p.name+' (Odoo: '+odooLinkLabel(p.odooLink)+').');
+  closeModal('modal-add-contract');
+  state.currentPartyId = p.id;
+  renderPartiesTable();
+  if(document.getElementById('view-party-detail').classList.contains('active')) renderPartyDetail(p.id);
+  else showView('party-detail');
+}
+
+// Legacy alias (demo / old callers)
+function submitAddContract(mode){ submitAiIntake(mode); }
 function openAmendmentFor(partyId){
   const p = getParty(partyId);
   document.getElementById('am-parent').value = p.contractId+' — '+p.doc;
@@ -2310,36 +2726,6 @@ function refreshChangeCpNotice(){
 // =====================================================================
 // SUBMIT HANDLERS — write into state, re-render, log audit, toast
 // =====================================================================
-function submitAddContract(mode){
-  const partyId = document.getElementById('ac-party').value;
-  const p = getParty(partyId);
-  if(p.partyStatus==='Inactive'){ showToast('Party Inactive tidak dapat dipilih untuk kontrak baru (BRL-CMS-031).'); return; }
-  const title = document.getElementById('ac-title').value || 'Kontrak Baru Tanpa Judul';
-  const ctype = document.getElementById('ac-type').value;
-  const value = document.getElementById('ac-value').value || '—';
-  const date = document.getElementById('ac-date').value;
-  const dateFmt = date ? new Date(date).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : nowStamp();
-  const st = mode==='review' ? 'under_review' : 'draft';
-  const stText = mode==='review' ? 'Under Review' : 'Draft';
-  const newId = 'CMS-'+new Date().getFullYear()+'-'+String(9000+Math.floor(Math.random()*900)).padStart(4,'0');
-  if(!p.contracts) p.contracts = [];
-  p.contracts.unshift({id:newId, title:title, type:ctype, date:dateFmt, value:value, status:st, statusText:stText, _new:true});
-  // Keep party master fields in sync when this is a new primary draft under party without replacing signed history
-  if(p.status==='draft' || !p.doc || p.doc==='—'){
-    p.doc = title; p.contractId = newId; p.date = dateFmt; p.value = value;
-  }
-  p.status = st; p.statusText = stText; p.reviewStatus = st;
-  p.auditLocal.unshift({text:'Contract Record dibuat — '+title+' ['+newId+'] ('+stText+')', by:'Legal Admin', date:nowStamp()});
-  pushAudit({act:'Contract Record dibuat — '+title+' ['+newId+']', type:'create', party:p.id, by:'Legal Admin', date:nowStamp()});
-  pushNotif({urgent:false, title:'New contract created (NOTIF-CMS-001)', sub:title+' — '+stText, party:p.id, date:nowStamp(), event:'New contract created'});
-  showToast(mode==='review' ? 'Kontrak '+newId+' tersimpan sebagai Under Review di Party Detail.' : 'Draft kontrak '+newId+' tersimpan di Party Detail.');
-  closeModal('modal-add-contract');
-  state.currentPartyId = p.id;
-  renderPartiesTable();
-  if(document.getElementById('view-party-detail').classList.contains('active')) renderPartyDetail(p.id);
-  else showView('party-detail');
-}
-
 async function openAddPartyModal(){
   const picSel = document.getElementById('ap-pic');
   if(picSel){
@@ -4152,7 +4538,7 @@ hydrateSoDemoFromOdoo().then(()=>{
   <button type="button" class="demo-item" onclick="demoGo('edit-party')"><span class="di-ico">P</span><div><b>Edit Party</b><span>Master fields</span></div></button>
   <button type="button" class="demo-item" onclick="demoGo('link-odoo')"><span class="di-ico">O</span><div><b>Link Odoo</b><span>Search + compare</span></div></button>
   <button type="button" class="demo-item" onclick="demoGo('deactivate')"><span class="di-ico">P</span><div><b>Deactivate Party</b><span>Soft deactivate</span></div></button>
-  <button type="button" class="demo-item" onclick="demoGo('add-contract')"><span class="di-ico">C</span><div><b>Add Contract</b><span>Upload + extract</span></div></button>
+  <button type="button" class="demo-item" onclick="demoGo('add-contract')"><span class="di-ico">C</span><div><b>Upload Contract (AI)</b><span>Extract + guideline + Odoo cek</span></div></button>
   <button type="button" class="demo-item" onclick="demoGo('edit-contract')"><span class="di-ico">C</span><div><b>Edit Contract</b><span>Admin fields only</span></div></button>
   <button type="button" class="demo-item" onclick="demoGo('review')"><span class="di-ico">R</span><div><b>Review Status</b><span>Draft→FS + Revision</span></div></button>
   <button type="button" class="demo-item" onclick="demoGo('cp')"><span class="di-ico">N</span><div><b>Change Counterparty</b><span>Tanpa approval</span></div></button>

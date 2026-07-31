@@ -9,7 +9,8 @@ import {
 } from '@/lib/contracts/types'
 import { extractAndPersistForContract } from '@/lib/documents/server'
 import { searchOdooPartners } from '@/lib/odoo/server'
-import { mapPartyRow, type PartyRow } from '@/lib/parties/types'
+import { dummyOdooClient } from '@/lib/odoo/dummy'
+import { evaluateOdooLinkStatus, mapPartyRow, type PartyRow } from '@/lib/parties/types'
 import { getSupabaseAdmin } from '@/lib/supabase/server'
 import { ACTIVE_FOR_TERM } from '@/lib/contracts/constants'
 import { validateContractMetadata } from '@/lib/validation/metadata'
@@ -26,6 +27,12 @@ export type CreateContractInput = {
   remarks?: string
   save_mode?: 'draft' | 'review'
   file?: File | null
+  /** Customer | Vendor | Loan — guideline pack */
+  guideline_category?: string
+  guideline_summary?: string
+  /** If set + confirm_odoo_link, link party after create */
+  odoo_partner_id?: number | null
+  confirm_odoo_link?: boolean
 }
 
 export async function createPartyContract(partyId: string, body: CreateContractInput) {
@@ -72,6 +79,8 @@ export async function createPartyContract(partyId: string, body: CreateContractI
     contractValue: body.contract_value?.trim() || undefined,
     agreementNo: body.agreement_no?.trim() || undefined,
     contractPeriod: duration_months ? `${duration_months} bulan` : undefined,
+    guidelineCategory: body.guideline_category?.trim() || undefined,
+    guidelineSummary: body.guideline_summary?.trim() || undefined,
   }
 
   let extracted_metadata: ContractMetadata = {}
@@ -168,8 +177,47 @@ export async function createPartyContract(partyId: string, body: CreateContractI
       save_mode: saveMode,
       has_document: Boolean(body.file),
       validation_status,
+      guideline_category: body.guideline_category ?? null,
+      ai_intake: true,
     },
   })
+
+  if (body.confirm_odoo_link && body.odoo_partner_id != null) {
+    try {
+      const odooLive =
+        process.env.ODOO_MODE === 'live' || process.env.NEXT_PUBLIC_ODOO_MODE === 'live'
+      const partners = odooLive
+        ? await searchOdooPartners([['id', '=', body.odoo_partner_id]], 1)
+        : await dummyOdooClient.searchPartners(
+            [['id', '=', body.odoo_partner_id]],
+            undefined,
+            1,
+          )
+      const partner = partners[0]
+      if (partner) {
+        const nextStatus = evaluateOdooLinkStatus(party.name, partner.name)
+        await db
+          .from('parties')
+          .update({
+            odoo_partner_id: body.odoo_partner_id,
+            odoo_link_status: nextStatus,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', partyId)
+
+        await db.from('audit_logs').insert({
+          action: `Odoo Partner di-link saat konfirmasi AI Upload — #${body.odoo_partner_id}`,
+          action_type: 'link',
+          party_id: partyId,
+          contract_id: contract.id,
+          actor_name: 'CMS',
+          payload: { odoo_partner_id: body.odoo_partner_id, status: nextStatus },
+        })
+      }
+    } catch {
+      // Link is best-effort on create; Legal can Link Odoo later
+    }
+  }
 
   return contract
 }
