@@ -172,8 +172,8 @@ a{color:inherit;}
 .kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
 .kpi-value{font-family:var(--serif);font-size:27px;font-weight:600;line-height:1;margin-top:2px;color:var(--ink);}
 .kpi-divider{height:1px;background:var(--line);margin:10px 0 8px;}
-.kpi-sub{font-size:11.5px;color:var(--ink);opacity:.85;margin-top:0;}
-.kpi-sub.up,.kpi-sub.warn{color:var(--ink);opacity:.85;}
+.kpi-sub{font-size:11.5px;color:var(--muted);margin-top:0;}
+.kpi-sub.up,.kpi-sub.warn{color:var(--muted);}
 
 .grid-2{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;margin-bottom:16px;align-items:start;}
 .card{background:var(--paper-2);border:1px solid var(--line);border-radius:var(--radius);padding:20px;}
@@ -1147,6 +1147,22 @@ tbody tr.clickable{transition:background .12s;}
           <div class="kpi-card"><div class="kpi-top"><span class="kpi-label">In Progress</span><div class="kpi-icon" style="background:var(--slate-light);color:var(--ink)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v6"/><path d="M8 11h6"/></svg></div></div><div class="kpi-value">9</div><div class="kpi-divider" aria-hidden="true"></div><div class="kpi-sub">Sedang diperiksa dari Odoo</div></div>
           <div class="kpi-card"><div class="kpi-top"><span class="kpi-label">Error</span><div class="kpi-icon" style="background:var(--red-light);color:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></div></div><div class="kpi-value">22</div><div class="kpi-divider" aria-hidden="true"></div><div class="kpi-sub">Kegagalan integrasi/validasi</div></div>
         </div>
+        <div class="table-toolbar" id="so-toolbar">
+          <label class="toolbar-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input id="so-q" type="search" placeholder="Cari SO / party / PIC…" aria-label="Cari SO" oninput="renderSo()">
+          </label>
+          <select id="so-party-filter" class="status-select" aria-label="Filter party" onchange="renderSo()"><option value="all">Party: Semua</option></select>
+          <select id="so-status-filter" class="status-select" aria-label="Filter sync status" onchange="renderSo()">
+            <option value="all">Status: Semua</option>
+            <option value="synchronized">Synchronized</option>
+            <option value="in_progress">In Progress</option>
+            <option value="no_so">No Active SO</option>
+            <option value="error">Error</option>
+          </select>
+          <select id="so-pic-filter" class="status-select" aria-label="Filter PIC" onchange="renderSo()"><option value="all">PIC: Semua</option></select>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin:0 0 10px;">Klik baris SO untuk melihat detail di Quotation/Sales Order (view only).</p>
         <table>
           <thead><tr><th>Party</th><th>SO Number</th><th>Sync Status</th><th>Terakhir Sinkron</th><th></th></tr></thead>
           <tbody id="so-tbody"></tbody>
@@ -3300,7 +3316,45 @@ async function hydrateSoDemoFromOdoo(){
 function renderSo(){
   const tbody = document.getElementById('so-tbody');
   if(!tbody) return;
-  tbody.innerHTML = SO_DEMO.map(r=>{
+  const q = (document.getElementById('so-q')?.value || '').trim().toLowerCase();
+  const partyF = document.getElementById('so-party-filter')?.value || 'all';
+  const statusF = document.getElementById('so-status-filter')?.value || 'all';
+  const picF = document.getElementById('so-pic-filter')?.value || 'all';
+
+  const partySel = document.getElementById('so-party-filter');
+  const picSel = document.getElementById('so-pic-filter');
+  if(partySel){
+    const prev = partySel.value;
+    const parties = [...new Set(SO_DEMO.map(r=>r.party).filter(Boolean))].sort();
+    partySel.innerHTML = '<option value="all">Party: Semua</option>' + parties.map(p=>'<option value="'+p+'">'+p+'</option>').join('');
+    if(parties.includes(prev) || prev==='all') partySel.value = prev;
+  }
+  if(picSel){
+    const prev = picSel.value;
+    const pics = [...new Set(SO_DEMO.map(r=>{
+      const p = typeof getParty==='function' ? getParty(r.party) : null;
+      return p && p.pic ? p.pic : '';
+    }).filter(Boolean))].sort();
+    picSel.innerHTML = '<option value="all">PIC: Semua</option>' + pics.map(p=>'<option value="'+p+'">'+p+'</option>').join('');
+    if(pics.includes(prev) || prev==='all') picSel.value = prev;
+  }
+
+  const rows = SO_DEMO.filter(r=>{
+    if(partyF!=='all' && r.party!==partyF) return false;
+    if(statusF!=='all' && r.status!==statusF) return false;
+    const p = typeof getParty==='function' ? getParty(r.party) : null;
+    const pic = p && p.pic ? p.pic : '';
+    if(picF!=='all' && pic!==picF) return false;
+    if(!q) return true;
+    const hay = [r.party, r.so, r.statusText, r.status, pic].join(' ').toLowerCase();
+    return hay.includes(q);
+  });
+
+  if(!rows.length){
+    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--muted)">Tidak ada SO yang cocok dengan pencarian / filter.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(r=>{
     return '<tr><td class="mono">'+r.party+'</td><td class="mono">'+r.so+'</td><td><span class="status-pill '+r.status+'">'+r.statusText+'</span></td><td>'+r.date+'</td><td><button class="btn small ghost" onclick="runSoSyncOne(\''+r.party+'\')">Re-sync</button></td></tr>';
   }).join('');
 }

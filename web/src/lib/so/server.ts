@@ -182,9 +182,9 @@ export async function listSyncedSaleOrders(partyId?: string) {
   const db = getSupabaseAdmin()
   let query = db
     .from('sale_orders')
-    .select(`*, ${PARTY_ON_SALE_ORDER}(party_code, name)`)
+    .select(`*, ${PARTY_ON_SALE_ORDER}(party_code, name, pic)`)
     .order('synced_at', { ascending: false })
-    .limit(100)
+    .limit(500)
 
   if (partyId) query = query.eq('party_id', partyId)
 

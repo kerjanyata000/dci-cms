@@ -2282,14 +2282,13 @@ a {
 
 .kpi-sub {
   font-size: 12px;
-  color: var(--ink);
+  color: var(--muted);
   line-height: 1.4;
-  opacity: 0.85;
 }
 
 .kpi-sub.up,
 .kpi-sub.warn {
-  color: var(--ink);
+  color: var(--muted);
 }
 
 .kpi-green .kpi-value,

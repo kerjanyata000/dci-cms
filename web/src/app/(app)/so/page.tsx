@@ -19,7 +19,21 @@ function syncStatusLabel(state: string): { label: string; className: string } {
   return { label: state, className: 'draft' }
 }
 
+const STATUS_FILTERS = [
+  { value: 'all', label: 'Status: Semua' },
+  { value: 'done', label: 'Synchronized' },
+  { value: 'sale', label: 'Confirmed SO' },
+  { value: 'quote', label: 'Quotation' },
+  { value: 'cancel', label: 'Cancelled' },
+] as const
+
 const SO_PAGE_SIZE = 10
+
+function matchesStatusFilter(state: string, filter: string) {
+  if (filter === 'all') return true
+  if (filter === 'quote') return state === 'draft' || state === 'sent'
+  return state === filter
+}
 
 export default function SoHealthPage() {
   const { user } = useAuth()
@@ -31,9 +45,62 @@ export default function SoHealthPage() {
   const [busy, setBusy] = useState(false)
   const [page, setPage] = useState(1)
   const [detailId, setDetailId] = useState<string | null>(null)
+  const [q, setQ] = useState('')
+  const [partyFilter, setPartyFilter] = useState('all')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [picFilter, setPicFilter] = useState('all')
 
   const canSync = user ? ROLES[user.role].canSync || ROLES[user.role].canEdit : false
-  const pageRows = useMemo(() => paginateSlice(rows, page, SO_PAGE_SIZE), [rows, page])
+
+  const partyOptions = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const row of rows) {
+      const code = row.parties?.party_code
+      if (!code) continue
+      map.set(code, row.parties?.name ? `${code} · ${row.parties.name}` : code)
+    }
+    return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]))
+  }, [rows])
+
+  const picOptions = useMemo(() => {
+    const set = new Set<string>()
+    for (const row of rows) {
+      const pic = row.parties?.pic?.trim()
+      if (pic) set.add(pic)
+    }
+    return [...set].sort((a, b) => a.localeCompare(b))
+  }, [rows])
+
+  const filteredRows = useMemo(() => {
+    const needle = q.trim().toLowerCase()
+    return rows.filter((row) => {
+      if (partyFilter !== 'all' && row.parties?.party_code !== partyFilter) return false
+      if (!matchesStatusFilter(row.state, statusFilter)) return false
+      if (picFilter !== 'all' && (row.parties?.pic?.trim() || '') !== picFilter) return false
+      if (!needle) return true
+      const hay = [
+        row.name,
+        row.state,
+        row.parties?.party_code,
+        row.parties?.name,
+        row.parties?.pic,
+        String(row.odoo_order_id),
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+      return hay.includes(needle)
+    })
+  }, [rows, q, partyFilter, statusFilter, picFilter])
+
+  const pageRows = useMemo(
+    () => paginateSlice(filteredRows, page, SO_PAGE_SIZE),
+    [filteredRows, page],
+  )
+
+  useEffect(() => {
+    setPage(1)
+  }, [q, partyFilter, statusFilter, picFilter])
 
   async function load() {
     setError('')
@@ -84,8 +151,17 @@ export default function SoHealthPage() {
   return (
     <div>
       <div className="page-head">
-        <div className="crumb">Registry</div>
-        <h1>SO Health</h1>
+        <div>
+          <div className="crumb">Registry</div>
+          <h1>SO Health</h1>
+        </div>
+        {canSync && (
+          <div className="btn-row">
+            <button className="btn primary" type="button" onClick={() => void syncAll()} disabled={busy}>
+              {busy ? 'Syncing…' : 'Run Sync Now'}
+            </button>
+          </div>
+        )}
       </div>
 
       {loading && (
@@ -130,16 +206,63 @@ export default function SoHealthPage() {
       )}
 
       <div className="card stack">
-        <div className="row-actions">
-          <button className="btn ghost" type="button" onClick={() => void load()} disabled={busy}>
-            Refresh
-          </button>
-          {canSync && (
-            <button className="btn primary" type="button" onClick={() => void syncAll()} disabled={busy}>
-              {busy ? 'Syncing…' : 'Run Sync Now'}
-            </button>
-          )}
+        <div className="table-toolbar">
+          <label className="toolbar-search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              id="so-q"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Cari SO / party / PIC…"
+              aria-label="Cari SO"
+            />
+          </label>
+          <select
+            id="so-party-filter"
+            className="status-select"
+            value={partyFilter}
+            onChange={(e) => setPartyFilter(e.target.value)}
+            aria-label="Filter party"
+          >
+            <option value="all">Party: Semua</option>
+            {partyOptions.map(([code, label]) => (
+              <option key={code} value={code}>
+                {label}
+              </option>
+            ))}
+          </select>
+          <select
+            id="so-status-filter"
+            className="status-select"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            aria-label="Filter sync status"
+          >
+            {STATUS_FILTERS.map((f) => (
+              <option key={f.value} value={f.value}>
+                {f.label}
+              </option>
+            ))}
+          </select>
+          <select
+            id="so-pic-filter"
+            className="status-select"
+            value={picFilter}
+            onChange={(e) => setPicFilter(e.target.value)}
+            aria-label="Filter PIC"
+          >
+            <option value="all">PIC: Semua</option>
+            {picOptions.map((pic) => (
+              <option key={pic} value={pic}>
+                {pic}
+              </option>
+            ))}
+          </select>
         </div>
+
         <p className="muted" style={{ margin: 0 }}>
           Klik baris SO untuk melihat detail mirip Quotation / Sales Order (view-only).
         </p>
@@ -162,7 +285,9 @@ export default function SoHealthPage() {
               {!loading && pageRows.length === 0 && (
                 <tr>
                   <td colSpan={6} className="muted">
-                    Belum ada SO tersimpan. Link party ke Odoo lalu Run Sync.
+                    {rows.length === 0
+                      ? 'Belum ada SO tersimpan. Link party ke Odoo lalu Run Sync.'
+                      : 'Tidak ada SO yang cocok dengan pencarian / filter.'}
                   </td>
                 </tr>
               )}
@@ -209,7 +334,7 @@ export default function SoHealthPage() {
         <TablePagination
           page={page}
           pageSize={SO_PAGE_SIZE}
-          total={rows.length}
+          total={filteredRows.length}
           onPageChange={setPage}
           itemLabel="SO"
         />

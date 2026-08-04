@@ -19,7 +19,7 @@ export type SyncSoResult = {
 }
 
 export type SyncedOrderRow = SaleOrderRow & {
-  parties?: { party_code: string; name: string } | null
+  parties?: { party_code: string; name: string; pic: string | null } | null
 }
 
 export type SoHealthSummary = {
